@@ -22,6 +22,10 @@ class EnvironmentVariablesValidator {
   @IsOptional()
   NODE_ENV: Environment;
 
+  @IsString()
+  @IsOptional()
+  APP_NAME: string;
+
   @IsInt()
   @Min(0)
   @Max(65535)
@@ -36,6 +40,10 @@ class EnvironmentVariablesValidator {
   @IsOptional()
   BACKEND_DOMAIN: string;
 
+  @IsUrl({ require_tld: false })
+  @IsOptional()
+  DOCS_URL: string;
+
   @IsString()
   @IsOptional()
   API_PREFIX: string;
@@ -47,6 +55,7 @@ export default registerAs<AppConfig>('app', () => {
   return {
     nodeEnv: process.env.NODE_ENV || 'development',
     name: process.env.APP_NAME || 'app',
+    docsUrl: process.env.DOCS_URL || 'http://localhost:3000/docs',
     workingDirectory: process.env.PWD || process.cwd(),
     frontendDomain: process.env.FRONTEND_DOMAIN,
     backendDomain: process.env.BACKEND_DOMAIN ?? 'http://localhost',
