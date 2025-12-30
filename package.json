@@ -7,6 +7,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "dev:services": "docker compose up -d",
+    "dev:services:down": "docker compose down",
+    "dev:services:logs": "docker compose logs -f --tail=200",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

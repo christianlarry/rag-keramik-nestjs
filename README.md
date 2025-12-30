@@ -21,78 +21,131 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+# Keramik Store API (NestJS)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Backend REST API untuk **platform toko keramik** yang mencakup:
+- **E‑commerce core** (products, orders)
+- **Payment gateway Midtrans** (Snap + webhook)
+- **RAG-powered Product Knowledge Assistant** (dokumen katalog/FAQ/aturan pemasangan)
 
-## Project setup
+Dokumen desain & roadmap ada di:
+- `../docs/SYSTEM_DESIGN.md`
+- `../docs/IMPLEMENTATION_ROADMAP.md`
 
+## Tech Stack (final)
+- Runtime: Node.js (LTS) + TypeScript
+- Framework: NestJS
+- Database transaksi: PostgreSQL
+- ORM: Prisma
+- Cache: Redis
+- Vector DB: Qdrant (self-hosted)
+- LLM & Embedding: Ollama (local)
+- Payment gateway: Midtrans (Snap + webhook)
+- API docs: Swagger (`/docs`)
+
+## Prerequisites
+Service yang perlu tersedia saat development:
+- PostgreSQL
+- Redis
+- Qdrant
+- Ollama (jalan di host atau container)
+
+Port default yang umum:
+- Postgres: `5432`
+- Redis: `6379`
+- Qdrant: `6333`
+- Ollama: `11434`
+
+## Getting Started
+### 0) Start dependencies (Docker Compose)
+Di folder `rag-keramik-nestjs/`:
 ```bash
-$ npm install
+npm run dev:services
 ```
 
-## Compile and run the project
+Services yang akan menyala:
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
+- Qdrant: `http://localhost:6333`
+- Ollama: `http://localhost:11434`
 
+### 1) Install dependencies
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 2) Siapkan environment variables
+Gunakan `.env` di root folder ini (`rag-keramik-nestjs/`).
 
+Mulai cepat:
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
+Minimal app config (sudah dipakai oleh app sekarang):
+- `NODE_ENV` (default: `development`)
+- `APP_PORT` (default: `3000`)
+- `API_PREFIX` (default: `api`)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Service config (dibutuhkan sesuai roadmap/fitur):
+- `DATABASE_URL`
+- `REDIS_URL`
+- `QDRANT_URL`
+- `QDRANT_COLLECTION`
+- `OLLAMA_BASE_URL`
+- `OLLAMA_LLM_MODEL`
+- `OLLAMA_EMBED_MODEL`
+- `MIDTRANS_SERVER_KEY`
+- `MIDTRANS_CLIENT_KEY`
+- `MIDTRANS_IS_PRODUCTION`
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 3) Jalankan API
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 4) Swagger
+Swagger UI tersedia di:
+- `http://localhost:<APP_PORT>/docs`
 
-## Resources
+Semua endpoint API mengikuti:
+- `/<API_PREFIX>/v1/...` (URI versioning)
 
-Check out a few resources that may come in handy when working with NestJS:
+## Key Endpoints (target desain)
+> Daftar ini mengikuti desain sistem; implementasi endpoint dilakukan bertahap sesuai roadmap.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Payments (Midtrans)
+- `POST /<API_PREFIX>/v1/payments/midtrans/snap`
+- `POST /<API_PREFIX>/v1/payments/midtrans/webhook`
 
-## Support
+### Documents & RAG
+- `POST /<API_PREFIX>/v1/documents` (upload)
+- `POST /<API_PREFIX>/v1/documents/:id/ingest` (enqueue)
+- `POST /<API_PREFIX>/v1/chat/ask`
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Products / Orders
+- `GET /<API_PREFIX>/v1/products`
+- `POST /<API_PREFIX>/v1/orders`
 
-## Stay in touch
+## Local Models (Ollama)
+Contoh (sesuaikan dengan model pilihan Anda):
+```bash
+ollama pull nomic-embed-text
+ollama pull llama3.2
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Lalu set di `.env`:
+- `OLLAMA_BASE_URL=http://localhost:11434`
+- `OLLAMA_EMBED_MODEL=nomic-embed-text`
+- `OLLAMA_LLM_MODEL=llama3.2`
 
-## License
+## Testing
+```bash
+npm run test
+npm run test:e2e
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Notes
+- Endpoint webhook Midtrans harus **idempotent** dan memverifikasi signature.
+- RAG pipeline sebaiknya berjalan via job queue (BullMQ) agar tidak mengunci request.
+- Produk menggunakan `attributes` (JSONB) agar fleksibel untuk variasi spesifikasi keramik.
