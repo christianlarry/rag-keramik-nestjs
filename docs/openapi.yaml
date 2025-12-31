@@ -1,0 +1,2063 @@
+openapi: 3.0.3
+info:
+  title: Keramik Store Platform API
+  description: |
+    Backend REST API for ceramic tile e-commerce platform with RAG-powered product assistant and Midtrans payment integration.
+    
+    ## Features
+    - **E-commerce Core**: Product catalog, inventory, cart, orders, and payments
+    - **RAG Assistant**: Document-based product knowledge Q&A using vector search and LLM
+    - **Payment Integration**: Midtrans Snap payment with webhook synchronization
+    - **Discount System**: Product discounts, vouchers, and promotional codes
+    
+    ## Authentication
+    The API supports multiple authentication methods:
+    - **Email/Password**: Traditional authentication via `/v1/auth/register` and `/v1/auth/login`
+    - **Google OAuth2**: Social login via `/v1/auth/google`
+    - **Facebook OAuth2**: Social login via `/v1/auth/facebook`
+    
+    Most endpoints require JWT Bearer token authentication. Admin-only endpoints are marked with `[ADMIN]` tag.
+    
+    ### OAuth2 Flow
+    1. Frontend redirects user to `/v1/auth/google` or `/v1/auth/facebook`
+    2. User completes authentication with OAuth provider
+    3. Provider redirects to callback URL with authorization code
+    4. Backend exchanges code for user info and returns JWT tokens
+    5. Frontend stores tokens and uses for subsequent API calls
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@keramik-store.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.keramik-store.com/api
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Authentication and authorization
+  - name: Users
+    description: User profile management
+  - name: Products
+    description: Product catalog and management
+  - name: Inventory
+    description: Stock management
+  - name: Cart
+    description: Shopping cart operations
+  - name: Orders
+    description: Order management and lifecycle
+  - name: Payments
+    description: Payment processing via Midtrans
+  - name: Discounts
+    description: Discount and voucher management
+  - name: Documents
+    description: |
+      Document upload and RAG ingestion pipeline.
+      
+      **What are Documents?**
+      Documents are source files (PDF, DOCX, TXT) containing product information, catalogs, FAQs, installation guides, etc. These files are the "knowledge base" for the RAG (Retrieval-Augmented Generation) system.
+      
+      **RAG Pipeline:**
+      1. **Upload** - Admin uploads document files
+      2. **Parse** - Extract text from PDF/DOCX/TXT
+      3. **Chunk** - Split text into smaller pieces (~500-800 tokens with overlap)
+      4. **Embed** - Convert each chunk to vector using Ollama embedding model
+      5. **Index** - Store vectors in Qdrant with metadata (documentId, title, sourceType)
+      6. **Query** - When user asks question, system searches Qdrant for relevant chunks
+      7. **Generate** - LLM uses retrieved chunks as context to answer user's question
+      
+      **Example:**
+      - Upload "Katalog_Keramik_2024.pdf" → Creates 1 Document record
+      - System processes it → Creates 100 DocumentChunks → 100 vectors in Qdrant
+      - User asks "Keramik anti-slip 30x30?" → Qdrant returns top 5 relevant chunks
+      - LLM uses those chunks to generate accurate answer about available anti-slip tiles
+  - name: Chat
+    description: RAG-powered chat assistant
+  - name: Audit
+    description: System audit logs
+  - name: Health
+    description: System health and monitoring
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ==================== HEALTH ====================
+  /v1/health:
+    get:
+      tags: [Health]
+      summary: Health check endpoint
+      description: Returns system health status including database and dependencies
+      security: []
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, degraded, down]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        enum: [up, down]
+                      redis:
+                        type: string
+                        enum: [up, down]
+                      vectorDb:
+                        type: string
+                        enum: [up, down]
+                      llm:
+                        type: string
+                        enum: [up, down]
+
+  # ==================== AUTH ====================
+  /v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register new user
+      description: Create a new customer account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  maxLength: 255
+                name:
+                  type: string
+                  maxLength: 255
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      description: Authenticate user and return JWT tokens
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      description: Get new access token using refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  expiresIn:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout user
+      description: Invalidate current session
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /v1/auth/google:
+    get:
+      tags: [Auth]
+      summary: Google OAuth2 login
+      description: Initiate Google OAuth2 authentication flow. Redirects to Google login page.
+      security: []
+      responses:
+        '302':
+          description: Redirect to Google OAuth2 consent screen
+        '500':
+          description: OAuth2 configuration error
+
+  /v1/auth/google/callback:
+    get:
+      tags: [Auth]
+      summary: Google OAuth2 callback
+      description: Handle Google OAuth2 callback and complete authentication
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Authorization code from Google
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: State parameter for CSRF protection
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          description: Invalid callback parameters
+
+  /v1/auth/facebook:
+    get:
+      tags: [Auth]
+      summary: Facebook OAuth2 login
+      description: Initiate Facebook OAuth2 authentication flow. Redirects to Facebook login page.
+      security: []
+      responses:
+        '302':
+          description: Redirect to Facebook OAuth2 consent screen
+        '500':
+          description: OAuth2 configuration error
+
+  /v1/auth/facebook/callback:
+    get:
+      tags: [Auth]
+      summary: Facebook OAuth2 callback
+      description: Handle Facebook OAuth2 callback and complete authentication
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Authorization code from Facebook
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: State parameter for CSRF protection
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          description: Invalid callback parameters
+
+  # ==================== USERS ====================
+  /v1/users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags: [Users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/users:
+    get:
+      tags: [Users]
+      summary: List all users [ADMIN]
+      description: Get paginated list of users (admin only)
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: role
+          in: query
+          schema:
+            $ref: '#/components/schemas/Role'
+        - name: search
+          in: query
+          description: Search by name or email
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsers'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /v1/users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: User retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== PRODUCTS ====================
+  /v1/products:
+    get:
+      tags: [Products]
+      summary: List products
+      description: Get paginated list of products with filtering and sorting
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: search
+          in: query
+          description: Search by name, sku, or brand
+          schema:
+            type: string
+        - name: brand
+          in: query
+          description: Filter by brand
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, OUT_OF_STOCK]
+        - name: sortBy
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [name, price, createdAt, updatedAt]
+            default: createdAt
+        - name: sortOrder
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Products retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProducts'
+
+    post:
+      tags: [Products]
+      summary: Create product [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductDto'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /v1/products/{id}:
+    get:
+      tags: [Products]
+      summary: Get product by ID
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Product retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Products]
+      summary: Update product [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductDto'
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Products]
+      summary: Delete product [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Product deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== INVENTORY ====================
+  /v1/inventory/{productId}:
+    get:
+      tags: [Inventory]
+      summary: Get product inventory
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Inventory retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Inventory]
+      summary: Update inventory [ADMIN]
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stock:
+                  type: integer
+                  minimum: 0
+                reserved:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: Inventory updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+
+  # ==================== CART ====================
+  /v1/cart:
+    get:
+      tags: [Cart]
+      summary: Get current user's cart
+      responses:
+        '200':
+          description: Cart retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartDetail'
+
+  /v1/cart/items:
+    post:
+      tags: [Cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, quantity]
+              properties:
+                productId:
+                  type: string
+                  format: uuid
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '201':
+          description: Item added to cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/cart/items/{itemId}:
+    patch:
+      tags: [Cart]
+      summary: Update cart item quantity
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 0
+                  description: Set to 0 to remove item
+      responses:
+        '200':
+          description: Cart item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartDetail'
+
+    delete:
+      tags: [Cart]
+      summary: Remove item from cart
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Item removed from cart
+
+  /v1/cart/clear:
+    delete:
+      tags: [Cart]
+      summary: Clear entire cart
+      responses:
+        '204':
+          description: Cart cleared
+
+  # ==================== ORDERS ====================
+  /v1/orders:
+    get:
+      tags: [Orders]
+      summary: List user's orders
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/OrderStatus'
+      responses:
+        '200':
+          description: Orders retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrders'
+
+    post:
+      tags: [Orders]
+      summary: Create order (checkout)
+      description: Create order from cart items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                discountCode:
+                  type: string
+                  description: Optional voucher/discount code
+                notes:
+                  type: string
+                  maxLength: 1000
+                shippingAddress:
+                  type: object
+                  required: [name, phone, address, city, postalCode]
+                  properties:
+                    name:
+                      type: string
+                    phone:
+                      type: string
+                    address:
+                      type: string
+                    city:
+                      type: string
+                    province:
+                      type: string
+                    postalCode:
+                      type: string
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get order by ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Order retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Orders]
+      summary: Update order status [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/OrderStatus'
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+
+  # ==================== PAYMENTS ====================
+  /v1/payments/midtrans/snap:
+    post:
+      tags: [Payments]
+      summary: Create Midtrans Snap payment
+      description: Generate Snap token for order payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId]
+              properties:
+                orderId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Snap token created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  snapToken:
+                    type: string
+                  snapUrl:
+                    type: string
+                  orderId:
+                    type: string
+                  paymentId:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/payments/midtrans/webhook:
+    post:
+      tags: [Payments]
+      summary: Midtrans webhook callback
+      description: Handle payment status updates from Midtrans
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Midtrans notification payload
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Invalid signature or payload
+
+  /v1/payments/{id}:
+    get:
+      tags: [Payments]
+      summary: Get payment details
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Payment retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+
+  # ==================== DISCOUNTS ====================
+  /v1/discounts:
+    get:
+      tags: [Discounts]
+      summary: List discounts [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/DiscountStatus'
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/DiscountType'
+      responses:
+        '200':
+          description: Discounts retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDiscounts'
+
+    post:
+      tags: [Discounts]
+      summary: Create discount [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDiscountDto'
+      responses:
+        '201':
+          description: Discount created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discount'
+
+  /v1/discounts/validate:
+    post:
+      tags: [Discounts]
+      summary: Validate discount code
+      description: Check if discount code is valid and applicable to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                cartTotal:
+                  type: number
+                  description: Optional cart total for validation
+      responses:
+        '200':
+          description: Discount is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  discount:
+                    $ref: '#/components/schemas/Discount'
+                  discountAmount:
+                    type: number
+                    description: Calculated discount amount
+        '400':
+          description: Discount is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: false
+                  reason:
+                    type: string
+                    enum: [NOT_FOUND, EXPIRED, INACTIVE, USAGE_LIMIT_REACHED, MIN_PURCHASE_NOT_MET]
+
+  /v1/discounts/{id}:
+    get:
+      tags: [Discounts]
+      summary: Get discount by ID [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Discount retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discount'
+
+    patch:
+      tags: [Discounts]
+      summary: Update discount [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDiscountDto'
+      responses:
+        '200':
+          description: Discount updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discount'
+
+    delete:
+      tags: [Discounts]
+      summary: Delete discount [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Discount deleted
+
+  # ==================== DOCUMENTS ====================
+  /v1/documents:
+    get:
+      tags: [Documents]
+      summary: List documents [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/DocumentStatus'
+        - name: sourceType
+          in: query
+          schema:
+            type: string
+            enum: [CATALOG, FAQ, GUIDE, MANUAL]
+      responses:
+        '200':
+          description: Documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDocuments'
+
+    post:
+      tags: [Documents]
+      summary: Upload document [ADMIN]
+      description: Upload document for RAG ingestion (PDF, DOCX, TXT)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                sourceType:
+                  type: string
+                  enum: [CATALOG, FAQ, GUIDE, MANUAL]
+      responses:
+        '201':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/documents/{id}:
+    get:
+      tags: [Documents]
+      summary: Get document by ID [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Document retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+
+    delete:
+      tags: [Documents]
+      summary: Delete document [ADMIN]
+      description: Delete document and all associated chunks/vectors
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Document deleted
+
+  /v1/documents/{id}/ingest:
+    post:
+      tags: [Documents]
+      summary: Trigger document ingestion [ADMIN]
+      description: Enqueue document for parsing, chunking, embedding, and indexing
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '202':
+          description: Ingestion job enqueued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  jobId:
+                    type: string
+
+  /v1/documents/{id}/download:
+    get:
+      tags: [Documents]
+      summary: Download document file [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Document file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                type: string
+
+  # ==================== CHAT ====================
+  /v1/chat/ask:
+    post:
+      tags: [Chat]
+      summary: Ask RAG assistant
+      description: Ask product-related questions using RAG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                question:
+                  type: string
+                  maxLength: 1000
+                sessionId:
+                  type: string
+                  format: uuid
+                  description: Optional session ID for conversation history
+      responses:
+        '200':
+          description: Answer generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answer:
+                    type: string
+                  sessionId:
+                    type: string
+                  messageId:
+                    type: string
+                  contextUsed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        documentId:
+                          type: string
+                        documentTitle:
+                          type: string
+                        chunkId:
+                          type: string
+                        content:
+                          type: string
+                        score:
+                          type: number
+                  model:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/chat/sessions:
+    get:
+      tags: [Chat]
+      summary: List chat sessions
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Sessions retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedChatSessions'
+
+  /v1/chat/sessions/{id}:
+    get:
+      tags: [Chat]
+      summary: Get chat session with messages
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Session retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSessionDetail'
+
+    delete:
+      tags: [Chat]
+      summary: Delete chat session
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Session deleted
+
+  # ==================== AUDIT ====================
+  /v1/audit/events:
+    get:
+      tags: [Audit]
+      summary: List audit events [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: action
+          in: query
+          schema:
+            type: string
+          description: Filter by action type
+        - name: actorId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by actor user ID
+        - name: targetType
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Audit events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogs'
+
+# ==================== COMPONENTS ====================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /v1/auth/login
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    Limit:
+      name: limit
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    # ==================== ENUMS ====================
+    Role:
+      type: string
+      enum: [ADMIN, STAFF, CUSTOMER]
+
+    OrderStatus:
+      type: string
+      enum: [DRAFT, PENDING_PAYMENT, PAID, FULFILLMENT, COMPLETED, CANCELLED]
+
+    PaymentStatus:
+      type: string
+      enum: [INITIATED, PENDING, SETTLEMENT, CANCEL, EXPIRE, DENY, REFUND, FAILED]
+
+    PaymentProvider:
+      type: string
+      enum: [MIDTRANS]
+
+    DocumentStatus:
+      type: string
+      enum: [UPLOADED, PROCESSING, INDEXED, FAILED]
+
+    ChatMessageRole:
+      type: string
+      enum: [USER, ASSISTANT, SYSTEM]
+
+    DiscountType:
+      type: string
+      enum: [PERCENTAGE, FIXED_AMOUNT]
+
+    DiscountStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, EXPIRED]
+
+    DiscountApplicability:
+      type: string
+      enum: [ALL_PRODUCTS, SPECIFIC_PRODUCTS, MINIMUM_PURCHASE]
+
+    # ==================== AUTH & USERS ====================
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          description: Token expiration in seconds
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+        provider:
+          type: string
+          nullable: true
+          enum: [local, google, facebook]
+          description: Authentication provider (local for email/password, google, or facebook)
+        providerId:
+          type: string
+          nullable: true
+          description: OAuth provider user ID (Google ID or Facebook ID)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PaginatedUsers:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+
+    # ==================== PRODUCTS ====================
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        brand:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
+        price:
+          type: number
+          format: decimal
+        tilePerBox:
+          type: integer
+        currency:
+          type: string
+          default: IDR
+        attributes:
+          type: object
+          nullable: true
+          description: Flexible attributes (size, grade, finish, indoor/outdoor, anti-slip, etc.)
+          example:
+            size: "30x30"
+            grade: "KW1"
+            finish: "Glossy"
+            indoor: true
+            antiSlip: false
+        status:
+          type: string
+          default: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            inventory:
+              $ref: '#/components/schemas/Inventory'
+            activeDiscounts:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  type:
+                    $ref: '#/components/schemas/DiscountType'
+                  value:
+                    type: number
+                  discountedPrice:
+                    type: number
+
+    CreateProductDto:
+      type: object
+      required: [sku, name, price, tilePerBox]
+      properties:
+        sku:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        brand:
+          type: string
+          maxLength: 255
+        imageUrl:
+          type: string
+          maxLength: 2048
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+        tilePerBox:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          default: IDR
+        attributes:
+          type: object
+        status:
+          type: string
+          default: ACTIVE
+
+    UpdateProductDto:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        brand:
+          type: string
+          maxLength: 255
+        imageUrl:
+          type: string
+          maxLength: 2048
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+        tilePerBox:
+          type: integer
+          minimum: 1
+        attributes:
+          type: object
+        status:
+          type: string
+
+    PaginatedProducts:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+
+    # ==================== INVENTORY ====================
+    Inventory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        stock:
+          type: integer
+        reserved:
+          type: integer
+        available:
+          type: integer
+          description: Calculated field (stock - reserved)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ==================== CART ====================
+    CartDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              productId:
+                type: string
+                format: uuid
+              product:
+                $ref: '#/components/schemas/Product'
+              quantity:
+                type: integer
+              subtotal:
+                type: number
+                description: quantity * product.price
+        summary:
+          type: object
+          properties:
+            itemCount:
+              type: integer
+            subtotal:
+              type: number
+            estimatedTotal:
+              type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ==================== ORDERS ====================
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderNumber:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        subtotal:
+          type: number
+          format: decimal
+        tax:
+          type: number
+          format: decimal
+        shippingCost:
+          type: number
+          format: decimal
+        discountAmount:
+          type: number
+          format: decimal
+        total:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    OrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  productId:
+                    type: string
+                  product:
+                    $ref: '#/components/schemas/Product'
+                  quantity:
+                    type: integer
+                  unitPrice:
+                    type: number
+                  originalPrice:
+                    type: number
+                  currency:
+                    type: string
+                  subtotal:
+                    type: number
+            discount:
+              nullable: true
+              type: object
+              properties:
+                id:
+                  type: string
+                code:
+                  type: string
+                name:
+                  type: string
+            payments:
+              type: array
+              items:
+                $ref: '#/components/schemas/Payment'
+
+    PaginatedOrders:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Order'
+
+    # ==================== PAYMENTS ====================
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        provider:
+          $ref: '#/components/schemas/PaymentProvider'
+        providerRef:
+          type: string
+          description: Midtrans order_id or transaction reference
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ==================== DISCOUNTS ====================
+    Discount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type:
+          $ref: '#/components/schemas/DiscountType'
+        applicability:
+          $ref: '#/components/schemas/DiscountApplicability'
+        value:
+          type: number
+          format: decimal
+        minPurchase:
+          type: number
+          format: decimal
+          nullable: true
+        maxDiscount:
+          type: number
+          format: decimal
+          nullable: true
+        usageLimit:
+          type: integer
+          nullable: true
+        usageCount:
+          type: integer
+        perUserLimit:
+          type: integer
+          nullable: true
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/DiscountStatus'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateDiscountDto:
+      type: object
+      required: [code, name, type, value, startDate, endDate]
+      properties:
+        code:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/DiscountType'
+        applicability:
+          $ref: '#/components/schemas/DiscountApplicability'
+        value:
+          type: number
+          format: decimal
+        minPurchase:
+          type: number
+          format: decimal
+        maxDiscount:
+          type: number
+          format: decimal
+        usageLimit:
+          type: integer
+        perUserLimit:
+          type: integer
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/DiscountStatus'
+        productIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Product IDs if applicability is SPECIFIC_PRODUCTS
+
+    UpdateDiscountDto:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        value:
+          type: number
+        minPurchase:
+          type: number
+        maxDiscount:
+          type: number
+        usageLimit:
+          type: integer
+        perUserLimit:
+          type: integer
+        endDate:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/DiscountStatus'
+
+    PaginatedDiscounts:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Discount'
+
+    # ==================== DOCUMENTS ====================
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        filename:
+          type: string
+        mimeType:
+          type: string
+        sizeBytes:
+          type: integer
+        storageKey:
+          type: string
+        sourceType:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/DocumentStatus'
+        chunksCount:
+          type: integer
+          description: Number of chunks generated
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PaginatedDocuments:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Document'
+
+    # ==================== CHAT ====================
+    ChatSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        messageCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChatSessionDetail:
+      allOf:
+        - $ref: '#/components/schemas/ChatSession'
+        - type: object
+          properties:
+            messages:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  role:
+                    $ref: '#/components/schemas/ChatMessageRole'
+                  content:
+                    type: string
+                  model:
+                    type: string
+                    nullable: true
+                  createdAt:
+                    type: string
+                    format: date-time
+
+    PaginatedChatSessions:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/ChatSession'
+
+    # ==================== AUDIT ====================
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        actorId:
+          type: string
+          format: uuid
+          nullable: true
+        action:
+          type: string
+        targetType:
+          type: string
+          nullable: true
+        targetId:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedAuditLogs:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/AuditLog'
+
+    # ==================== COMMON ====================
+    PaginationMeta:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+            hasNextPage:
+              type: boolean
+            hasPreviousPage:
+              type: boolean
+
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        error:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 400
+            message: ["price must be a positive number"]
+            error: Bad Request
+
+    Unauthorized:
+      description: Unauthorized - invalid or missing token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 401
+            message: Unauthorized
+            error: Unauthorized
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 403
+            message: Forbidden resource
+            error: Forbidden
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 404
+            message: Resource not found
+            error: Not Found
