@@ -7,14 +7,14 @@ function validateConfig<T extends object>(
   envVariablesClass: ClassConstructor<T>,
 ) {
   const validatedConfig = plainToClass(envVariablesClass, config, {
-    enableImplicitConversion: true,
+    enableImplicitConversion: true, // Automatically convert types
   });
   const errors = validateSync(validatedConfig, {
-    skipMissingProperties: false,
+    skipMissingProperties: false, // Ensure all properties are validated
   });
 
   if (errors.length > 0) {
-    throw new Error(errors.toString());
+    throw new Error(errors.toString()); // Throw an error if validation fails
   }
   return validatedConfig;
 }

@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from './config/config.type';
+import { PrismaService } from './modules/prisma/prisma.service';
 
 @Injectable()
 export class AppService {
 
-  constructor(private readonly configService: ConfigService<AllConfigType>) { }
+  constructor(
+    private readonly configService: ConfigService<AllConfigType>,
+    private readonly prismaService: PrismaService,
+  ) { }
   appInfo() {
 
     const APP_NAME = this.configService.getOrThrow('app.name', { infer: true });
