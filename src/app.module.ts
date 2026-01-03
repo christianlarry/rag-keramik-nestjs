@@ -12,6 +12,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 
 // Feature Modules
 import { UsersModule } from './modules/users/users.module';
+import mailConfig from './modules/mail/config/mail.config';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { UsersModule } from './modules/users/users.module';
       // Load config files, can add more config files here
       load: [
         appConfig,
-        prismaConfig
+        prismaConfig,
+        mailConfig
       ],
     }),
 

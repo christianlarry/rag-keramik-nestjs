@@ -11,10 +11,25 @@ info:
     - **Discount System**: Product discounts, vouchers, and promotional codes
     
     ## Authentication
-    The API supports multiple authentication methods:
-    - **Email/Password**: Traditional authentication via `/v1/auth/register` and `/v1/auth/login`
+    The API supports multiple authentication methods with comprehensive security features:
+    
+    ### Email/Password Authentication
+    - **Registration**: Create account via `/v1/auth/register` with email verification
+    - **Email Verification**: Verify email with token sent to inbox
+    - **Login**: Authenticate via `/v1/auth/login` (requires verified email)
+    - **Password Management**: 
+      - Forgot password flow with email reset link
+      - Reset password with token
+      - Change password for authenticated users
+    
+    ### Social Authentication (OAuth2)
     - **Google OAuth2**: Social login via `/v1/auth/google`
     - **Facebook OAuth2**: Social login via `/v1/auth/facebook`
+    
+    ### Token Management
+    - **JWT Tokens**: Access tokens (short-lived) and refresh tokens (long-lived)
+    - **Token Refresh**: Renew access token via `/v1/auth/refresh`
+    - **Logout**: Invalidate session and tokens via `/v1/auth/logout`
     
     Most endpoints require JWT Bearer token authentication. Admin-only endpoints are marked with `[ADMIN]` tag.
     
@@ -129,7 +144,9 @@ paths:
     post:
       tags: [Auth]
       summary: Register new user
-      description: Create a new customer account
+      description: |
+        Create a new customer account. After successful registration, a verification email will be sent to the provided email address.
+        User must verify their email before they can login.
       security: []
       requestBody:
         required: true
@@ -143,21 +160,34 @@ paths:
                   type: string
                   format: email
                   maxLength: 255
+                  example: user@example.com
                 password:
                   type: string
                   format: password
                   minLength: 8
                   maxLength: 255
+                  description: Must contain at least 8 characters
+                  example: SecurePass123!
                 name:
                   type: string
                   maxLength: 255
+                  example: John Doe
       responses:
         '201':
-          description: User registered successfully
+          description: User registered successfully. Verification email sent.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Registration successful. Please check your email to verify your account.
+                  userId:
+                    type: string
+                    format: uuid
+                  email:
+                    type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -167,11 +197,91 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /v1/auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email address
+      description: Verify user's email address using the token sent via email
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  description: Email verification token from the email
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Email verified successfully. You can now login.
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/resend-verification:
+    post:
+      tags: [Auth]
+      summary: Resend verification email
+      description: Resend email verification link to user's email
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Verification email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Verification email sent. Please check your inbox.
+        '400':
+          description: Email already verified or not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Too many requests. Please wait before requesting again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /v1/auth/login:
     post:
       tags: [Auth]
       summary: Login user
-      description: Authenticate user and return JWT tokens
+      description: |
+        Authenticate user and return JWT tokens.
+        User must have verified their email address before login.
       security: []
       requestBody:
         required: true
@@ -184,9 +294,11 @@ paths:
                 email:
                   type: string
                   format: email
+                  example: user@example.com
                 password:
                   type: string
                   format: password
+                  example: SecurePass123!
       responses:
         '200':
           description: Login successful
@@ -195,7 +307,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Invalid credentials or email not verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidCredentials:
+                  value:
+                    statusCode: 401
+                    message: Invalid email or password
+                    error: Unauthorized
+                emailNotVerified:
+                  value:
+                    statusCode: 401
+                    message: Please verify your email before logging in
+                    error: Unauthorized
 
   /v1/auth/refresh:
     post:
@@ -232,7 +359,7 @@ paths:
     post:
       tags: [Auth]
       summary: Logout user
-      description: Invalidate current session
+      description: Invalidate current session and refresh token
       responses:
         '200':
           description: Logout successful
@@ -243,6 +370,127 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: Logout successful
+
+  /v1/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset
+      description: Send password reset email with reset token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Password reset email sent (always returns success even if email doesn't exist for security)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: If an account with that email exists, a password reset link has been sent.
+        '429':
+          description: Too many requests. Please wait before requesting again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password with token
+      description: Reset user password using the token from forgot-password email
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                  description: Password reset token from email
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: New password (minimum 8 characters)
+                  example: NewSecurePass123!
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password reset successful. You can now login with your new password.
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change password (authenticated)
+      description: Change password for currently logged in user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                  format: password
+                  example: CurrentPass123!
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: NewSecurePass123!
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password changed successfully
+        '400':
+          description: Current password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /v1/auth/google:
     get:

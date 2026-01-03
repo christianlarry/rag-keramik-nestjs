@@ -10,6 +10,7 @@ import {
 import { UsersService } from './users.service';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { Role } from 'src/generated/prisma';
+import { User } from './domain/user';
 
 @ApiTags('Users')
 @Controller('v1/users')
@@ -20,9 +21,11 @@ export class UsersController {
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard) // Uncomment when auth implemented
-  async getProfile(@Request() req) {
+  async getProfile(
+    @Request() req: { user: User },
+  ) {
     // req.user.id dari JWT token
-    return this.usersService.findById(req.user?.id || 'test-id');
+    return this.usersService.findById(req.user.id || 'test-id');
   }
 
   @Patch('me')
@@ -30,7 +33,7 @@ export class UsersController {
   @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)
   async updateProfile(
-    @Request() req,
+    @Request() req: { user: User },
     @Body() data: { name?: string; email?: string },
   ) {
     return this.usersService.update(req.user?.id || 'test-id', data);
