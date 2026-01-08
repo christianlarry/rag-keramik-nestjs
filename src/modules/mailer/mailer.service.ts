@@ -43,15 +43,14 @@ export class MailerService {
       })(context);
     }
 
+    const defaultName = this.configService.get('mail.defaultName', { infer: true });
+    const defaultEmail = this.configService.get('mail.defaultEmail', { infer: true });
+
     await this.transporter.sendMail({
       ...mailOptions,
       from: mailOptions.from
         ? mailOptions.from
-        : `"${this.configService.get('mail.defaultName', {
-          infer: true,
-        })}" <${this.configService.get('mail.defaultEmail', {
-          infer: true,
-        })}>`,
+        : `"${defaultName}" <${defaultEmail}>`,
       html: mailOptions.html ? mailOptions.html : html,
     });
   }

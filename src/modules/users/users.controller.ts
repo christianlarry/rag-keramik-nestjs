@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { Role } from 'src/generated/prisma';
+import { Role } from 'src/generated/prisma/enums';
 import { User } from './domain/user';
 
 @ApiTags('Users')

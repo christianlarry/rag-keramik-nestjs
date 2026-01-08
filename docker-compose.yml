@@ -47,33 +47,33 @@ services:
       timeout: 5s
       retries: 30
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: keramik-ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1 # Menggunakan 1 GPU (RTX 2060 Super)
-              capabilities: [gpu]
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://localhost:11434/api/tags >/dev/null 2>&1 || exit 1",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 30
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: keramik-ollama
+  #   restart: unless-stopped
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama:/root/.ollama
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1 # Menggunakan 1 GPU (RTX 2060 Super)
+  #             capabilities: [gpu]
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD-SHELL",
+  #         "wget -qO- http://localhost:11434/api/tags >/dev/null 2>&1 || exit 1",
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 30
 
 volumes:
   keramik_postgres_data:
   keramik_redis_data:
   keramik_qdrant_data:
-  ollama:
+  # ollama:

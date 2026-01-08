@@ -1,17 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Role } from 'src/generated/prisma';
+import { Role } from 'src/generated/prisma/enums';
 
 @Injectable()
 export class UsersService {
   // Inject PrismaService (tidak perlu import PrismaModule karena @Global)
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) { }
 
   /**
    * Find user by ID
    */
   async findById(id: string) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prismaService.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -36,7 +36,7 @@ export class UsersService {
    * Find user by email (untuk authentication)
    */
   async findByEmail(email: string) {
-    return this.prisma.user.findUnique({
+    return this.prismaService.user.findUnique({
       where: { email },
       // Include password untuk verification
     });
@@ -69,7 +69,7 @@ export class UsersService {
     }
 
     const [users, total] = await Promise.all([
-      this.prisma.user.findMany({
+      this.prismaService.user.findMany({
         where,
         skip,
         take: limit,
@@ -84,7 +84,7 @@ export class UsersService {
         },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.user.count({ where }),
+      this.prismaService.user.count({ where }),
     ]);
 
     return {
@@ -104,7 +104,7 @@ export class UsersService {
    * Update user profile
    */
   async update(id: string, data: { name?: string; email?: string }) {
-    const user = await this.prisma.user.update({
+    const user = await this.prismaService.user.update({
       where: { id },
       data,
       select: {
@@ -130,7 +130,7 @@ export class UsersService {
     providerId?: string;
     role?: Role;
   }) {
-    return this.prisma.user.create({
+    return this.prismaService.user.create({
       data: {
         email: data.email,
         name: data.name,
@@ -159,7 +159,7 @@ export class UsersService {
     provider: string;
     providerId: string;
   }) {
-    return this.prisma.user.upsert({
+    return this.prismaService.user.upsert({
       where: { email: data.email },
       update: {
         name: data.name,
