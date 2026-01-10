@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Config Modules
-import appConfig from 'src/config/app.config'
+import appConfig from 'src/config/app/app.config'
 import prismaConfig from 'src/modules/prisma/config/prisma.config';
 
 // Database Module
@@ -17,6 +17,7 @@ import { MailerModule } from './modules/mailer/mailer.module';
 import { MailModule } from './modules/mail/mail.module';
 import { BullModule } from '@nestjs/bullmq';
 import { AllConfigType } from './config/config.type';
+import redisConfig from './config/redis/redis.config';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { AllConfigType } from './config/config.type';
       load: [
         appConfig,
         prismaConfig,
-        mailConfig
+        mailConfig,
+        redisConfig
       ],
     }),
     // Redis configuration for BullMQ
