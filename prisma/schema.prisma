@@ -5,9 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider        = "prisma-client"
-  output          = "../src/generated/prisma"
-  moduleFormat    = "cjs"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -82,83 +82,84 @@ enum DiscountApplicability {
 // Core Users/Auth
 // --------------------------
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique @db.VarChar(255)
-  password  String?  @db.VarChar(255)
-  name      String?  @db.VarChar(255)
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  provider  String?  @db.VarChar(50) // e.g., google, facebook
-  providerId String? @db.VarChar(255) // e.g., google id, facebook id
+  id              String    @id @default(uuid())
+  email           String    @unique @db.VarChar(255)
+  emailVerifiedAt DateTime?
+  password        String?   @db.VarChar(255)
+  name            String?   @db.VarChar(255)
+  role            Role      @default(CUSTOMER)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  provider        String?   @db.VarChar(50) // e.g., google, facebook
+  providerId      String?   @db.VarChar(255) // e.g., google id, facebook id
 
-  carts     Cart[]
-  orders    Order[]
-  sessions  ChatSession[]
-  audits    AuditLog[] @relation("AuditActor")
+  carts    Cart[]
+  orders   Order[]
+  sessions ChatSession[]
+  audits   AuditLog[]    @relation("AuditActor")
 }
 
 // --------------------------
 // Product Catalog & Inventory
 // --------------------------
 model Product {
-  id          String    @id @default(uuid())
-  sku         String    @unique @db.VarChar(100)
-  name        String    @db.VarChar(500)
-  description String?   @db.Text
-  brand       String?   @db.VarChar(255)
-  imageUrl    String?   @db.VarChar(2048)
-  price       Decimal   @db.Decimal(12, 2)
-  tilePerBox  Int       
-  currency    String    @default("IDR") @db.VarChar(3)
-  attributes  Json?     // fleksibel: ukuran, grade, finishing, indoor/outdoor, anti-slip, dll
-  status      String    @default("ACTIVE") @db.VarChar(50)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id          String   @id @default(uuid())
+  sku         String   @unique @db.VarChar(100)
+  name        String   @db.VarChar(500)
+  description String?  @db.Text
+  brand       String?  @db.VarChar(255)
+  imageUrl    String?  @db.VarChar(2048)
+  price       Decimal  @db.Decimal(12, 2)
+  tilePerBox  Int
+  currency    String   @default("IDR") @db.VarChar(3)
+  attributes  Json? // fleksibel: ukuran, grade, finishing, indoor/outdoor, anti-slip, dll
+  status      String   @default("ACTIVE") @db.VarChar(50)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  inventory   Inventory?
-  orderItems  OrderItem[]
-  cartItems   CartItem[]
-  productDiscounts ProductDiscount[]       // diskon langsung di produk (flash sale, promo)
-  discountRestrictions DiscountProduct[]   // voucher yang dibatasi untuk produk ini
+  inventory            Inventory?
+  orderItems           OrderItem[]
+  cartItems            CartItem[]
+  productDiscounts     ProductDiscount[] // diskon langsung di produk (flash sale, promo)
+  discountRestrictions DiscountProduct[] // voucher yang dibatasi untuk produk ini
 }
 
 model Inventory {
-  id         String   @id @default(uuid())
-  productId  String   @unique
-  stock      Int      @default(0)
-  reserved   Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid())
+  productId String   @unique
+  stock     Int      @default(0)
+  reserved  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 // --------------------------
 // Discount/Voucher System
 // --------------------------
 model Discount {
-  id              String                  @id @default(uuid())
-  code            String                  @unique @db.VarChar(100)
-  name            String                  @db.VarChar(255)
-  description     String?                 @db.Text
-  type            DiscountType
-  applicability   DiscountApplicability   @default(ALL_PRODUCTS)
-  value           Decimal                 @db.Decimal(12, 2)
-  minPurchase     Decimal?                @db.Decimal(12, 2)
-  maxDiscount     Decimal?                @db.Decimal(12, 2) // untuk percentage, batas maksimal diskon
-  usageLimit      Int?                    // total usage limit
-  usageCount      Int                     @default(0)
-  perUserLimit    Int?                    // limit per user
-  startDate       DateTime
-  endDate         DateTime
-  status          DiscountStatus          @default(ACTIVE)
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
-  
-  orders          Order[]
-  products        DiscountProduct[]       // products yang dibatasi untuk voucher ini
-  
+  id            String                @id @default(uuid())
+  code          String                @unique @db.VarChar(100)
+  name          String                @db.VarChar(255)
+  description   String?               @db.Text
+  type          DiscountType
+  applicability DiscountApplicability @default(ALL_PRODUCTS)
+  value         Decimal               @db.Decimal(12, 2)
+  minPurchase   Decimal?              @db.Decimal(12, 2)
+  maxDiscount   Decimal?              @db.Decimal(12, 2) // untuk percentage, batas maksimal diskon
+  usageLimit    Int? // total usage limit
+  usageCount    Int                   @default(0)
+  perUserLimit  Int? // limit per user
+  startDate     DateTime
+  endDate       DateTime
+  status        DiscountStatus        @default(ACTIVE)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  orders   Order[]
+  products DiscountProduct[] // products yang dibatasi untuk voucher ini
+
   @@index([code])
   @@index([status])
   @@index([startDate, endDate])
@@ -166,20 +167,20 @@ model Discount {
 
 // Product-specific discount (untuk flash sale, promo terjadwal per produk)
 model ProductDiscount {
-  id          String          @id @default(uuid())
+  id          String         @id @default(uuid())
   productId   String
-  name        String          @db.VarChar(255)
-  description String?         @db.Text
+  name        String         @db.VarChar(255)
+  description String?        @db.Text
   type        DiscountType
-  value       Decimal         @db.Decimal(12, 2)
+  value       Decimal        @db.Decimal(12, 2)
   startDate   DateTime
   endDate     DateTime
-  status      DiscountStatus  @default(ACTIVE)
-  priority    Int             @default(0) // untuk handling multiple discount, yang lebih tinggi diutamakan
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  status      DiscountStatus @default(ACTIVE)
+  priority    Int            @default(0) // untuk handling multiple discount, yang lebih tinggi diutamakan
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  product     Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([status])
@@ -193,8 +194,8 @@ model DiscountProduct {
   productId  String
   createdAt  DateTime @default(now())
 
-  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([discountId, productId])
   @@index([discountId])
@@ -205,13 +206,13 @@ model DiscountProduct {
 // Cart & Order
 // --------------------------
 model Cart {
-  id        String      @id @default(uuid())
-  userId    String      @unique
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
 }
 
 model CartItem {
@@ -222,33 +223,33 @@ model CartItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([cartId])
   @@index([productId])
 }
 
 model Order {
-  id             String       @id @default(uuid())
-  orderNumber    String       @unique @db.VarChar(100) // idempotent reference for payments
+  id             String      @id @default(uuid())
+  orderNumber    String      @unique @db.VarChar(100) // idempotent reference for payments
   userId         String
-  status         OrderStatus  @default(PENDING_PAYMENT)
-  subtotal       Decimal      @db.Decimal(12, 2)
-  tax            Decimal      @db.Decimal(12, 2) @default(0)
-  shippingCost   Decimal      @db.Decimal(12, 2) @default(0)
-  discountAmount Decimal      @db.Decimal(12, 2) @default(0)
+  status         OrderStatus @default(PENDING_PAYMENT)
+  subtotal       Decimal     @db.Decimal(12, 2)
+  tax            Decimal     @default(0) @db.Decimal(12, 2)
+  shippingCost   Decimal     @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal     @default(0) @db.Decimal(12, 2)
   discountId     String?
-  total          Decimal      @db.Decimal(12, 2)
-  currency       String       @default("IDR") @db.VarChar(3)
-  notes          String?      @db.Text
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  total          Decimal     @db.Decimal(12, 2)
+  currency       String      @default("IDR") @db.VarChar(3)
+  notes          String?     @db.Text
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  user           User         @relation(fields: [userId], references: [id], onDelete: Restrict)
-  discount       Discount?    @relation(fields: [discountId], references: [id], onDelete: SetNull)
-  items          OrderItem[]
-  payments       Payment[]
+  user     User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  discount Discount?   @relation(fields: [discountId], references: [id], onDelete: SetNull)
+  items    OrderItem[]
+  payments Payment[]
 
   @@index([userId])
   @@index([status])
@@ -256,18 +257,18 @@ model Order {
 }
 
 model OrderItem {
-  id         String   @id @default(uuid())
-  orderId    String
-  productId  String
-  quantity   Int
-  unitPrice  Decimal  @db.Decimal(12, 2)
+  id            String   @id @default(uuid())
+  orderId       String
+  productId     String
+  quantity      Int
+  unitPrice     Decimal  @db.Decimal(12, 2)
   originalPrice Decimal  @db.Decimal(12, 2) // sebelum diskon
-  currency   String   @default("IDR") @db.VarChar(3)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  currency      String   @default("IDR") @db.VarChar(3)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@index([productId])
@@ -277,18 +278,18 @@ model OrderItem {
 // Payments (Midtrans)
 // --------------------------
 model Payment {
-  id                 String          @id @default(uuid())
-  orderId            String
-  provider           PaymentProvider @default(MIDTRANS)
-  providerRef        String          @unique @db.VarChar(255) // midtrans order_id
-  status             PaymentStatus   @default(INITIATED)
-  amount             Decimal         @db.Decimal(12, 2)
-  currency           String          @default("IDR") @db.VarChar(3)
-  rawWebhookPayload  Json?
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  id                String          @id @default(uuid())
+  orderId           String
+  provider          PaymentProvider @default(MIDTRANS)
+  providerRef       String          @unique @db.VarChar(255) // midtrans order_id
+  status            PaymentStatus   @default(INITIATED)
+  amount            Decimal         @db.Decimal(12, 2)
+  currency          String          @default("IDR") @db.VarChar(3)
+  rawWebhookPayload Json?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
-  order              Order           @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@index([status])
@@ -298,31 +299,31 @@ model Payment {
 // Documents & Chunks (RAG)
 // --------------------------
 model Document {
-  id          String         @id @default(uuid())
-  title       String         @db.VarChar(500)
-  filename    String         @db.VarChar(255)
-  mimeType    String         @db.VarChar(100)
-  sizeBytes   Int
-  storageKey  String         @unique @db.VarChar(500)
-  sourceType  String?        @db.VarChar(50) // e.g., CATALOG, FAQ, GUIDE
-  status      DocumentStatus @default(UPLOADED)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id         String         @id @default(uuid())
+  title      String         @db.VarChar(500)
+  filename   String         @db.VarChar(255)
+  mimeType   String         @db.VarChar(100)
+  sizeBytes  Int
+  storageKey String         @unique @db.VarChar(500)
+  sourceType String?        @db.VarChar(50) // e.g., CATALOG, FAQ, GUIDE
+  status     DocumentStatus @default(UPLOADED)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 
-  chunks      DocumentChunk[]
+  chunks DocumentChunk[]
 }
 
 model DocumentChunk {
-  id          String    @id @default(uuid())
-  documentId  String
-  seq         Int       // urutan chunk
-  content     String    @db.Text
-  metadata    Json?
-  vectorId    String?   @db.VarChar(255) // id di vector DB (Qdrant)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String   @id @default(uuid())
+  documentId String
+  seq        Int // urutan chunk
+  content    String   @db.Text
+  metadata   Json?
+  vectorId   String?  @db.VarChar(255) // id di vector DB (Qdrant)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
   @@index([documentId])
   @@index([vectorId])
@@ -332,28 +333,28 @@ model DocumentChunk {
 // Chat Sessions (RAG chat)
 // --------------------------
 model ChatSession {
-  id        String        @id @default(uuid())
+  id        String   @id @default(uuid())
   userId    String?
-  title     String?       @db.VarChar(500)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  title     String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  messages  ChatMessage[]
+  user     User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
 
   @@index([userId])
 }
 
 model ChatMessage {
-  id            String          @id @default(uuid())
-  sessionId     String
-  role          ChatMessageRole
-  content       String          @db.Text
-  contextUsed   Json?            // context chunks summary/ids
-  model         String?         @db.VarChar(100) // llm/embedding model name used
-  createdAt     DateTime         @default(now())
+  id          String          @id @default(uuid())
+  sessionId   String
+  role        ChatMessageRole
+  content     String          @db.Text
+  contextUsed Json? // context chunks summary/ids
+  model       String?         @db.VarChar(100) // llm/embedding model name used
+  createdAt   DateTime        @default(now())
 
-  session       ChatSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
   @@index([role])
@@ -366,12 +367,12 @@ model AuditLog {
   id         String   @id @default(uuid())
   actorId    String?
   action     String   @db.VarChar(100) // e.g., PAYMENT_WEBHOOK, LOGIN, DOC_UPLOAD
-  targetType String?  @db.VarChar(100)
-  targetId   String?  @db.VarChar(255)
+  targetType String?  @db.VarChar(100) // e.g., ORDER, USER, DOCUMENT
+  targetId   String?  @db.VarChar(255) // id dari target yang diubah
   metadata   Json?
   createdAt  DateTime @default(now())
 
-  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([actorId])
   @@index([action])

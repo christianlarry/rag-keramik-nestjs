@@ -7,6 +7,7 @@ enum UserRole {
 export class User {
   id: string;
   email: string;
+  emailVerifiedAt?: Date;
   name?: string
   password?: string;
   provider: string;

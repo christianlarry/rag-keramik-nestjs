@@ -149,6 +149,7 @@ Kompromi terbaik (kalau atribut produk sangat dinamis):
 - **CartModule**: cart lifecycle
 - **OrdersModule**: create order, status order
 - **PaymentsModule**: Midtrans integration + webhook
+- **MailModule**: Mailer
 
 ### 7.2 RAG / Knowledge Assistant
 - **DocumentsModule**: upload, parsing, chunking, ingestion status

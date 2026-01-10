@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Config Modules
 import appConfig from 'src/config/app.config'
@@ -15,6 +15,8 @@ import { UsersModule } from './modules/users/users.module';
 import mailConfig from './modules/mail/config/mail.config';
 import { MailerModule } from './modules/mailer/mailer.module';
 import { MailModule } from './modules/mail/mail.module';
+import { BullModule } from '@nestjs/bullmq';
+import { AllConfigType } from './config/config.type';
 
 @Module({
   imports: [
@@ -28,6 +30,28 @@ import { MailModule } from './modules/mail/mail.module';
         prismaConfig,
         mailConfig
       ],
+    }),
+    // Redis configuration for BullMQ
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService<AllConfigType>) => ({
+        connection: {
+          host: configService.get('redis.host', { infer: true }) || 'localhost',
+          port: configService.get('redis.port', { infer: true }) || 6379,
+          password: configService.get('redis.password', { infer: true }),
+          db: configService.get('redis.db', { infer: true }) || 0,
+        },
+        defaultJobOptions: {
+          removeOnComplete: {
+            age: 24 * 3600, // Keep completed jobs for 24 hours
+            count: 1000, // Keep last 1000 completed jobs
+          },
+          removeOnFail: {
+            age: 7 * 24 * 3600, // Keep failed jobs for 7 days
+          },
+        },
+      }),
+      inject: [ConfigService],
     }),
     PrismaModule,
     MailerModule,
