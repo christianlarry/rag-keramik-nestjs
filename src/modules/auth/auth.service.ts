@@ -10,15 +10,15 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) { }
 
+  async register(registerDto: any): Promise<void> {
+    // Implement user registration logic
+  }
+
   async verifyEmail(token: string): Promise<void> {
     // Implement email verification logic
   }
 
   async resendVerification(email: string): Promise<void> {
     // Implement resend verification email logic
-  }
-
-  async register(registerDto: any): Promise<void> {
-    // Implement user registration logic
   }
 }
