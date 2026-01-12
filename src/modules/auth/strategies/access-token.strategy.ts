@@ -4,7 +4,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from '../types/jwt-payload.type';
 import { IRequestUser } from '../../../common/decorator/interfaces/request-user.interface';
-import { JwtPayloadType } from '../enums/jwt-payload-type.enum';
+import { JwtTokenType } from '../enums/jwt-payload-type.enum';
+import { AllConfigType } from 'src/config/config.type';
 
 /**
  * JWT Authentication Strategy
@@ -30,7 +31,7 @@ import { JwtPayloadType } from '../enums/jwt-payload-type.enum';
  */
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access') {
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<AllConfigType>) {
     super({
       // Extract JWT dari Authorization header dengan format: "Bearer <token>"
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -40,7 +41,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
 
       // Secret key untuk verify signature
       // PENTING: Gunakan environment variable untuk production!
-      secretOrKey: configService.getOrThrow<string>('JWT_SECRET', { infer: true }),
+      secretOrKey: configService.getOrThrow<string>('auth.accessTokenSecret', { infer: true }),
     });
   }
 
@@ -57,7 +58,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
   async validate(payload: JwtPayload): Promise<IRequestUser> {
     // Validasi token type - hanya terima access token
     // Refresh token tidak boleh digunakan untuk access protected routes
-    if (payload.type !== JwtPayloadType.ACCESS) {
+    if (payload.type !== JwtTokenType.ACCESS) {
       throw new UnauthorizedException('Invalid token type. Access token required.');
     }
 

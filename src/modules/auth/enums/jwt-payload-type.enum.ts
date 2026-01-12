@@ -1,4 +1,4 @@
-export enum JwtPayloadType {
+export enum JwtTokenType {
   ACCESS = 'access',
   REFRESH = 'refresh',
 }

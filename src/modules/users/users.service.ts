@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role } from 'src/generated/prisma/enums';
 
 @Injectable()
 export class UsersService {
+
+  private readonly logger = new Logger(UsersService.name);
+
   // Inject PrismaService (tidak perlu import PrismaModule karena @Global)
   constructor(private readonly prismaService: PrismaService) { }
 
@@ -11,6 +14,9 @@ export class UsersService {
    * Find user by ID
    */
   async findById(id: string) {
+
+    this.logger.log(`Finding user by ID: ${id}`);
+
     const user = await this.prismaService.user.findUnique({
       where: { id },
       select: {

@@ -1,5 +1,5 @@
 import { Role } from 'src/generated/prisma/enums';
-import { JwtPayloadType } from '../enums/jwt-payload-type.enum';
+import { JwtTokenType } from '../enums/jwt-payload-type.enum';
 
 /**
  * JWT Payload interface yang akan dimasukkan ke dalam Access Token
@@ -25,7 +25,7 @@ export type JwtPayload = {
   /**
    * Token type untuk membedakan access token vs refresh token
    */
-  type: JwtPayloadType;
+  type: JwtTokenType;
 
   /**
    * Issued at - timestamp kapan token dibuat (Unix timestamp dalam seconds)

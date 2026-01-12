@@ -17,7 +17,9 @@ import { MailerModule } from './modules/mailer/mailer.module';
 import { MailModule } from './modules/mail/mail.module';
 import { BullModule } from '@nestjs/bullmq';
 import { AllConfigType } from './config/config.type';
-import redisConfig from './config/redis/redis.config';
+import { AuthModule } from './modules/auth/auth.module';
+import redisConfig from './modules/redis/config/redis.config';
+import authConfig from './modules/auth/config/auth.config';
 
 @Module({
   imports: [
@@ -30,7 +32,8 @@ import redisConfig from './config/redis/redis.config';
         appConfig,
         prismaConfig,
         mailConfig,
-        redisConfig
+        redisConfig,
+        authConfig
       ],
     }),
     // Redis configuration for BullMQ
@@ -59,6 +62,7 @@ import redisConfig from './config/redis/redis.config';
     MailerModule,
     MailModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [
     AppController

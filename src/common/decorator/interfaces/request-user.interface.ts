@@ -29,4 +29,9 @@ export interface IRequestUser {
    * OAuth provider jika user login via OAuth (google, facebook, etc)
    */
   provider?: string;
+
+  /**
+   * Refresh token (optional)
+   */
+  refreshToken?: string;
 }

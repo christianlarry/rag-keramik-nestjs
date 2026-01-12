@@ -1,7 +1,8 @@
 import { PrismaConfig } from "src/modules/prisma/config/prisma-config.type";
 import { MailConfig } from "src/modules/mail/config/mail-config.type";
-import { RedisConfig } from "./redis/redis-config.type";
 import { AppConfig } from "./app/app-config.type";
+import { RedisConfig } from "src/modules/redis/config/redis-config.type";
+import { AuthConfig } from "src/modules/auth/config/auth-config.type";
 
 export type AllConfigType = {
   // Global Configuration
@@ -13,4 +14,5 @@ export type AllConfigType = {
 
   // Module Configuration
   mail: MailConfig;
+  auth: AuthConfig;
 };

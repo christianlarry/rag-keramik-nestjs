@@ -5,13 +5,11 @@ import { RedisConfig } from './redis-config.type';
 
 class EnvironmentVariablesValidator {
   @IsString()
-  @IsOptional()
   REDIS_HOST: string;
 
   @IsInt()
   @Min(0)
   @Max(65535)
-  @IsOptional()
   REDIS_PORT: number;
 
   @IsString()

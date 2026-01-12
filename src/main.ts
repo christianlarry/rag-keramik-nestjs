@@ -7,6 +7,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { AllConfigType } from './config/config.type';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   // Create the NestJS application instancem, Enable CORS
@@ -55,6 +56,7 @@ async function bootstrap() {
     app.use(morgan(NODE_ENV === 'development' ? 'dev' : 'combined'));
   }
 
+  app.use(cookieParser());
   app.use(compression());
   app.use(helmet());
 
