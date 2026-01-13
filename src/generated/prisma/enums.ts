@@ -18,6 +18,23 @@ export const Role = {
 export type Role = (typeof Role)[keyof typeof Role]
 
 
+export const UserStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+} as const
+
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+
+
+export const Gender = {
+  FEMALE: 'FEMALE',
+  MALE: 'MALE'
+} as const
+
+export type Gender = (typeof Gender)[keyof typeof Gender]
+
+
 export const OrderStatus = {
   DRAFT: 'DRAFT',
   PENDING_PAYMENT: 'PENDING_PAYMENT',
@@ -94,3 +111,21 @@ export const DiscountApplicability = {
 } as const
 
 export type DiscountApplicability = (typeof DiscountApplicability)[keyof typeof DiscountApplicability]
+
+
+export const AddressLabel = {
+  HOME: 'HOME',
+  OFFICE: 'OFFICE',
+  OTHER: 'OTHER'
+} as const
+
+export type AddressLabel = (typeof AddressLabel)[keyof typeof AddressLabel]
+
+
+export const AuditAction = {
+  PAYMENT_WEBHOOK: 'PAYMENT_WEBHOOK',
+  LOGIN: 'LOGIN',
+  DOC_UPLOAD: 'DOC_UPLOAD'
+} as const
+
+export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]

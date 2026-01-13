@@ -22,7 +22,8 @@ export class UsersService {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         role: true,
         provider: true,
         createdAt: true,
@@ -82,7 +83,8 @@ export class UsersService {
         select: {
           id: true,
           email: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           role: true,
           provider: true,
           createdAt: true,
@@ -116,7 +118,8 @@ export class UsersService {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         role: true,
         updatedAt: true,
       },
@@ -139,7 +142,8 @@ export class UsersService {
     return this.prismaService.user.create({
       data: {
         email: data.email,
-        name: data.name,
+        firstName: data.name,
+        lastName: data.name,
         password: data.password,
         provider: data.provider || 'local',
         providerId: data.providerId,
@@ -148,7 +152,8 @@ export class UsersService {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         role: true,
         provider: true,
         createdAt: true,
@@ -168,13 +173,13 @@ export class UsersService {
     return this.prismaService.user.upsert({
       where: { email: data.email },
       update: {
-        name: data.name,
+        firstName: data.name,
         provider: data.provider,
         providerId: data.providerId,
       },
       create: {
         email: data.email,
-        name: data.name,
+        firstName: data.name,
         provider: data.provider,
         providerId: data.providerId,
         role: Role.CUSTOMER,
@@ -182,7 +187,7 @@ export class UsersService {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
         role: true,
         provider: true,
         providerId: true,

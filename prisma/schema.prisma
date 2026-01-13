@@ -21,6 +21,17 @@ enum Role {
   CUSTOMER
 }
 
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum Gender {
+  FEMALE
+  MALE
+}
+
 /// Status order sesuai lifecycle pembayaran/fulfillment.
 enum OrderStatus {
   DRAFT
@@ -78,25 +89,79 @@ enum DiscountApplicability {
   MINIMUM_PURCHASE
 }
 
+enum AddressLabel {
+  HOME
+  OFFICE
+  OTHER
+}
+
+enum AuditAction {
+  PAYMENT_WEBHOOK
+  LOGIN
+  DOC_UPLOAD
+  // add more as needed
+}
+
 // --------------------------
 // Core Users/Auth
 // --------------------------
 model User {
   id              String    @id @default(uuid())
   email           String    @unique @db.VarChar(255)
+  emailVerified   Boolean   @default(false)
   emailVerifiedAt DateTime?
   password        String?   @db.VarChar(255)
-  name            String?   @db.VarChar(255)
-  role            Role      @default(CUSTOMER)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  provider        String?   @db.VarChar(50) // e.g., google, facebook
-  providerId      String?   @db.VarChar(255) // e.g., google id, facebook id
+  firstName       String?   @db.VarChar(255)
+  lastName        String?   @db.VarChar(255)
+  gender          Gender?
 
-  carts    Cart[]
-  orders   Order[]
-  sessions ChatSession[]
-  audits   AuditLog[]    @relation("AuditActor")
+  // OAuth fields
+  role       Role       @default(CUSTOMER)
+  status     UserStatus @default(ACTIVE)
+  provider   String?    @db.VarChar(50) // e.g., google, facebook
+  providerId String?    @db.VarChar(255) // e.g., google id, facebook id
+
+  // Audit
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  carts     Cart[]
+  orders    Order[]
+  sessions  ChatSession[]
+  audits    AuditLog[]    @relation("AuditActor")
+  addresses Address[]
+}
+
+// --------------------------
+// Addresses
+// --------------------------
+model Address {
+  id     String @id @default(uuid())
+  userId String
+
+  label      AddressLabel // e.g., Home, Office
+  recipient  String       @db.VarChar(255)
+  phone      String       @db.VarChar(50)
+  street     String       @db.VarChar(500)
+  city       String       @db.VarChar(255)
+  province   String       @db.VarChar(255)
+  postalCode String       @db.VarChar(20)
+  country    String       @default("Indonesia") @db.VarChar(100)
+
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+
+  // Flags
+  isDefault Boolean @default(false)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // --------------------------
