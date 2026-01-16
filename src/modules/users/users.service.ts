@@ -1,6 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role } from 'src/generated/prisma/enums';
+import { ICreateUser } from './interfaces/create-user.interface';
+import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace';
 
 @Injectable()
 export class UsersService {
@@ -131,15 +133,11 @@ export class UsersService {
   /**
    * Create user (untuk OAuth atau admin)
    */
-  async create(data: {
-    email: string;
-    name?: string;
-    password?: string;
-    provider?: string;
-    providerId?: string;
-    role?: Role;
-  }) {
-    return this.prismaService.user.create({
+  async create(data: ICreateUser, tx?: TransactionClient) {
+
+    const client = tx || this.prismaService;
+
+    return client.user.create({
       data: {
         email: data.email,
         firstName: data.name,

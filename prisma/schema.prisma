@@ -102,6 +102,12 @@ enum AuditAction {
   // add more as needed
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  FACEBOOK
+}
+
 // --------------------------
 // Core Users/Auth
 // --------------------------
@@ -113,13 +119,13 @@ model User {
   password        String?   @db.VarChar(255)
   firstName       String?   @db.VarChar(255)
   lastName        String?   @db.VarChar(255)
-  gender          Gender?
+  gender          Gender
 
   // OAuth fields
-  role       Role       @default(CUSTOMER)
-  status     UserStatus @default(ACTIVE)
-  provider   String?    @db.VarChar(50) // e.g., google, facebook
-  providerId String?    @db.VarChar(255) // e.g., google id, facebook id
+  role       Role          @default(CUSTOMER)
+  status     UserStatus    @default(ACTIVE)
+  provider   AuthProvider? // e.g., google, facebook
+  providerId String?       @db.VarChar(255) // e.g., google id, facebook id
 
   // Audit
   createdAt DateTime  @default(now())

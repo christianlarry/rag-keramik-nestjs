@@ -3,6 +3,7 @@ import { UsersService } from "../users/users.service";
 import { ConfigService } from "@nestjs/config";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
 import bcrypt from 'bcrypt';
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
+    private readonly prismaService: PrismaService
   ) { }
 
   async register(registerDto: AuthRegisterDto): Promise<void> {
@@ -25,12 +27,23 @@ export class AuthService {
     const hashedPassword = await this.hashPassword(registerDto.password);
 
     // Create User Record
-    this.logger.log(`hashedPassword: ${hashedPassword}`);
+    const createdUser = await this.prismaService.$transaction(async (tx) => {
+      const user = await this.usersService.create({
+        email: registerDto.email,
+        firstName: registerDto.firstName,
 
-    // Generate Verification Token
-    // Send Verification Email
+      }, tx)
 
-    this.logger.log(`Registered user: ${registerDto.email}`);
+      // Generate Verification Token
+
+      // Send Verification Email
+
+      this.logger.log(`User registered successfully: ${user.id}`);
+
+      return user
+    })
+
+    this.logger.log(`Registered user: ${createdUser.email}`);
   }
 
   async verifyEmail(token: string): Promise<void> {
