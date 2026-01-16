@@ -4,6 +4,8 @@ import { ConfigService } from "@nestjs/config";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
 import bcrypt from 'bcrypt';
 import { PrismaService } from "../prisma/prisma.service";
+import { AuthProvider, Role, UserStatus } from "src/generated/prisma/browser";
+import { AllConfigType } from "src/config/config.type";
 
 @Injectable()
 export class AuthService {
@@ -13,7 +15,7 @@ export class AuthService {
   // Implement authentication logic here
   constructor(
     private readonly usersService: UsersService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<AllConfigType>,
     private readonly prismaService: PrismaService
   ) { }
 
@@ -28,19 +30,27 @@ export class AuthService {
 
     // Create User Record
     const createdUser = await this.prismaService.$transaction(async (tx) => {
-      const user = await this.usersService.create({
-        email: registerDto.email,
+      const newUser = await this.usersService.create({
         firstName: registerDto.firstName,
-
+        lastName: registerDto.lastName,
+        gender: registerDto.gender,
+        password: hashedPassword,
+        role: Role.CUSTOMER,
+        email: registerDto.email,
+        emailVerified: false,
+        status: UserStatus.INACTIVE,
+        provider: AuthProvider.LOCAL,
+        // Additional Profile Info
+        address: registerDto.address
       }, tx)
 
       // Generate Verification Token
 
       // Send Verification Email
 
-      this.logger.log(`User registered successfully: ${user.id}`);
+      this.logger.log(`User registered successfully: ${newUser.id}`);
 
-      return user
+      return newUser
     })
 
     this.logger.log(`Registered user: ${createdUser.email}`);

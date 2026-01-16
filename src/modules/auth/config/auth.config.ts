@@ -10,6 +10,12 @@ class EnvironmentVariablesValidator {
   @IsString()
   REFRESH_TOKEN_SECRET: string
 
+  @IsString()
+  VERIFICATION_TOKEN_SECRET: string
+
+  @IsString()
+  FORGOT_PASSWORD_TOKEN_SECRET: string
+
   @IsInt()
   @Min(1)
   @Max(1440)
@@ -19,9 +25,20 @@ class EnvironmentVariablesValidator {
   @IsInt()
   @Min(1)
   @Max(365)
-
   @IsPositive()
   REFRESH_TOKEN_EXPIRATION_DAYS: number
+
+  @IsInt()
+  @Min(1)
+  @Max(168)
+  @IsPositive()
+  VERIFICATION_TOKEN_EXPIRATION_HOURS: number
+
+  @IsInt()
+  @Min(1)
+  @Max(168)
+  @IsPositive()
+  FORGOT_PASSWORD_TOKEN_EXPIRATION_HOURS: number
 }
 
 export default registerAs<AuthConfig>('auth', () => {
@@ -35,5 +52,11 @@ export default registerAs<AuthConfig>('auth', () => {
       ? parseInt(process.env.ACCESS_TOKEN_EXPIRATION_MINUTES, 10) : 15,
     refreshTokenExpirationDays: process.env.REFRESH_TOKEN_EXPIRATION_DAYS
       ? parseInt(process.env.REFRESH_TOKEN_EXPIRATION_DAYS, 10) : 30,
+    verificationTokenSecret: process.env.VERIFICATION_TOKEN_SECRET || 'default_verification_token_secret',
+    verificationTokenExpirationHours: process.env.VERIFICATION_TOKEN_EXPIRATION_HOURS
+      ? parseInt(process.env.VERIFICATION_TOKEN_EXPIRATION_HOURS, 10) : 24,
+    forgotPasswordTokenSecret: process.env.FORGOT_PASSWORD_TOKEN_SECRET || 'default_forgot_password_token_secret',
+    forgotPasswordTokenExpirationHours: process.env.FORGOT_PASSWORD_TOKEN_EXPIRATION_HOURS
+      ? parseInt(process.env.FORGOT_PASSWORD_TOKEN_EXPIRATION_HOURS, 10) : 1,
   }
 })

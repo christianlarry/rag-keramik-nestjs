@@ -270,6 +270,7 @@ Sistem autentikasi Keramik Store Platform mengimplementasikan berbagai metode au
 2. **Check email verification**
    - Ensure `emailVerified === true`
    - Return 401 with specific message if not verified
+   - Ensure user status ACTIVE
 
 3. **Verify password**
    - Use bcrypt to compare hashed password

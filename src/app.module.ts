@@ -20,6 +20,7 @@ import { AllConfigType } from './config/config.type';
 import { AuthModule } from './modules/auth/auth.module';
 import redisConfig from './modules/redis/config/redis.config';
 import authConfig from './modules/auth/config/auth.config';
+import { TokenModule } from './modules/token/token.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import authConfig from './modules/auth/config/auth.config';
       }),
       inject: [ConfigService],
     }),
+    TokenModule,
     PrismaModule,
     MailerModule,
     MailModule,

@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Role } from 'src/generated/prisma/enums';
+import { AuthProvider, Role, UserStatus } from 'src/generated/prisma/enums';
 import { ICreateUser } from './interfaces/create-user.interface';
 import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace';
 
@@ -140,21 +140,61 @@ export class UsersService {
     return client.user.create({
       data: {
         email: data.email,
-        firstName: data.name,
-        lastName: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        gender: data.gender,
         password: data.password,
-        provider: data.provider || 'local',
+        emailVerified: data.emailVerified ?? false,
+        emailVerifiedAt: data.emailVerified ? new Date() : null,
+        provider: data.provider || AuthProvider.LOCAL,
         providerId: data.providerId,
         role: data.role || Role.CUSTOMER,
+        status: data.status || UserStatus.INACTIVE,
+        // Create address if provided
+        ...(data.address && {
+          addresses: {
+            create: {
+              label: data.address.label,
+              recipient: data.address.recipient,
+              phone: data.address.phone,
+              street: data.address.street,
+              city: data.address.city,
+              province: data.address.province,
+              postalCode: data.address.postalCode,
+              country: data.address.country || 'Indonesia',
+              latitude: data.address.latitude,
+              longitude: data.address.longitude,
+              isDefault: data.address.isDefault ?? true,
+            },
+          },
+        }),
       },
       select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
+        gender: true,
         role: true,
+        status: true,
         provider: true,
+        emailVerified: true,
         createdAt: true,
+        updatedAt: true,
+        addresses: {
+          select: {
+            id: true,
+            label: true,
+            recipient: true,
+            phone: true,
+            street: true,
+            city: true,
+            province: true,
+            postalCode: true,
+            country: true,
+            isDefault: true,
+          },
+        },
       },
     });
   }
