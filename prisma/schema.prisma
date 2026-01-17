@@ -25,6 +25,7 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   SUSPENDED
+  DELETED
 }
 
 enum Gender {
@@ -122,10 +123,12 @@ model User {
   gender          Gender
 
   // OAuth fields
-  role       Role          @default(CUSTOMER)
-  status     UserStatus    @default(ACTIVE)
-  provider   AuthProvider? // e.g., google, facebook
-  providerId String?       @db.VarChar(255) // e.g., google id, facebook id
+  role          Role          @default(CUSTOMER)
+  status        UserStatus    @default(ACTIVE)
+  provider      AuthProvider? // e.g., google, facebook
+  providerId    String?       @db.VarChar(255) // e.g., google id, facebook id
+  // Array refresh tokens for multiple device sessions
+  refreshTokens String[]      @default([])
 
   // Audit
   createdAt DateTime  @default(now())

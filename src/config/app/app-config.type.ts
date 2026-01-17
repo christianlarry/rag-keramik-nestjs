@@ -1,5 +1,5 @@
 export type AppConfig = {
-  nodeEnv: string;
+  nodeEnv: Environment;
   name: string;
   docsUrl: string;
   workingDirectory: string;
@@ -8,3 +8,9 @@ export type AppConfig = {
   port: number;
   apiPrefix: string;
 };
+
+export enum Environment {
+  Development = 'development',
+  Production = 'production',
+  Test = 'test',
+}

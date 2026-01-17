@@ -1,5 +1,5 @@
 import { registerAs } from '@nestjs/config';
-import { AppConfig } from './app-config.type';
+import { AppConfig, Environment } from './app-config.type';
 import {
   IsEnum,
   IsInt,
@@ -11,11 +11,7 @@ import {
 } from 'class-validator';
 import validateConfig from 'src/utils/validate-config';
 
-enum Environment {
-  Development = 'development',
-  Production = 'production',
-  Test = 'test',
-}
+
 
 class EnvironmentVariablesValidator {
   @IsEnum(Environment)
@@ -53,7 +49,7 @@ export default registerAs<AppConfig>('app', () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {
-    nodeEnv: process.env.NODE_ENV || 'development',
+    nodeEnv: (process.env.NODE_ENV as Environment) || Environment.Development,
     name: process.env.APP_NAME || 'app',
     docsUrl: process.env.DOCS_URL || 'http://localhost:3000/docs',
     workingDirectory: process.env.PWD || process.cwd(),

@@ -1730,6 +1730,7 @@ export const UserScalarFieldEnum = {
   status: 'status',
   provider: 'provider',
   providerId: 'providerId',
+  refreshTokens: 'refreshTokens',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'

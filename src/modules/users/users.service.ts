@@ -1,8 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthProvider, Role, UserStatus } from 'src/generated/prisma/enums';
 import { ICreateUser } from './interfaces/create-user.interface';
 import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace';
+import { AllConfigType } from 'src/config/config.type';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -10,33 +12,36 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   // Inject PrismaService (tidak perlu import PrismaModule karena @Global)
-  constructor(private readonly prismaService: PrismaService) { }
-
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService<AllConfigType>,
+  ) { }
   /**
    * Find user by ID
    */
   async findById(id: string) {
-
-    this.logger.log(`Finding user by ID: ${id}`);
-
     const user = await this.prismaService.user.findUnique({
       where: { id },
       select: {
         id: true,
         email: true,
+        emailVerified: true,
+        emailVerifiedAt: true,
         firstName: true,
         lastName: true,
+        gender: true,
         role: true,
         provider: true,
+        providerId: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
+        deletedAt: true,
+        refreshTokens: true,
+
         // password tidak di-return untuk security
       },
     });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
 
     return user;
   }
@@ -205,7 +210,7 @@ export class UsersService {
   async upsertOAuthUser(data: {
     email: string;
     name: string;
-    provider: string;
+    provider: AuthProvider;
     providerId: string;
   }) {
     return this.prismaService.user.upsert({
@@ -221,6 +226,7 @@ export class UsersService {
         provider: data.provider,
         providerId: data.providerId,
         role: Role.CUSTOMER,
+        gender: 'FEMALE'
       },
       select: {
         id: true,
@@ -231,5 +237,59 @@ export class UsersService {
         providerId: true,
       },
     });
+  }
+
+  /**
+   * Get user status
+   * @param userId
+   * @return UserStatus enum value or null if user not found
+   */
+  async getStatus(userId: string): Promise<UserStatus | null> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { status: true },
+    });
+
+    // TODO : Save status to cache for faster access with TTL of 5 minutes
+    // TODO : Invalidate cache when user status is updated
+
+    return user?.status || null;
+  }
+
+  /**
+   * Get user's refresh tokens
+   * @param userId 
+   * @returns Array of refresh tokens or null if user not found
+   */
+  async getRefreshTokens(userId: string): Promise<string[] | null> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { refreshTokens: true },
+    });
+
+    // TODO : Save refresh tokens to cache for faster access with TTL of 5 minutes
+    // TODO : Invalidate cache when refresh tokens are updated
+
+    return user?.refreshTokens || null;
+  }
+
+  async clearRefreshTokens(userId: string): Promise<boolean> {
+    try {
+      await this.prismaService.user.update({
+        where: { id: userId },
+        data: { refreshTokens: [] }
+      });
+
+      // TODO: Invalidate cache for user's refresh tokens
+
+      return true;
+
+    } catch (err) {
+      if (this.configService.get('app.nodeEnv', { infer: true }) !== 'development') {
+        this.logger.error(`Failed to clear refresh tokens for user ${userId}: ${err.message}`);
+      }
+
+      return false
+    }
   }
 }

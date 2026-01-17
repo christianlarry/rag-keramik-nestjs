@@ -45,8 +45,8 @@ export class TokenService {
   /**
    * Decode token without verification
    */
-  decodeToken(token: string): any {
-    return this.jwtService.decode(token);
+  decodeToken<T>(token: string): T | null {
+    return this.jwtService.decode(token) as T | null;
   }
 
   /**

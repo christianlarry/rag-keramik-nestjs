@@ -6,6 +6,8 @@ import { JwtPayload } from '../types/jwt-payload.type';
 import { IRequestUser } from '../../../common/decorator/interfaces/request-user.interface';
 import { JwtTokenType } from '../enums/jwt-payload-type.enum';
 import { AllConfigType } from 'src/config/config.type';
+import { UsersService } from 'src/modules/users/users.service';
+import { UserStatus } from 'src/generated/prisma/enums';
 
 /**
  * JWT Authentication Strategy
@@ -31,7 +33,10 @@ import { AllConfigType } from 'src/config/config.type';
  */
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access') {
-  constructor(private configService: ConfigService<AllConfigType>) {
+  constructor(
+    private readonly configService: ConfigService<AllConfigType>,
+    private readonly usersService: UsersService,
+  ) {
     super({
       // Extract JWT dari Authorization header dengan format: "Bearer <token>"
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -61,6 +66,19 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
     if (payload.type !== JwtTokenType.ACCESS) {
       throw new UnauthorizedException('Invalid token type. Access token required.');
     }
+
+    // Cek status user
+    const userStatus = await this.usersService.getStatus(payload.sub);
+    switch (userStatus) {
+      case UserStatus.INACTIVE:
+        throw new UnauthorizedException('User account is inactive. Please verify your email.');
+      case UserStatus.SUSPENDED:
+        throw new UnauthorizedException('User account is suspended. Contact support for more information.');
+      case UserStatus.DELETED:
+        throw new UnauthorizedException('User account has been deleted.');
+    }
+
+    // Cek versi token
 
     // Optional: Tambahkan validasi tambahan di sini
     // Contoh:
