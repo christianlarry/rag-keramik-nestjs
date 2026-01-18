@@ -24,6 +24,10 @@ import { TokenModule } from './modules/token/token.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import rateLimitConfig from './config/rate-limit/rate-limit.config';
+import { REDIS_CLIENT, RedisModule } from './modules/redis/redis.module';
+import { Redis } from 'ioredis';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { CacheModule } from './modules/cache/cache.module';
 
 @Module({
   imports: [
@@ -41,17 +45,13 @@ import rateLimitConfig from './config/rate-limit/rate-limit.config';
         rateLimitConfig
       ],
     }),
+    RedisModule,
+    CacheModule,
     // Redis configuration for BullMQ
     BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService<AllConfigType>) => ({
-        connection: {
-          host: configService.get('redis.host', { infer: true }) || 'localhost',
-          port: configService.get('redis.port', { infer: true }) || 6379,
-          password: configService.get('redis.password', { infer: true }),
-          db: configService.get('redis.db', { infer: true }) || 0,
-        },
+      inject: [REDIS_CLIENT],
+      useFactory: (redis: Redis) => ({
+        connection: redis,
         defaultJobOptions: {
           removeOnComplete: {
             age: 24 * 3600, // Keep completed jobs for 24 hours
@@ -61,18 +61,21 @@ import rateLimitConfig from './config/rate-limit/rate-limit.config';
             age: 7 * 24 * 3600, // Keep failed jobs for 7 days
           },
         },
+        prefix: 'bull', // Optional: set a prefix for all queues
       }),
     }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService<AllConfigType>) => ({
-        throttlers: [
-          {
-            ttl: configService.get('rateLimit.ttl', { infer: true }) || 60000,
-            limit: configService.get('rateLimit.limit', { infer: true }) || 10,
-          }
-        ]
+      inject: [ConfigService, REDIS_CLIENT],
+      useFactory: (
+        configService: ConfigService<AllConfigType>,
+        redis: Redis
+      ) => ({
+        throttlers: [{
+          ttl: configService.get('rateLimit.ttl', { infer: true }) || 60000,
+          limit: configService.get('rateLimit.limit', { infer: true }) || 10,
+        }],
+        storage: new ThrottlerStorageRedisService(redis)
       }),
     }),
     TokenModule,
