@@ -67,7 +67,8 @@ export class AuthService {
   }
 
   async verifyEmail(token: string): Promise<void> {
-    this.logger.log(token)
+    // Verify Token
+    this.logger.log(`Verifying email with token: ${token}`);
   }
 
   async resendVerification(email: string): Promise<ResendVerificationResponseDto> {

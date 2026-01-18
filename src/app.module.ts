@@ -21,6 +21,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import redisConfig from './modules/redis/config/redis.config';
 import authConfig from './modules/auth/config/auth.config';
 import { TokenModule } from './modules/token/token.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import rateLimitConfig from './config/rate-limit/rate-limit.config';
 
 @Module({
   imports: [
@@ -34,12 +37,14 @@ import { TokenModule } from './modules/token/token.module';
         prismaConfig,
         mailConfig,
         redisConfig,
-        authConfig
+        authConfig,
+        rateLimitConfig
       ],
     }),
     // Redis configuration for BullMQ
     BullModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService<AllConfigType>) => ({
         connection: {
           host: configService.get('redis.host', { infer: true }) || 'localhost',
@@ -57,7 +62,18 @@ import { TokenModule } from './modules/token/token.module';
           },
         },
       }),
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
+      useFactory: (configService: ConfigService<AllConfigType>) => ({
+        throttlers: [
+          {
+            ttl: configService.get('rateLimit.ttl', { infer: true }) || 60000,
+            limit: configService.get('rateLimit.limit', { infer: true }) || 10,
+          }
+        ]
+      }),
     }),
     TokenModule,
     PrismaModule,
@@ -70,7 +86,12 @@ import { TokenModule } from './modules/token/token.module';
     AppController
   ],
   providers: [
-    AppService
+    AppService,
+    // Global Throttler Guard
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
   ],
 })
 export class AppModule { }

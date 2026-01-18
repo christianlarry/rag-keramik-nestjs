@@ -308,4 +308,17 @@ export class MailService {
     this.logger.log(`Cleaning failed jobs older than ${olderThanMs}ms`);
     await this.mailQueue.clean(olderThanMs, 100, 'failed');
   }
+
+  /**
+   * Retry failed jobs
+   * Untuk maintenance
+   */
+  async retryFailedJobs() {
+    this.logger.log(`Retrying all failed jobs`);
+    const failedJobs = await this.mailQueue.getFailed();
+    for (const job of failedJobs) {
+      await job.retry();
+      this.logger.log(`Retried failed job ${job.id}`);
+    }
+  }
 }
