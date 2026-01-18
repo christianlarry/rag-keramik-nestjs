@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { AllConfigType } from "src/config/config.type";
 import { TokenType } from "./enums/token-type.enum";
+import { IEmailVerificationPayload } from "./interfaces/email-verification-payload.interface";
 
 @Injectable()
 export class TokenService {
@@ -16,7 +17,7 @@ export class TokenService {
   /**
    * Generate token based on type
    */
-  async generateToken<T>(
+  private async generateToken<T>(
     payload: T extends object ? T : never,
     type: TokenType,
   ): Promise<string> {
@@ -26,6 +27,20 @@ export class TokenService {
       secret: config.secret,
       expiresIn: config.expiresIn
     });
+  }
+
+  /**   
+   * Generate email verification token
+   */
+  async generateEmailVerificationToken(userId: string, email: string): Promise<string> {
+
+    const payload: IEmailVerificationPayload = {
+      sub: userId,
+      email: email,
+      type: TokenType.EMAIL_VERIFICATION
+    }
+
+    return this.generateToken<IEmailVerificationPayload>(payload, TokenType.EMAIL_VERIFICATION)
   }
 
   /**
@@ -60,25 +75,25 @@ export class TokenService {
       case TokenType.ACCESS:
         return {
           secret: this.configService.get('auth.accessTokenSecret', { infer: true })!,
-          expiresIn: `${(this.configService.get('auth.accessTokenExpirationMinutes', { infer: true }) || 15)}m`,
+          expiresIn: `${this.configService.get('auth.accessTokenExpirationMinutes', { infer: true })!}m`,
         };
 
       case TokenType.REFRESH:
         return {
           secret: this.configService.get('auth.refreshTokenSecret', { infer: true })!,
-          expiresIn: `${this.configService.get('auth.refreshTokenExpirationDays', { infer: true }) || 30}d`,
+          expiresIn: `${this.configService.get('auth.refreshTokenExpirationDays', { infer: true })!}d`,
         };
 
       case TokenType.EMAIL_VERIFICATION:
         return {
           secret: this.configService.get<string>('auth.verificationTokenSecret', { infer: true })!,
-          expiresIn: `${this.configService.get('auth.verificationTokenExpirationHours', { infer: true }) || 24}h`,
+          expiresIn: `${this.configService.get('auth.verificationTokenExpirationHours', { infer: true })!}h`,
         };
 
       case TokenType.PASSWORD_RESET:
         return {
           secret: this.configService.get<string>('auth.forgotPasswordTokenSecret', { infer: true })!,
-          expiresIn: `${this.configService.get('auth.forgotPasswordTokenExpirationHours', { infer: true }) || 1}h`,
+          expiresIn: `${this.configService.get('auth.forgotPasswordTokenExpirationHours', { infer: true })!}h`,
         };
 
       default:

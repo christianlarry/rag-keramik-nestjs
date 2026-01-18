@@ -6,12 +6,14 @@ import { AccessTokenStrategy } from "./strategies/access-token.strategy";
 import { AuthController } from "./auth.controller";
 import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
 import { TokenModule } from "../token/token.module";
+import { MailModule } from "../mail/mail.module";
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
-    TokenModule
+    TokenModule,
+    MailModule
   ],
   controllers: [AuthController],
   providers: [

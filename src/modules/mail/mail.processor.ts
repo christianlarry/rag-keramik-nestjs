@@ -122,7 +122,7 @@ export class MailProcessor extends WorkerHost {
       context: {
         name: data.name,
         verificationUrl,
-        expiresIn: data.expiresIn || '24 hours',
+        expiresIn: data.expiresIn || `${this.configService.get('auth.verificationTokenExpirationHours', { infer: true })!} hours`,
         year: new Date().getFullYear(),
       },
     });

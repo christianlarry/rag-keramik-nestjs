@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import { AllConfigType } from './config/config.type';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
 
 async function bootstrap() {
   // Create the NestJS application instancem, Enable CORS
@@ -15,6 +16,8 @@ async function bootstrap() {
 
   // Retrieve configuration service
   const configService = app.get(ConfigService<AllConfigType>);
+
+  app.useGlobalFilters(new PrismaClientExceptionFilter());
 
   // Enable shutdown hooks for graceful shutdown
   app.enableShutdownHooks();

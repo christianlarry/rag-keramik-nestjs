@@ -2,6 +2,9 @@ import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
+import { AuthRegisterResponseDto } from "./dto/auth-register-response.dto";
+import { ResendVerificationDto } from "./dto/resend-verification.dto";
+import { ResendVerificationResponseDto } from "./dto/resend-verification-response.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -12,7 +15,7 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   async register(
     @Body() registerDto: AuthRegisterDto
-  ): Promise<void> {
+  ): Promise<AuthRegisterResponseDto> {
     return this.authService.register(registerDto)
   }
 
@@ -27,8 +30,8 @@ export class AuthController {
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   async resendVerification(
-    @Body() resendVerificationDto: { email: string }
-  ): Promise<void> {
+    @Body() resendVerificationDto: ResendVerificationDto
+  ): Promise<ResendVerificationResponseDto> {
     return this.authService.resendVerification(resendVerificationDto.email);
   }
 
