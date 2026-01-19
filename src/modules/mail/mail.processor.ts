@@ -206,6 +206,7 @@ export class MailProcessor extends WorkerHost {
       context: {
         name: data.name,
         year: new Date().getFullYear(),
+        frontendUrl: this.configService.get('app.frontendDomain', { infer: true }) || 'https://keramikstore.com',
       },
     });
   }

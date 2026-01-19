@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -68,33 +68,39 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
     }
 
     // Cek status user
-    const userStatus = await this.usersService.getStatus(payload.sub);
-    switch (userStatus) {
-      case UserStatus.INACTIVE:
-        throw new UnauthorizedException('User account is inactive. Please verify your email.');
-      case UserStatus.SUSPENDED:
-        throw new UnauthorizedException('User account is suspended. Contact support for more information.');
-      case UserStatus.DELETED:
-        throw new UnauthorizedException('User account has been deleted.');
+    const user = await this.usersService.findByIdSelective(payload.sub, [
+      'emailVerified',
+      'status',
+    ]);
+    // TODO : Implement caching layer untuk user data agar performa tidak terlalu menurun, Hapus comment ini jika sudah diimplementasikan. Kalau lupa, tolong hapus aja commentnya.
+
+    // Jika user tidak ditemukan atau statusnya tidak valid, tolak akses
+    if (!user) {
+      throw new UnauthorizedException('User not found.');
     }
 
-    // Cek versi token
+    // Cek email verified, Unauthorized jika tidak memenuhi syarat
+    if (!user.emailVerified) {
+      throw new UnauthorizedException('Email not verified. Please verify your email to access this resource.');
+    }
 
-    // Optional: Tambahkan validasi tambahan di sini
-    // Contoh:
-    // - Check apakah token sudah di-blacklist (untuk logout)
-    // - Check apakah user masih exist di database
-    // - Check apakah user masih active/tidak di-ban
+    // Cek status user, Forbidden jika statusnya tidak aktif
+    switch (user.status) {
+      case UserStatus.INACTIVE:
+        throw new ForbiddenException('User account is inactive. Please reactivate your account.');
+      case UserStatus.SUSPENDED:
+        throw new ForbiddenException('User account is suspended. Contact support for more information.');
+      case UserStatus.DELETED:
+        throw new ForbiddenException('User account has been deleted.');
+    }
 
     // Transform JWT payload ke RequestUser
     // Object ini akan tersedia di request.user
-    const user: IRequestUser = {
+    return {
       id: payload.sub,
       email: payload.email,
       role: payload.role,
-    };
-
-    return user;
+    } as IRequestUser;
   }
 }
 

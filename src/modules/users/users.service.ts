@@ -5,6 +5,7 @@ import { ICreateUser } from './interfaces/create-user.interface';
 import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace';
 import { AllConfigType } from 'src/config/config.type';
 import { ConfigService } from '@nestjs/config';
+import { User } from 'src/generated/prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -44,6 +45,25 @@ export class UsersService {
     });
 
     return user;
+  }
+
+  async findByIdSelective<K extends keyof User>(
+    id: string,
+    fields: K[]
+  ): Promise<Pick<User, K> | null> {
+    // 1. Membuat object select secara dinamis
+    const select = fields.reduce((acc, field) => {
+      acc[field] = true;
+      return acc;
+    }, {} as Record<K, boolean>);
+
+    // 2. Eksekusi query Prisma
+    // Kita gunakan 'as any' saat memanggil findUnique karena Prisma 
+    // butuh tipe statis, namun return typenya kita paksa sesuai Generic K
+    return this.prismaService.user.findUnique({
+      where: { id },
+      select,
+    }) as Promise<Pick<User, K> | null>;
   }
 
   /**
@@ -302,16 +322,20 @@ export class UsersService {
    * Mark user's email as verified
    * @param userId 
    */
-  async markEmailAsVerified(userId: string, tx?: TransactionClient): Promise<void> {
+  async markEmailAsVerified(userId: string, tx?: TransactionClient): Promise<Pick<User, 'emailVerifiedAt' | 'status'>> {
     const client = tx || this.prismaService;
 
-    await client.user.update({
+    return await client.user.update({
       where: { id: userId },
       data: {
         emailVerified: true,
         emailVerifiedAt: new Date(),
         status: UserStatus.ACTIVE,
       },
+      select: {
+        emailVerifiedAt: true,
+        status: true,
+      }
     });
   }
 }

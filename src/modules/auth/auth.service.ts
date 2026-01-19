@@ -74,7 +74,7 @@ export class AuthService {
       )
 
       // Generate Verification Token & Send Verification Email
-      await this.sendVerificationEmail(newUser.id, newUser.email, `${newUser.firstName} ${newUser.lastName}`);
+      await this.sendVerificationEmail(newUser.id, newUser.email, `${newUser.firstName} ${newUser.lastName}`, newUser.emailVerified);
 
       this.logger.log(`User registered successfully: ${newUser.id}`);
 
@@ -94,21 +94,22 @@ export class AuthService {
 
   async verifyEmail(token: string): Promise<VerifyEmailResponseDto> {
     // 1. Verify Token, Handle Expired / Invalid Token
-    const payload = await this.verifyEmailToken(token);
+    const payload = await this.verifyVerificationEmailToken(token);
 
-    // TODO 2. Check if user already verified
+    // 2. Check if user already verified
     const user = await this.usersService.findById(payload.sub);
     if (!user) {
       throw new BadRequestException('User does not exist');
     }
 
+    // Already Verified
     if (user.emailVerified) {
       throw new BadRequestException('Email is already verified');
     }
 
     // 3. Activate User Account, Set emailVerified = true, status = ACTIVE, emailVerifiedAt = now()
     await this.prismaService.$transaction(async (tx) => {
-      await this.usersService.markEmailAsVerified(payload.sub, tx);
+      const updatedUser = await this.usersService.markEmailAsVerified(payload.sub, tx);
       // Audit Log
       await this.auditService.logUserAction(
         user.id,
@@ -117,8 +118,8 @@ export class AuthService {
         user.id,
         {
           email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          status: user.status
+          verifiedAt: updatedUser.emailVerifiedAt,
+          status: updatedUser.status
         },
         tx
       )
@@ -132,7 +133,7 @@ export class AuthService {
     return new VerifyEmailResponseDto({ message: 'Email verified successfully.' });
   }
 
-  private async verifyEmailToken(token: string): Promise<IEmailVerificationPayload> {
+  private async verifyVerificationEmailToken(token: string): Promise<IEmailVerificationPayload> {
     try {
       const payload: IEmailVerificationPayload = await this.tokenService.verifyToken(token, TokenType.EMAIL_VERIFICATION);
 
@@ -163,13 +164,8 @@ export class AuthService {
       throw new BadRequestException('User with this email does not exist');
     }
 
-    // 2. Check if already verified
-    if (user.emailVerified) {
-      throw new BadRequestException('Email is already verified');
-    }
-
-    // 3. Generate new token & send verification email
-    await this.sendVerificationEmail(user.id, user.email, `${user.firstName} ${user.lastName}`);
+    // 2. Generate new token & send verification email
+    await this.sendVerificationEmail(user.id, user.email, `${user.firstName} ${user.lastName}`, user.emailVerified);
 
     return new ResendVerificationResponseDto({
       message: 'Verification email resent successfully.',
@@ -186,7 +182,16 @@ export class AuthService {
    * @param email 
    * @param name 
    */
-  private async sendVerificationEmail(userId: string, email: string, name: string) {
+  private async sendVerificationEmail(
+    userId: string,
+    email: string,
+    name: string,
+    isEmailVerified: boolean,
+  ) {
+    // Prevent sending verification email to already verified users
+    if (isEmailVerified) {
+      throw new BadRequestException('Email is already verified');
+    }
     // Generate Verification Token & Send Verification Email
     const token = await this.tokenService.generateEmailVerificationToken(userId, email);
 
