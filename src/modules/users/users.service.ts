@@ -302,8 +302,10 @@ export class UsersService {
    * Mark user's email as verified
    * @param userId 
    */
-  async markEmailAsVerified(userId: string): Promise<void> {
-    await this.prismaService.user.update({
+  async markEmailAsVerified(userId: string, tx?: TransactionClient): Promise<void> {
+    const client = tx || this.prismaService;
+
+    await client.user.update({
       where: { id: userId },
       data: {
         emailVerified: true,

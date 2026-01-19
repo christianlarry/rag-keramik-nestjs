@@ -60,11 +60,6 @@ export class AuthService {
         address: registerDto.address
       }, tx)
 
-      // Generate Verification Token & Send Verification Email
-      await this.sendVerificationEmail(newUser.id, newUser.email, `${newUser.firstName} ${newUser.lastName}`);
-
-      this.logger.log(`User registered successfully: ${newUser.id}`);
-
       // Audit Log
       await this.auditService.logUserAction(
         newUser.id,
@@ -77,6 +72,11 @@ export class AuthService {
         },
         tx
       )
+
+      // Generate Verification Token & Send Verification Email
+      await this.sendVerificationEmail(newUser.id, newUser.email, `${newUser.firstName} ${newUser.lastName}`);
+
+      this.logger.log(`User registered successfully: ${newUser.id}`);
 
       return newUser
     })
@@ -107,7 +107,27 @@ export class AuthService {
     }
 
     // 3. Activate User Account, Set emailVerified = true, status = ACTIVE, emailVerifiedAt = now()
-    await this.usersService.markEmailAsVerified(payload.sub);
+    await this.prismaService.$transaction(async (tx) => {
+      await this.usersService.markEmailAsVerified(payload.sub, tx);
+      // Audit Log
+      await this.auditService.logUserAction(
+        user.id,
+        AuditAction.EMAIL_VERIFICATION,
+        AuditTargetType.USER,
+        user.id,
+        {
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+          status: user.status
+        },
+        tx
+      )
+      // Send Welcome Email (Optional)
+      await this.mailService.sendWelcomeEmail({
+        to: user.email,
+        name: `${user.firstName} ${user.lastName}`
+      });
+    });
 
     return new VerifyEmailResponseDto({ message: 'Email verified successfully.' });
   }
