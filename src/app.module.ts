@@ -28,6 +28,7 @@ import { REDIS_CLIENT, RedisModule } from './modules/redis/redis.module';
 import { Redis } from 'ioredis';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { CacheModule } from './modules/cache/cache.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { CacheModule } from './modules/cache/cache.module';
     MailModule,
     UsersModule,
     AuthModule,
+    AuditModule
   ],
   controllers: [
     AppController

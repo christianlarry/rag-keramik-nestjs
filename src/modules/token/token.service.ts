@@ -53,7 +53,7 @@ export class TokenService {
     const config = this.getTokenConfig(type);
 
     return this.jwtService.verifyAsync(token, {
-      secret: config.secret,
+      secret: config.secret
     });
   }
 

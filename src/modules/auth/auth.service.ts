@@ -3,16 +3,25 @@ import { UsersService } from "../users/users.service";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
 import bcrypt from 'bcrypt';
 import { PrismaService } from "../prisma/prisma.service";
-import { AuthProvider, Role, UserStatus } from "src/generated/prisma/browser";
+import { AuditAction, AuditTargetType, AuthProvider, Role, UserStatus } from "src/generated/prisma/enums";
 import { TokenService } from "../token/token.service";
 import { MailService } from "../mail/mail.service";
-import { AuthRegisterResponseDto } from "./dto/auth-register-response.dto";
-import { ResendVerificationResponseDto } from "./dto/resend-verification-response.dto";
+import { AuthRegisterResponseDto } from "./dto/response/auth-register-response.dto";
+import { ResendVerificationResponseDto } from "./dto/response/resend-verification-response.dto";
+import { VerifyEmailResponseDto } from "./dto/response/verify-email-response.dto";
+import { TokenType } from "../token/enums/token-type.enum";
+import { IEmailVerificationPayload } from "../token/interfaces/email-verification-payload.interface";
+import { JsonWebTokenError, TokenExpiredError } from "@nestjs/jwt";
+import { AllConfigType } from "src/config/config.type";
+import { ConfigService } from "@nestjs/config";
+import { Environment } from "src/config/app/app-config.type";
+import { AuditService } from "../audit/audit.service";
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name)
   private readonly passwordSaltRounds: number = 10;
+  private nodeEnv: Environment;
 
   // Implement authentication logic here
   constructor(
@@ -20,7 +29,11 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly tokenService: TokenService,
     private readonly mailService: MailService,
-  ) { }
+    private readonly configService: ConfigService<AllConfigType>,
+    private readonly auditService: AuditService,
+  ) {
+    this.nodeEnv = configService.getOrThrow<Environment>('app.nodeEnv', { infer: true }) as Environment;
+  }
 
   async register(registerDto: AuthRegisterDto): Promise<AuthRegisterResponseDto> {
     // Check Email Availability
@@ -52,6 +65,19 @@ export class AuthService {
 
       this.logger.log(`User registered successfully: ${newUser.id}`);
 
+      // Audit Log
+      await this.auditService.logUserAction(
+        newUser.id,
+        AuditAction.REGISTER,
+        AuditTargetType.USER,
+        newUser.id,
+        {
+          email: newUser.email,
+          name: `${newUser.firstName} ${newUser.lastName}`,
+        },
+        tx
+      )
+
       return newUser
     })
 
@@ -66,9 +92,48 @@ export class AuthService {
     });
   }
 
-  async verifyEmail(token: string): Promise<void> {
-    // Verify Token
-    this.logger.log(`Verifying email with token: ${token}`);
+  async verifyEmail(token: string): Promise<VerifyEmailResponseDto> {
+    // 1. Verify Token, Handle Expired / Invalid Token
+    const payload = await this.verifyEmailToken(token);
+
+    // TODO 2. Check if user already verified
+    const user = await this.usersService.findById(payload.sub);
+    if (!user) {
+      throw new BadRequestException('User does not exist');
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    // 3. Activate User Account, Set emailVerified = true, status = ACTIVE, emailVerifiedAt = now()
+    await this.usersService.markEmailAsVerified(payload.sub);
+
+    return new VerifyEmailResponseDto({ message: 'Email verified successfully.' });
+  }
+
+  private async verifyEmailToken(token: string): Promise<IEmailVerificationPayload> {
+    try {
+      const payload: IEmailVerificationPayload = await this.tokenService.verifyToken(token, TokenType.EMAIL_VERIFICATION);
+
+      return payload;
+    } catch (error) {
+      // Log the error for debugging
+      if (this.nodeEnv !== Environment.Production) {
+        this.logger.error(`Email verification token is invalid or expired: ${error.message}`);
+      }
+
+      // Check JWT Error Type
+      if (error instanceof TokenExpiredError) {
+        throw new BadRequestException('Email verification token has expired');
+      };
+
+      if (error instanceof JsonWebTokenError) {
+        throw new BadRequestException('Email verification token is invalid');
+      };
+
+      throw new BadRequestException('Email verification token is invalid or expired');
+    }
   }
 
   async resendVerification(email: string): Promise<ResendVerificationResponseDto> {

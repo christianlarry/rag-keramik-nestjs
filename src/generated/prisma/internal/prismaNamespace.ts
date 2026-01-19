@@ -2289,6 +2289,34 @@ export type ListEnumChatMessageRoleFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
+ * Reference to a field of type 'AuditAction'
+ */
+export type EnumAuditActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditAction'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditAction[]'
+ */
+export type ListEnumAuditActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditAction[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditTargetType'
+ */
+export type EnumAuditTargetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditTargetType'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditTargetType[]'
+ */
+export type ListEnumAuditTargetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditTargetType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>

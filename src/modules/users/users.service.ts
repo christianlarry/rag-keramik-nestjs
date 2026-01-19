@@ -273,6 +273,11 @@ export class UsersService {
     return user?.refreshTokens || null;
   }
 
+  /**
+   * Clear all refresh tokens for a user (e.g., on logout from all devices)
+   * @param userId 
+   * @returns boolean indicating success or failure
+   */
   async clearRefreshTokens(userId: string): Promise<boolean> {
     try {
       await this.prismaService.user.update({
@@ -291,5 +296,20 @@ export class UsersService {
 
       return false
     }
+  }
+
+  /**
+   * Mark user's email as verified
+   * @param userId 
+   */
+  async markEmailAsVerified(userId: string): Promise<void> {
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: {
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+        status: UserStatus.ACTIVE,
+      },
+    });
   }
 }

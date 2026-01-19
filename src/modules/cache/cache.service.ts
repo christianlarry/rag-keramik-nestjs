@@ -59,6 +59,26 @@ export class CacheService {
   }
 
   /**
+   * Delete menggunakan SCAN Redis
+   * Untuk menghindari blocking pada Redis server
+   */
+  async delScan(pattern: string): Promise<void> {
+    try {
+      let cursor = '0';
+      do {
+        const [newCursor, keys] = await this.redis.scan(cursor, 'MATCH', this.getPrefixedKey(pattern), 'COUNT', 100);
+        cursor = newCursor;
+        if (keys.length > 0) {
+          await this.redis.unlink(...keys);
+          this.logger.debug(`Cache deleted ${keys.length} keys matching: ${pattern}`);
+        }
+      } while (cursor !== '0');
+    } catch (error) {
+      this.logger.error(`Cache delete scan error for ${pattern}: ${error.message}`);
+    }
+  }
+
+  /**
    * Delete multiple keys matching pattern
    */
   async delPattern(pattern: string): Promise<void> {

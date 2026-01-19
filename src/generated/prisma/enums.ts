@@ -124,12 +124,36 @@ export type AddressLabel = (typeof AddressLabel)[keyof typeof AddressLabel]
 
 
 export const AuditAction = {
-  PAYMENT_WEBHOOK: 'PAYMENT_WEBHOOK',
+  REGISTER: 'REGISTER',
   LOGIN: 'LOGIN',
-  DOC_UPLOAD: 'DOC_UPLOAD'
+  LOGOUT: 'LOGOUT',
+  PASSWORD_CHANGE: 'PASSWORD_CHANGE',
+  EMAIL_VERIFICATION: 'EMAIL_VERIFICATION',
+  PROFILE_UPDATE: 'PROFILE_UPDATE',
+  ADDRESS_ADD: 'ADDRESS_ADD',
+  ADDRESS_UPDATE: 'ADDRESS_UPDATE',
+  ADDRESS_DELETE: 'ADDRESS_DELETE',
+  ORDER_CREATE: 'ORDER_CREATE',
+  ORDER_UPDATE: 'ORDER_UPDATE',
+  ORDER_CANCEL: 'ORDER_CANCEL',
+  PAYMENT_WEBHOOK: 'PAYMENT_WEBHOOK',
+  DOCUMENT_UPLOAD: 'DOCUMENT_UPLOAD',
+  DOCUMENT_DELETE: 'DOCUMENT_DELETE',
+  CHAT_SESSION_START: 'CHAT_SESSION_START',
+  CHAT_SESSION_END: 'CHAT_SESSION_END'
 } as const
 
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]
+
+
+export const AuditTargetType = {
+  USER: 'USER',
+  PRODUCT: 'PRODUCT',
+  ORDER: 'ORDER',
+  DOCUMENT: 'DOCUMENT'
+} as const
+
+export type AuditTargetType = (typeof AuditTargetType)[keyof typeof AuditTargetType]
 
 
 export const AuthProvider = {

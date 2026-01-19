@@ -2,12 +2,12 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { JwtPayload } from '../types/jwt-payload.type';
 import { IRequestUser } from '../../../common/decorator/interfaces/request-user.interface';
-import { JwtTokenType } from '../enums/jwt-payload-type.enum';
 import { AllConfigType } from 'src/config/config.type';
 import { UsersService } from 'src/modules/users/users.service';
 import { UserStatus } from 'src/generated/prisma/enums';
+import { IAccessPayload } from 'src/modules/token/interfaces/access-payload.interface';
+import { TokenType } from 'src/modules/token/enums/token-type.enum';
 
 /**
  * JWT Authentication Strategy
@@ -60,10 +60,10 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
    * @returns RequestUser object yang akan di-inject ke request.user
    * @throws UnauthorizedException jika token type bukan 'access'
    */
-  async validate(payload: JwtPayload): Promise<IRequestUser> {
+  async validate(payload: IAccessPayload): Promise<IRequestUser> {
     // Validasi token type - hanya terima access token
     // Refresh token tidak boleh digunakan untuk access protected routes
-    if (payload.type !== JwtTokenType.ACCESS) {
+    if (payload.type !== TokenType.ACCESS) {
       throw new UnauthorizedException('Invalid token type. Access token required.');
     }
 

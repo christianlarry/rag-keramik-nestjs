@@ -7,13 +7,15 @@ import { AuthController } from "./auth.controller";
 import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
 import { TokenModule } from "../token/token.module";
 import { MailModule } from "../mail/mail.module";
+import { AuditModule } from "../audit/audit.module";
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
     TokenModule,
-    MailModule
+    MailModule,
+    AuditModule
   ],
   controllers: [AuthController],
   providers: [

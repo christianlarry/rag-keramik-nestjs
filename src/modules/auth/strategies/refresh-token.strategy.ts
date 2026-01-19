@@ -2,13 +2,13 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { JwtPayload } from "../types/jwt-payload.type";
-import { JwtTokenType } from "../enums/jwt-payload-type.enum";
 import { IRequestUser } from "src/common/decorator/interfaces/request-user.interface";
 import { AllConfigType } from "src/config/config.type";
 import { Request } from "express";
 import { UsersService } from "src/modules/users/users.service";
 import { UserStatus } from "src/generated/prisma/enums";
+import { IRefreshPayload } from "src/modules/token/interfaces/refresh-payload.interface";
+import { TokenType } from "src/modules/token/enums/token-type.enum";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refresh") {
@@ -31,8 +31,8 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
     })
   }
 
-  override async validate(req: Request, payload: JwtPayload) {
-    if (payload.type !== JwtTokenType.REFRESH) {
+  override async validate(req: Request, payload: IRefreshPayload) {
+    if (payload.type !== TokenType.REFRESH) {
       throw new UnauthorizedException('Invalid token type');
     }
 

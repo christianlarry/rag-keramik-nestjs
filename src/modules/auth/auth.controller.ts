@@ -2,12 +2,14 @@ import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from "@nestjs
 import { ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
-import { AuthRegisterResponseDto } from "./dto/auth-register-response.dto";
+import { AuthRegisterResponseDto } from "./dto/response/auth-register-response.dto";
 import { ResendVerificationDto } from "./dto/resend-verification.dto";
-import { ResendVerificationResponseDto } from "./dto/resend-verification-response.dto";
+import { ResendVerificationResponseDto } from "./dto/response/resend-verification-response.dto";
 import { SkipThrottle, Throttle } from "@nestjs/throttler";
-import { ResendVerificationThrottlerGuard } from "src/common/guards/resend-verification-throttler.guard";
+import { ResendVerificationThrottlerGuard } from "src/common/guards/throttler/resend-verification-throttler.guard";
 import { LIMIT, TTL } from "src/common/constants/rate-limit.constants";
+import { VerifyEmailDto } from "./dto/verify-email.dto";
+import { VerifyEmailResponseDto } from "./dto/response/verify-email-response.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -24,10 +26,10 @@ export class AuthController {
 
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
-  @SkipThrottle() // Exempt from rate limiting to ensure email verification can proceed smoothly
+  @SkipThrottle() // Exempt from rate limiting to ensure email verification can proceed smoothly  
   async verifyEmail(
-    @Body() verifyEmailDto: { token: string }
-  ): Promise<void> {
+    @Body() verifyEmailDto: VerifyEmailDto
+  ): Promise<VerifyEmailResponseDto> {
     return this.authService.verifyEmail(verifyEmailDto.token);
   }
 

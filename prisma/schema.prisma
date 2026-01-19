@@ -97,9 +97,31 @@ enum AddressLabel {
 }
 
 enum AuditAction {
-  PAYMENT_WEBHOOK
+  REGISTER
   LOGIN
-  DOC_UPLOAD
+  LOGOUT
+  PASSWORD_CHANGE
+  EMAIL_VERIFICATION
+  PROFILE_UPDATE
+  ADDRESS_ADD
+  ADDRESS_UPDATE
+  ADDRESS_DELETE
+  ORDER_CREATE
+  ORDER_UPDATE
+  ORDER_CANCEL
+  PAYMENT_WEBHOOK
+  DOCUMENT_UPLOAD
+  DOCUMENT_DELETE
+  CHAT_SESSION_START
+  CHAT_SESSION_END
+  // add more as needed
+}
+
+enum AuditTargetType {
+  USER
+  PRODUCT
+  ORDER
+  DOCUMENT
   // add more as needed
 }
 
@@ -438,13 +460,13 @@ model ChatMessage {
 // Audit
 // --------------------------
 model AuditLog {
-  id         String   @id @default(uuid())
+  id         String          @id @default(uuid())
   actorId    String?
-  action     String   @db.VarChar(100) // e.g., PAYMENT_WEBHOOK, LOGIN, DOC_UPLOAD
-  targetType String?  @db.VarChar(100) // e.g., ORDER, USER, DOCUMENT
-  targetId   String?  @db.VarChar(255) // id dari target yang diubah
+  action     AuditAction // e.g., PAYMENT_WEBHOOK, LOGIN, DOC_UPLOAD.
+  targetType AuditTargetType // e.g., ORDER, USER, DOCUMENT
+  targetId   String?         @db.VarChar(255) // id dari target yang diubah
   metadata   Json?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime        @default(now())
 
   actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
 
