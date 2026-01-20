@@ -6,6 +6,8 @@ import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace
 import { AllConfigType } from 'src/config/config.type';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/generated/prisma/client';
+import { UserNotFoundError } from './errors/user-not-found.error';
+import { UserAlreadyExistsError } from './errors/user-already-exists-error';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +21,7 @@ export class UsersService {
   ) { }
   /**
    * Find user by ID
+   * @throws UserNotFoundError if user not found
    */
   async findById(id: string) {
     const user = await this.prismaService.user.findUnique({
@@ -44,9 +47,17 @@ export class UsersService {
       },
     });
 
+    if (!user) {
+      throw new UserNotFoundError({ field: 'id', value: id });
+    }
+
     return user;
   }
 
+  /**
+   * Find user by ID with selective fields
+   * @throws UserNotFoundError if user not found
+   */
   async findByIdSelective<K extends keyof User>(
     id: string,
     fields: K[]
@@ -59,21 +70,34 @@ export class UsersService {
 
     // 2. Eksekusi query Prisma
     // Kita gunakan 'as any' saat memanggil findUnique karena Prisma 
-    // butuh tipe statis, namun return typenya kita paksa sesuai Generic K
-    return this.prismaService.user.findUnique({
+    // butuh tipe statis, namun return type kita paksa sesuai Generic K
+    const user = this.prismaService.user.findUnique({
       where: { id },
       select,
     }) as Promise<Pick<User, K> | null>;
+
+    if (!user) {
+      throw new UserNotFoundError({ field: 'id', value: id });
+    }
+
+    return user
   }
 
   /**
    * Find user by email (untuk authentication)
+   * @throws UserNotFoundError if user not found
    */
   async findByEmail(email: string) {
-    return this.prismaService.user.findUnique({
+    const user = this.prismaService.user.findUnique({
       where: { email },
       // Include password untuk verification
     });
+
+    if (!user) {
+      throw new UserNotFoundError({ field: 'email', value: email });
+    }
+
+    return user;
   }
 
   /**
@@ -137,91 +161,110 @@ export class UsersService {
 
   /**
    * Update user profile
+   * @throws UserNotFoundError jika user tidak ditemukan
+   * @throws UserAlreadyExistsError jika email sudah terdaftar
    */
   async update(id: string, data: { name?: string; email?: string }) {
-    const user = await this.prismaService.user.update({
-      where: { id },
-      data,
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        updatedAt: true,
-      },
-    });
+    try {
+      const user = await this.prismaService.user.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          updatedAt: true,
+        },
+      });
 
-    return user;
+      return user;
+    } catch (err) {
+      if (this.prismaService.isPrismaRecordNotFoundError(err)) {
+        throw new UserNotFoundError({ field: 'id', value: id });
+      }
+      if (this.prismaService.isPrismaUniqueError(err, 'email')) {
+        throw new UserAlreadyExistsError({ field: 'email', value: data.email! });
+      }
+      throw err;
+    }
   }
 
   /**
    * Create user (untuk OAuth atau admin)
+   * @throws UserAlreadyExistsError jika email sudah terdaftar
    */
   async create(data: ICreateUser, tx?: TransactionClient) {
+    try {
+      const client = tx || this.prismaService;
 
-    const client = tx || this.prismaService;
-
-    return client.user.create({
-      data: {
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        gender: data.gender,
-        password: data.password,
-        emailVerified: data.emailVerified ?? false,
-        emailVerifiedAt: data.emailVerified ? new Date() : null,
-        provider: data.provider || AuthProvider.LOCAL,
-        providerId: data.providerId,
-        role: data.role || Role.CUSTOMER,
-        status: data.status || UserStatus.INACTIVE,
-        // Create address if provided
-        ...(data.address && {
+      return client.user.create({
+        data: {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          gender: data.gender,
+          password: data.password,
+          emailVerified: data.emailVerified ?? false,
+          emailVerifiedAt: data.emailVerified ? new Date() : null,
+          provider: data.provider || AuthProvider.LOCAL,
+          providerId: data.providerId,
+          role: data.role || Role.CUSTOMER,
+          status: data.status || UserStatus.INACTIVE,
+          // Create address if provided
+          ...(data.address && {
+            addresses: {
+              create: {
+                label: data.address.label,
+                recipient: data.address.recipient,
+                phone: data.address.phone,
+                street: data.address.street,
+                city: data.address.city,
+                province: data.address.province,
+                postalCode: data.address.postalCode,
+                country: data.address.country || 'Indonesia',
+                latitude: data.address.latitude,
+                longitude: data.address.longitude,
+                isDefault: data.address.isDefault ?? true,
+              },
+            },
+          }),
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          gender: true,
+          role: true,
+          status: true,
+          provider: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
           addresses: {
-            create: {
-              label: data.address.label,
-              recipient: data.address.recipient,
-              phone: data.address.phone,
-              street: data.address.street,
-              city: data.address.city,
-              province: data.address.province,
-              postalCode: data.address.postalCode,
-              country: data.address.country || 'Indonesia',
-              latitude: data.address.latitude,
-              longitude: data.address.longitude,
-              isDefault: data.address.isDefault ?? true,
+            select: {
+              id: true,
+              label: true,
+              recipient: true,
+              phone: true,
+              street: true,
+              city: true,
+              province: true,
+              postalCode: true,
+              country: true,
+              isDefault: true,
             },
           },
-        }),
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        gender: true,
-        role: true,
-        status: true,
-        provider: true,
-        emailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-        addresses: {
-          select: {
-            id: true,
-            label: true,
-            recipient: true,
-            phone: true,
-            street: true,
-            city: true,
-            province: true,
-            postalCode: true,
-            country: true,
-            isDefault: true,
-          },
         },
-      },
-    });
+      });
+    } catch (err) {
+      if (this.prismaService.isPrismaUniqueError(err, 'email')) {
+        throw new UserAlreadyExistsError({ field: 'email', value: data.email });
+      }
+      throw err
+    }
   }
 
   /**
@@ -262,41 +305,51 @@ export class UsersService {
   /**
    * Get user status
    * @param userId
-   * @return UserStatus enum value or null if user not found
+   * @return UserStatus enum value
+   * @throws UserNotFoundError if user does not exist
    */
-  async getStatus(userId: string): Promise<UserStatus | null> {
+  async getStatus(userId: string): Promise<UserStatus> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
       select: { status: true },
     });
 
+    if (!user) {
+      throw new UserNotFoundError({ field: 'id', value: userId });
+    }
     // TODO : Save status to cache for faster access with TTL of 5 minutes
     // TODO : Invalidate cache when user status is updated
 
-    return user?.status || null;
+    return user.status;
   }
 
   /**
    * Get user's refresh tokens
    * @param userId 
-   * @returns Array of refresh tokens or null if user not found
+   * @returns Array of refresh tokens
+   * @throws UserNotFoundError if user does not exist
    */
-  async getRefreshTokens(userId: string): Promise<string[] | null> {
+  async getRefreshTokens(userId: string): Promise<string[]> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
       select: { refreshTokens: true },
     });
 
+    if (!user) {
+      throw new UserNotFoundError({ field: 'id', value: userId });
+    }
+
     // TODO : Save refresh tokens to cache for faster access with TTL of 5 minutes
     // TODO : Invalidate cache when refresh tokens are updated
 
-    return user?.refreshTokens || null;
+    return user.refreshTokens;
   }
 
   /**
    * Clear all refresh tokens for a user (e.g., on logout from all devices)
    * @param userId 
    * @returns boolean indicating success or failure
+   * @throws UserNotFoundError if user does not exist
    */
   async clearRefreshTokens(userId: string): Promise<boolean> {
     try {
@@ -314,6 +367,10 @@ export class UsersService {
         this.logger.error(`Failed to clear refresh tokens for user ${userId}: ${err.message}`);
       }
 
+      if (this.prismaService.isPrismaRecordNotFoundError(err)) {
+        throw new UserNotFoundError({ field: 'id', value: userId });
+      }
+
       return false
     }
   }
@@ -323,19 +380,26 @@ export class UsersService {
    * @param userId 
    */
   async markEmailAsVerified(userId: string, tx?: TransactionClient): Promise<Pick<User, 'emailVerifiedAt' | 'status'>> {
-    const client = tx || this.prismaService;
+    try {
+      const client = tx || this.prismaService;
 
-    return await client.user.update({
-      where: { id: userId },
-      data: {
-        emailVerified: true,
-        emailVerifiedAt: new Date(),
-        status: UserStatus.ACTIVE,
-      },
-      select: {
-        emailVerifiedAt: true,
-        status: true,
+      return await client.user.update({
+        where: { id: userId },
+        data: {
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+          status: UserStatus.ACTIVE,
+        },
+        select: {
+          emailVerifiedAt: true,
+          status: true,
+        }
+      });
+    } catch (err) {
+      if (this.prismaService.isPrismaRecordNotFoundError(err)) {
+        throw new UserNotFoundError({ field: 'id', value: userId });
       }
-    });
+      throw err
+    }
   }
 }
