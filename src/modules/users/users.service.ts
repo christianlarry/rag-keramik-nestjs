@@ -8,6 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import { User } from 'src/generated/prisma/client';
 import { UserNotFoundError } from './errors';
 import { UserEmailAlreadyExistsError } from './errors';
+import { CacheService } from '../cache/cache.service';
+import { UserCacheKeys, UserCacheTTL } from './cache';
 
 @Injectable()
 export class UsersService {
@@ -18,40 +20,51 @@ export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService<AllConfigType>,
+    private readonly cacheService: CacheService,
   ) { }
+
   /**
    * Find user by ID
    * @throws UserNotFoundError if user not found
    */
   async findById(id: string) {
-    const user = await this.prismaService.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        email: true,
-        emailVerified: true,
-        emailVerifiedAt: true,
-        firstName: true,
-        lastName: true,
-        gender: true,
-        role: true,
-        provider: true,
-        providerId: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        deletedAt: true,
-        refreshTokens: true,
+    // Cache-aside pattern with 5 minutes TTL
+    const cacheKey = UserCacheKeys.byId(id);
 
-        // password tidak di-return untuk security
+    return this.cacheService.wrap(
+      cacheKey,
+      async () => {
+        const user = await this.prismaService.user.findUnique({
+          where: { id },
+          select: {
+            id: true,
+            email: true,
+            emailVerified: true,
+            emailVerifiedAt: true,
+            firstName: true,
+            lastName: true,
+            gender: true,
+            role: true,
+            provider: true,
+            providerId: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+            refreshTokens: true,
+
+            // password tidak di-return untuk security
+          },
+        });
+
+        if (!user) {
+          throw new UserNotFoundError({ field: 'id', value: id });
+        }
+
+        return user;
       },
-    });
-
-    if (!user) {
-      throw new UserNotFoundError({ field: 'id', value: id });
-    }
-
-    return user;
+      UserCacheTTL.USER_DETAIL,
+    );
   }
 
   /**
@@ -62,25 +75,34 @@ export class UsersService {
     id: string,
     fields: K[]
   ): Promise<Pick<User, K> | null> {
-    // 1. Membuat object select secara dinamis
-    const select = fields.reduce((acc, field) => {
-      acc[field] = true;
-      return acc;
-    }, {} as Record<K, boolean>);
+    // Cache key includes fields to differentiate between different field selections
+    const cacheKey = `${UserCacheKeys.byId(id)}:fields:${fields.sort().join(',')}`;
 
-    // 2. Eksekusi query Prisma
-    // Kita gunakan 'as any' saat memanggil findUnique karena Prisma 
-    // butuh tipe statis, namun return type kita paksa sesuai Generic K
-    const user = this.prismaService.user.findUnique({
-      where: { id },
-      select,
-    }) as Promise<Pick<User, K> | null>;
+    return this.cacheService.wrap(
+      cacheKey,
+      async () => {
+        // 1. Membuat object select secara dinamis
+        const select = fields.reduce((acc, field) => {
+          acc[field] = true;
+          return acc;
+        }, {} as Record<K, boolean>);
 
-    if (!user) {
-      throw new UserNotFoundError({ field: 'id', value: id });
-    }
+        // 2. Eksekusi query Prisma
+        // Kita gunakan 'as any' saat memanggil findUnique karena Prisma 
+        // butuh tipe statis, namun return type kita paksa sesuai Generic K
+        const user = await this.prismaService.user.findUnique({
+          where: { id },
+          select,
+        }) as Pick<User, K> | null;
 
-    return user
+        if (!user) {
+          throw new UserNotFoundError({ field: 'id', value: id });
+        }
+
+        return user;
+      },
+      UserCacheTTL.USER_DETAIL,
+    );
   }
 
   /**
@@ -88,16 +110,25 @@ export class UsersService {
    * @throws UserNotFoundError if user not found
    */
   async findByEmail(email: string) {
-    const user = this.prismaService.user.findUnique({
-      where: { email },
-      // Include password untuk verification
-    });
+    // Cache-aside pattern with 5 minutes TTL
+    const cacheKey = UserCacheKeys.byEmail(email);
 
-    if (!user) {
-      throw new UserNotFoundError({ field: 'email', value: email });
-    }
+    return this.cacheService.wrap(
+      cacheKey,
+      async () => {
+        const user = await this.prismaService.user.findUnique({
+          where: { email },
+          // Include password untuk verification
+        });
 
-    return user;
+        if (!user) {
+          throw new UserNotFoundError({ field: 'email', value: email });
+        }
+
+        return user;
+      },
+      UserCacheTTL.USER_DETAIL,
+    );
   }
 
   /**
@@ -113,50 +144,64 @@ export class UsersService {
     const limit = params.limit || 20;
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    // Cache-aside pattern with 2 minutes TTL
+    const cacheKey = UserCacheKeys.list({
+      page,
+      limit,
+      role: params.role,
+      search: params.search,
+    });
 
-    if (params.role) {
-      where.role = params.role;
-    }
+    return this.cacheService.wrap(
+      cacheKey,
+      async () => {
+        const where: any = {};
 
-    if (params.search) {
-      where.OR = [
-        { name: { contains: params.search, mode: 'insensitive' } },
-        { email: { contains: params.search, mode: 'insensitive' } },
-      ];
-    }
+        if (params.role) {
+          where.role = params.role;
+        }
 
-    const [users, total] = await Promise.all([
-      this.prismaService.user.findMany({
-        where,
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          provider: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prismaService.user.count({ where }),
-    ]);
+        if (params.search) {
+          where.OR = [
+            { name: { contains: params.search, mode: 'insensitive' } },
+            { email: { contains: params.search, mode: 'insensitive' } },
+          ];
+        }
 
-    return {
-      data: users,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-        hasPreviousPage: page > 1,
+        const [users, total] = await Promise.all([
+          this.prismaService.user.findMany({
+            where,
+            skip,
+            take: limit,
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+              provider: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+          }),
+          this.prismaService.user.count({ where }),
+        ]);
+
+        return {
+          data: users,
+          meta: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+            hasNextPage: page * limit < total,
+            hasPreviousPage: page > 1,
+          },
+        };
       },
-    };
+      UserCacheTTL.USER_LIST,
+    );
   }
 
   /**
@@ -366,8 +411,18 @@ export class UsersService {
    * @returns boolean 
    */
   async isEmailExists(email: string): Promise<boolean> {
-    return !!(await this.prismaService.user.findUnique({
-      where: { email }
-    }));
+    // Cache-aside pattern with 10 minutes TTL
+    const cacheKey = UserCacheKeys.emailExists(email);
+
+    return this.cacheService.wrap(
+      cacheKey,
+      async () => {
+        return !!(await this.prismaService.user.findUnique({
+          where: { email },
+          select: { id: true }, // Only select id for minimal data transfer
+        }));
+      },
+      UserCacheTTL.EMAIL_EXISTS,
+    );
   }
 }
