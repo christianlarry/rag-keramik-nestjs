@@ -94,6 +94,21 @@ export class AuthService {
     });
   }
 
+  async resendVerification(email: string): Promise<ResendVerificationResponseDto> {
+    // 1. Find user by email
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new BadRequestException('User with this email does not exist');
+    }
+
+    // 2. Generate new token & send verification email
+    await this.sendVerificationEmail(user.id, user.email, `${user.firstName} ${user.lastName}`, user.emailVerified);
+
+    return new ResendVerificationResponseDto({
+      message: 'Verification email resent successfully.',
+    });
+  }
+
   async verifyEmail(token: string): Promise<VerifyEmailResponseDto> {
     // 1. Verify Token, Handle Expired / Invalid Token
     const payload = await this.verifyVerificationEmailToken(token);
@@ -135,6 +150,28 @@ export class AuthService {
     return new VerifyEmailResponseDto({ message: 'Email verified successfully.' });
   }
 
+  async forgotPassword() {
+    // Implement forgot password logic
+  }
+
+  async resetPassword() {
+    // Implement reset password logic
+  }
+
+  async login() {
+    // Implement login logic
+  }
+
+  async logout() {
+    // Implement logout logic
+  }
+
+  async refreshToken() {
+    // Implement token refresh logic
+  }
+
+
+  // -- Helper Methods -- //
   private async verifyVerificationEmailToken(token: string): Promise<IEmailVerificationPayload> {
     try {
       const payload: IEmailVerificationPayload = await this.tokenService.verifyToken(token, TokenType.EMAIL_VERIFICATION);
@@ -157,21 +194,6 @@ export class AuthService {
 
       throw new BadRequestException('Email verification token is invalid or expired');
     }
-  }
-
-  async resendVerification(email: string): Promise<ResendVerificationResponseDto> {
-    // 1. Find user by email
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      throw new BadRequestException('User with this email does not exist');
-    }
-
-    // 2. Generate new token & send verification email
-    await this.sendVerificationEmail(user.id, user.email, `${user.firstName} ${user.lastName}`, user.emailVerified);
-
-    return new ResendVerificationResponseDto({
-      message: 'Verification email resent successfully.',
-    });
   }
 
   private async hashPassword(password: string): Promise<string> {

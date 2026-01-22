@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthProvider, Role, UserStatus } from 'src/generated/prisma/enums';
-import { ICreateUser } from './interfaces/create-user.interface';
 import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace';
 import { AllConfigType } from 'src/config/config.type';
 import { ConfigService } from '@nestjs/config';
@@ -10,6 +9,8 @@ import { UserNotFoundError } from './errors';
 import { UserEmailAlreadyExistsError } from './errors';
 import { CacheService } from '../cache/cache.service';
 import { UserCacheKeys, UserCacheTTL } from './cache';
+import { UpdateUserParams } from './types/update-user-params.type';
+import { CreateUserParams } from './types/create-user-params.type';
 
 @Injectable()
 export class UsersService {
@@ -209,7 +210,7 @@ export class UsersService {
    * @throws UserNotFoundError jika user tidak ditemukan
    * @throws UserAlreadyExistsError jika email sudah terdaftar
    */
-  async update(id: string, data: { name?: string; email?: string }) {
+  async update(id: string, data: UpdateUserParams) {
     try {
       const user = await this.prismaService.user.update({
         where: { id },
@@ -224,13 +225,17 @@ export class UsersService {
         },
       });
 
+      // Invalidate cache for updated user
+      // TODO : Bisa dioptimasi dengan cache tags nanti
+      // TODO : Event Driven cache invalidation dengan Outbox / Message Queue (BullMQ)
+      await this.cacheService.del(UserCacheKeys.byId(id));
+      await this.cacheService.del(UserCacheKeys.byEmail(user.email));
+      await this.cacheService.delPattern(UserCacheKeys.listPattern);
+
       return user;
     } catch (err) {
       if (this.prismaService.isPrismaRecordNotFoundError(err)) {
         throw new UserNotFoundError({ field: 'id', value: id });
-      }
-      if (this.prismaService.isPrismaUniqueError(err, 'email') && data.email) {
-        throw new UserEmailAlreadyExistsError(data.email);
       }
       throw err;
     }
@@ -240,7 +245,7 @@ export class UsersService {
    * Create user (untuk OAuth atau admin)
    * @throws UserAlreadyExistsError jika email sudah terdaftar
    */
-  async create(data: ICreateUser, tx?: TransactionClient) {
+  async create(data: CreateUserParams, tx?: TransactionClient) {
     try {
       const client = tx || this.prismaService;
 

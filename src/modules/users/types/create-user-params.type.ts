@@ -1,6 +1,5 @@
-import { AddressLabel, AuthProvider, Gender, Role, UserStatus } from "src/generated/prisma/enums";
-
-export interface ICreateUser {
+import { AddressLabel, AuthProvider, Gender, UserStatus, Role } from "src/generated/prisma/enums";
+export type CreateUserParams = {
   firstName: string;
   lastName: string;
   password?: string;
@@ -24,4 +23,4 @@ export interface ICreateUser {
     longitude?: number;
     isDefault?: boolean;
   };
-}
+};
