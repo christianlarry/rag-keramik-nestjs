@@ -16,6 +16,7 @@ import { AllConfigType } from "src/config/config.type";
 import { ConfigService } from "@nestjs/config";
 import { Environment } from "src/config/app/app-config.type";
 import { AuditService } from "../audit/audit.service";
+import { UserNotFoundError } from "../users/errors/user-not-found.error";
 
 @Injectable()
 export class AuthService {
@@ -37,10 +38,15 @@ export class AuthService {
 
   async register(registerDto: AuthRegisterDto): Promise<AuthRegisterResponseDto> {
     // Check Email Availability
-    const existingUser = await this.usersService.findByEmail(registerDto.email);
-    if (existingUser) {
-      throw new BadRequestException('Email is already in use');
+    try {
+      await this.usersService.findByEmail(registerDto.email);
+    } catch (err) {
+      if (err && err instanceof UserNotFoundError) {
+        throw new BadRequestException(err.message)
+      }
+      throw err
     }
+
     // Hash Password
     const hashedPassword = await this.hashPassword(registerDto.password);
 
