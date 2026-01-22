@@ -6,8 +6,8 @@ import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace
 import { AllConfigType } from 'src/config/config.type';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/generated/prisma/client';
-import { UserNotFoundError } from './errors/user-not-found.error';
-import { UserAlreadyExistsError } from './errors/user-already-exists-error';
+import { UserNotFoundError } from './errors';
+import { UserEmailAlreadyExistsError } from './errors';
 
 @Injectable()
 export class UsersService {
@@ -184,8 +184,8 @@ export class UsersService {
       if (this.prismaService.isPrismaRecordNotFoundError(err)) {
         throw new UserNotFoundError({ field: 'id', value: id });
       }
-      if (this.prismaService.isPrismaUniqueError(err, 'email')) {
-        throw new UserAlreadyExistsError({ field: 'email', value: data.email! });
+      if (this.prismaService.isPrismaUniqueError(err, 'email') && data.email) {
+        throw new UserEmailAlreadyExistsError(data.email);
       }
       throw err;
     }
@@ -261,7 +261,7 @@ export class UsersService {
       });
     } catch (err) {
       if (this.prismaService.isPrismaUniqueError(err, 'email')) {
-        throw new UserAlreadyExistsError({ field: 'email', value: data.email });
+        throw new UserEmailAlreadyExistsError(data.email);
       }
       throw err
     }
@@ -300,49 +300,6 @@ export class UsersService {
         providerId: true,
       },
     });
-  }
-
-  /**
-   * Get user status
-   * @param userId
-   * @return UserStatus enum value
-   * @throws UserNotFoundError if user does not exist
-   */
-  async getStatus(userId: string): Promise<UserStatus> {
-    const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
-      select: { status: true },
-    });
-
-    if (!user) {
-      throw new UserNotFoundError({ field: 'id', value: userId });
-    }
-    // TODO : Save status to cache for faster access with TTL of 5 minutes
-    // TODO : Invalidate cache when user status is updated
-
-    return user.status;
-  }
-
-  /**
-   * Get user's refresh tokens
-   * @param userId 
-   * @returns Array of refresh tokens
-   * @throws UserNotFoundError if user does not exist
-   */
-  async getRefreshTokens(userId: string): Promise<string[]> {
-    const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
-      select: { refreshTokens: true },
-    });
-
-    if (!user) {
-      throw new UserNotFoundError({ field: 'id', value: userId });
-    }
-
-    // TODO : Save refresh tokens to cache for faster access with TTL of 5 minutes
-    // TODO : Invalidate cache when refresh tokens are updated
-
-    return user.refreshTokens;
   }
 
   /**
@@ -401,5 +358,16 @@ export class UsersService {
       }
       throw err
     }
+  }
+
+  /**
+   * Check if an email already exists in the database
+   * @param email 
+   * @returns boolean 
+   */
+  async isEmailExists(email: string): Promise<boolean> {
+    return !!(await this.prismaService.user.findUnique({
+      where: { email }
+    }));
   }
 }

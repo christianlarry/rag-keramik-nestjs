@@ -15,7 +15,7 @@ export interface IEmailVerificationPayload {
   /**
    * Token type untuk membedakan email verification token
    */
-  type: TokenType.EMAIL_VERIFICATION;
+  type: TokenType;
 
   /**
    * Issued at - timestamp kapan token dibuat (Unix timestamp dalam seconds)

@@ -10,7 +10,7 @@ export interface IPasswordResetPayload {
   /**
    * Token type untuk membedakan access token vs refresh token
    */
-  type: TokenType.PASSWORD_RESET;
+  type: TokenType;
 
   /**
    * Issued at - timestamp kapan token dibuat (Unix timestamp dalam seconds)

@@ -21,7 +21,7 @@ export interface IRefreshPayload {
   /**
    * Token type untuk membedakan access token vs refresh token
    */
-  type: TokenType.REFRESH;
+  type: TokenType;
 
   /**
    * Issued at - timestamp kapan token dibuat (Unix timestamp dalam seconds)
