@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
 import bcrypt from 'bcrypt';
@@ -11,12 +11,13 @@ import { ResendVerificationResponseDto } from "./dto/response/resend-verificatio
 import { VerifyEmailResponseDto } from "./dto/response/verify-email-response.dto";
 import { TokenType } from "../token/enums/token-type.enum";
 import { IEmailVerificationPayload } from "../token/interfaces/email-verification-payload.interface";
-import { JsonWebTokenError, TokenExpiredError } from "@nestjs/jwt";
+import { JsonWebTokenError, TokenExpiredError as JwtTokenExpiredError } from "@nestjs/jwt";
 import { AllConfigType } from "src/config/config.type";
 import { ConfigService } from "@nestjs/config";
 import { Environment } from "src/config/app/app-config.type";
 import { AuditService } from "../audit/audit.service";
-import { UserEmailAlreadyExistsError } from "../users/errors";
+import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError } from "../users/errors";
+import { TokenExpiredError, TokenInvalidError } from "../token/errors";
 
 @Injectable()
 export class AuthService {
@@ -36,6 +37,12 @@ export class AuthService {
     this.nodeEnv = configService.getOrThrow<Environment>('app.nodeEnv', { infer: true }) as Environment;
   }
 
+  /**
+   * Register a new user
+   * @param registerDto
+   * @returns AuthRegisterResponseDto
+   * @throws UserEmailAlreadyExistsError if email is already in use
+   */
   async register(registerDto: AuthRegisterDto): Promise<AuthRegisterResponseDto> {
     // Check Email Availability
     const isEmailExist = await this.usersService.isEmailExists(registerDto.email);
@@ -96,10 +103,7 @@ export class AuthService {
 
   async resendVerification(email: string): Promise<ResendVerificationResponseDto> {
     // 1. Find user by email
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      throw new BadRequestException('User with this email does not exist');
-    }
+    const user = await this.usersService.findByEmail(email); // User not found handled by usersService
 
     // 2. Generate new token & send verification email
     await this.sendVerificationEmail(user.id, user.email, `${user.firstName} ${user.lastName}`, user.emailVerified);
@@ -115,26 +119,24 @@ export class AuthService {
 
     // 2. Check if user already verified
     const user = await this.usersService.findById(payload.sub);
-    if (!user) {
-      throw new BadRequestException('User does not exist');
-    }
 
     // Already Verified
     if (user.emailVerified) {
-      throw new BadRequestException('Email is already verified');
+      throw new UserEmailAlreadyVerifiedError(user.email);
     }
 
     // 3. Activate User Account, Set emailVerified = true, status = ACTIVE, emailVerifiedAt = now()
     await this.prismaService.$transaction(async (tx) => {
       const updatedUser = await this.usersService.markEmailAsVerified(payload.sub, tx);
+
       // Audit Log
       await this.auditService.logUserAction(
-        user.id,
+        updatedUser.id,
         AuditAction.EMAIL_VERIFICATION,
         AuditTargetType.USER,
-        user.id,
+        updatedUser.id,
         {
-          email: user.email,
+          email: updatedUser.email,
           verifiedAt: updatedUser.emailVerifiedAt,
           status: updatedUser.status
         },
@@ -142,8 +144,8 @@ export class AuthService {
       )
       // Send Welcome Email (Optional)
       await this.mailService.sendWelcomeEmail({
-        to: user.email,
-        name: `${user.firstName} ${user.lastName}`
+        to: updatedUser.email,
+        name: `${updatedUser.firstName} ${updatedUser.lastName}`
       });
     });
 
@@ -184,15 +186,16 @@ export class AuthService {
       }
 
       // Check JWT Error Type
-      if (error instanceof TokenExpiredError) {
-        throw new BadRequestException('Email verification token has expired');
+      if (error instanceof JwtTokenExpiredError) {
+        throw new TokenExpiredError('Email verification token has expired');
+        // in http context, throw 
       };
 
       if (error instanceof JsonWebTokenError) {
-        throw new BadRequestException('Email verification token is invalid');
+        throw new TokenInvalidError('Email verification token is invalid');
       };
 
-      throw new BadRequestException('Email verification token is invalid or expired');
+      throw new TokenInvalidError('Email verification token is invalid or expired');
     }
   }
 
@@ -214,7 +217,7 @@ export class AuthService {
   ) {
     // Prevent sending verification email to already verified users
     if (isEmailVerified) {
-      throw new BadRequestException('Email is already verified');
+      throw new UserEmailAlreadyVerifiedError(email);
     }
     // Generate Verification Token & Send Verification Email
     const token = await this.tokenService.generateEmailVerificationToken(userId, email);

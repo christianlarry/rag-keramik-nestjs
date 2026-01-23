@@ -57,6 +57,9 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
     USER_EMAIL_NOT_VERIFIED: HttpStatus.BAD_REQUEST,
     USER_PROFILE_INCOMPLETE: HttpStatus.BAD_REQUEST,
 
+    TOKEN_INVALID: HttpStatus.BAD_REQUEST,
+    TOKEN_EXPIRED: HttpStatus.BAD_REQUEST,
+
     // 422 Unprocessable Entity - Operation constraints
     USER_CANNOT_BE_UPDATED: HttpStatus.UNPROCESSABLE_ENTITY,
     USER_CANNOT_BE_DELETED: HttpStatus.UNPROCESSABLE_ENTITY,

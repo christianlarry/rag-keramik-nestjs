@@ -249,7 +249,7 @@ export class UsersService {
     try {
       const client = tx || this.prismaService;
 
-      return client.user.create({
+      const newUser = client.user.create({
         data: {
           email: data.email,
           firstName: data.firstName,
@@ -309,11 +309,19 @@ export class UsersService {
           },
         },
       });
+
+      // Invalidate cache for user list
+      // TODO : Bisa dioptimasi dengan cache tags nanti
+      // TODO : Event Driven cache invalidation dengan Outbox / Message Queue (BullMQ)
+      await this.cacheService.del(UserCacheKeys.emailExists(data.email));
+      await this.cacheService.delPattern(UserCacheKeys.listPattern);
+
+      return newUser;
     } catch (err) {
       if (this.prismaService.isPrismaUniqueError(err, 'email')) {
         throw new UserEmailAlreadyExistsError(data.email);
       }
-      throw err
+      throw err;
     }
   }
 
@@ -385,8 +393,11 @@ export class UsersService {
   /**
    * Mark user's email as verified
    * @param userId 
+   * @param tx Optional transaction client
+   * @returns Updated user with emailVerifiedAt, email, status, id, firstName, lastName
+   * @throws UserNotFoundError if user does not exist
    */
-  async markEmailAsVerified(userId: string, tx?: TransactionClient): Promise<Pick<User, 'emailVerifiedAt' | 'status'>> {
+  async markEmailAsVerified(userId: string, tx?: TransactionClient): Promise<Pick<User, 'emailVerifiedAt' | 'email' | 'status' | 'id' | 'firstName' | 'lastName'>> {
     try {
       const client = tx || this.prismaService;
 
@@ -400,6 +411,10 @@ export class UsersService {
         select: {
           emailVerifiedAt: true,
           status: true,
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
         }
       });
     } catch (err) {
