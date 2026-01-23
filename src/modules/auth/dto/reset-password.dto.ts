@@ -5,10 +5,10 @@ export class ResetPasswordDto {
   @ApiProperty({ example: 'StrongP@ssw0rd123!', description: 'New password' })
   @IsStrongPassword()
   @IsNotEmpty()
-  password: string;
+  newPassword: string;
 
   @ApiProperty({ example: 'abc123xyz...', description: 'Reset token received via email' })
   @IsString()
   @IsNotEmpty()
-  hash: string;
+  token: string;
 }

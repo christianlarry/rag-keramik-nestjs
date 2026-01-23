@@ -23,7 +23,12 @@ Sistem autentikasi Keramik Store Platform mengimplementasikan berbagai metode au
 7. [OAuth2 Flow (Google/Facebook)](#7-oauth2-flow-googlefacebook)
 8. [Token Refresh Flow](#8-token-refresh-flow)
 9. [Logout Flow](#9-logout-flow)
-10. [Security Best Practices](#10-security-best-practices)
+10. [Link Local Account Flow](#10-link-local-account-flow-oauth-users)
+11. [Account Linking & Management](#11-account-linking--management)
+12. [Error Handling & Edge Cases](#12-error-handling--edge-cases)
+13. [Rate Limiting Configuration](#13-rate-limiting-configuration)
+14. [Security Audit Logging](#14-security-audit-logging)
+15. [Security Best Practices](#15-security-best-practices)
 
 ---
 
@@ -157,15 +162,21 @@ Sistem autentikasi Keramik Store Platform mengimplementasikan berbagai metode au
 
 1. **Verify token**
    - Validate JWT signature
-   - Check expiration (reject if expired)
+   - Check expiration
    - Extract userId from payload
 
-2. **Update user**
+2. **✅ Graceful handling (RECOMMENDED)**
+   - Check if user email is already verified
+   - If yes, return success message: "Email is already verified. You can login now."
+   - Prevents confusion for OAuth users who might click old verification links
+
+3. **Update user**
    - Find user by userId
    - Set `emailVerified: true`
    - Set `emailVerifiedAt: new Date()`
+   - Set `status: 'ACTIVE'`
 
-3. **Return success**
+4. **Return success**
    - Frontend redirects to login page
 
 ### Resend Verification Email
@@ -185,7 +196,25 @@ Sistem autentikasi Keramik Store Platform mengimplementasikan berbagai metode au
 }
 ```
 
-**Rate Limiting:** Max 3 requests per 15 minutes per email
+**Backend Implementation:**
+
+1. **Find user by email**
+   - Return 404 if not found
+
+2. **✅ Check provider (CRITICAL)**
+   - Verify `user.provider === 'local'`
+   - Return 400 if OAuth user
+   - Message: "This account uses {provider} login and doesn't require email verification."
+
+3. **Check if already verified**
+   - If `emailVerified === true`, return 400
+   - Message: "Email is already verified"
+
+4. **Generate and send new token**
+   - Create new verification token
+   - Send verification email
+
+**Rate Limiting:** Max 3 requests per 1 hour per email
 
 ---
 
@@ -358,26 +387,41 @@ Sistem autentikasi Keramik Store Platform mengimplementasikan berbagai metode au
 
 1. **Find user**
    - Query by email
-   - If not found, still return success (security)
+   - Return 401 if not found (don't reveal if email exists)
 
-2. **Generate reset token**
+2. **✅ Check provider (CRITICAL)**
+   - Verify `user.provider === 'local'`
+   - Return 400 if OAuth user tries to reset password
+   - Message: "This account uses {provider} login. Please use '{provider}' to sign in."
+
+3. **Generate reset token**
    - Create JWT with 1 hour expiration
    - Include userId in payload
    - Generate unique token ID (jti)
 
-3. **Store token**
+4. **Store token**
    - Hash token and store in `passwordResetTokens` table
    - Include expiration timestamp
    - Invalidate previous reset tokens for this user
 
-4. **Send email**
+5. **Send email**
    - Email subject: "Reset your Keramik Store password"
    - Include reset link: `https://keramik-store.com/reset-password?token=xyz`
    - Template with instructions and expiration time
 
-5. **Rate limiting**
-   - Max 3 requests per email per 15 minutes
+6. **Rate limiting**
+   - Max 3 requests per email per 1 hour
    - Prevent abuse
+
+### Error Response for OAuth Users
+
+```json
+{
+  "statusCode": 400,
+  "message": "This account uses google login. Please use 'google' to sign in.",
+  "error": "Bad Request"
+}
+```
 
 ---
 
@@ -521,27 +565,569 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    - Verify access token
    - Extract userId from token
 
-2. **Verify current password**
+2. **✅ Check if password exists (CRITICAL)**
+   - If `user.password === null`, return 400
+   - Message: "No password set for this account. Use /auth/link-local-account to set a password first."
+   - This happens when OAuth users haven't set a password yet
+
+3. **Verify current password**
    - Compare with stored hash
    - Return 400 if incorrect
 
-3. **Validate new password**
+4. **Validate new password**
    - Check strength requirements
    - Ensure different from current password
 
-4. **Update password**
+5. **Update password**
    - Hash new password
    - Update database
    - Update `passwordChangedAt` timestamp
 
-5. **Security actions**
+6. **Security actions**
    - Invalidate all refresh tokens
    - User must re-login with new password
    - Send confirmation email
 
 ---
 
-## 7. OAuth2 Flow (Google/Facebook)
+## 10. Link Local Account Flow (OAuth Users)
+
+### Use Case
+OAuth users (Google/Facebook) who want to set a password as backup login method
+
+### Flow Diagram
+
+```
+┌─────────┐                ┌─────────┐                ┌──────────┐
+│ Client  │                │ Backend │                │  Email   │
+└────┬────┘                └────┬────┘                │ Service  │
+     │                          │                     └────┬─────┘
+     │ POST /auth/link-local-account│                      │
+     │ Authorization: Bearer token  │                      │
+     │ { password }         │                              │
+     ├─────────────────────────────>│                      │
+     │                          │                          │
+     │                          │ 1. Verify access token   │
+     │                          │ 2. Check user.provider   │
+     │                          │ 3. Check if password exists│
+     │                          │ 4. Hash and set password │
+     │                          │ 5. Keep original provider│
+     │                          │                          │
+     │                          │ Send confirmation email  │
+     │                          ├─────────────────────────>│
+     │                          │                          │
+     │ 200 OK                   │                          │
+     │ { message }              │                          │
+     │<─────────────────────────┤                          │
+     │                          │                          │
+```
+
+### API Endpoint
+
+**POST** `/v1/auth/link-local-account`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Request Body
+
+```json
+{
+  "password": "NewSecurePass123!"
+}
+```
+
+### Response (200 OK)
+
+```json
+{
+  "message": "Local login enabled successfully. You can now login with email and password."
+}
+```
+
+### Response (400 Bad Request) - Already Has Password
+
+```json
+{
+  "statusCode": 400,
+  "message": "Password is already set. Use /auth/change-password instead.",
+  "error": "Bad Request"
+}
+```
+
+### Response (400 Bad Request) - Local Account
+
+```json
+{
+  "statusCode": 400,
+  "message": "Account already uses email/password login",
+  "error": "Bad Request"
+}
+```
+
+### Backend Implementation Steps
+
+1. **Authenticate user**
+   - Verify access token
+   - Extract userId from token
+
+2. **Check provider**
+   - Only OAuth users (google, facebook) can link local account
+   - If `user.provider === 'local'`, return 400
+
+3. **Check if password exists**
+   - If `user.password !== null`, return 400
+   - Message: "Password is already set. Use change-password instead."
+
+4. **Validate password**
+   - Check strength requirements
+   - Minimum 8 characters, etc.
+
+5. **Set password**
+   - Hash password with bcrypt
+   - Update `user.password`
+   - Keep `user.provider` as original (google/facebook)
+   - User can now login with both methods
+
+6. **Send confirmation email**
+   - Notify user that local login is enabled
+   - Include timestamp and IP address
+
+---
+
+## 11. Account Linking & Management
+
+### Scenario 1: OAuth User Wants Local Login
+
+**Problem:** User registered with Google/Facebook and wants to set password for backup login
+
+**Solution:** Use `/auth/link-local-account` endpoint
+- OAuth user sets a password
+- Original provider stays (google/facebook)
+- User can now login with:
+  - Email + Password (local)
+  - OAuth (Google/Facebook)
+
+### Scenario 2: Duplicate Accounts (Future Feature)
+
+**Problem:** User has 2 separate accounts:
+- `user@gmail.com` via email/password registration
+- `user@gmail.com` via Google OAuth
+
+**Current Behavior:**
+- Two separate accounts exist
+- User must choose which one to use
+
+**Recommended Future Solution:**
+1. Detect duplicate email during OAuth login
+2. Prompt user: "An account with this email already exists. Link accounts?"
+3. Require user to verify current account (enter password)
+4. Merge accounts:
+   - Keep user's chosen primary provider
+   - Preserve all user data
+   - Link both authentication methods
+
+### Scenario 3: Unlink Provider (Future Feature)
+
+**Use Case:** User wants to remove OAuth provider from their account
+
+**Requirements:**
+- Must have at least 1 authentication method remaining
+- If removing OAuth and no password set, require password setup first
+- Confirmation required before unlinking
+
+---
+
+## 12. Error Handling & Edge Cases
+
+### Email Verification Errors
+
+**Token Expired:**
+```json
+{
+  "statusCode": 401,
+  "message": "Verification token has expired. Please request a new one.",
+  "error": "Unauthorized"
+}
+```
+
+**Token Already Used / Email Already Verified:**
+```json
+{
+  "statusCode": 200,
+  "message": "Email is already verified. You can login now."
+}
+```
+
+**Invalid Token:**
+```json
+{
+  "statusCode": 401,
+  "message": "Invalid verification token",
+  "error": "Unauthorized"
+}
+```
+
+### Password Reset Errors
+
+**Token Expired:**
+```json
+{
+  "statusCode": 401,
+  "message": "Reset token has expired. Please request a new one.",
+  "error": "Unauthorized"
+}
+```
+
+**OAuth User Attempting Reset:**
+```json
+{
+  "statusCode": 400,
+  "message": "This account uses google login. Please use 'google' to sign in.",
+  "error": "Bad Request"
+}
+```
+
+**Token Already Used:**
+```json
+{
+  "statusCode": 400,
+  "message": "This reset link has already been used. Please request a new one.",
+  "error": "Bad Request"
+}
+```
+
+### Login Errors
+
+**Invalid Credentials:**
+```json
+{
+  "statusCode": 401,
+  "message": "Invalid email or password",
+  "error": "Unauthorized"
+}
+```
+
+**Email Not Verified:**
+```json
+{
+  "statusCode": 401,
+  "message": "Please verify your email before logging in. Check your inbox for verification link.",
+  "error": "Unauthorized"
+}
+```
+
+**Account Inactive:**
+```json
+{
+  "statusCode": 403,
+  "message": "Your account is inactive. Please contact support.",
+  "error": "Forbidden"
+}
+```
+
+**Account Disabled:**
+```json
+{
+  "statusCode": 403,
+  "message": "Your account has been disabled. Please contact support.",
+  "error": "Forbidden"
+}
+```
+
+**Too Many Login Attempts:**
+```json
+{
+  "statusCode": 429,
+  "message": "Too many login attempts. Please try again in 15 minutes.",
+  "error": "Too Many Requests",
+  "retryAfter": 900
+}
+```
+
+### Change Password Errors
+
+**OAuth User Without Password:**
+```json
+{
+  "statusCode": 400,
+  "message": "No password set for this account. Use /auth/link-local-account to set a password first.",
+  "error": "Bad Request"
+}
+```
+
+**Current Password Incorrect:**
+```json
+{
+  "statusCode": 400,
+  "message": "Current password is incorrect",
+  "error": "Bad Request"
+}
+```
+
+**New Password Same as Current:**
+```json
+{
+  "statusCode": 400,
+  "message": "New password must be different from current password",
+  "error": "Bad Request"
+}
+```
+
+### Resend Verification Errors
+
+**OAuth User:**
+```json
+{
+  "statusCode": 400,
+  "message": "This account uses google login and doesn't require email verification.",
+  "error": "Bad Request"
+}
+```
+
+**Already Verified:**
+```json
+{
+  "statusCode": 400,
+  "message": "Email is already verified",
+  "error": "Bad Request"
+}
+```
+
+### Token Refresh Errors
+
+**Invalid Refresh Token:**
+```json
+{
+  "statusCode": 401,
+  "message": "Invalid refresh token",
+  "error": "Unauthorized"
+}
+```
+
+**Token Revoked:**
+```json
+{
+  "statusCode": 401,
+  "message": "Refresh token has been revoked",
+  "error": "Unauthorized"
+}
+```
+
+---
+
+## 13. Rate Limiting Configuration
+
+### Per Endpoint Limits
+
+| Endpoint | Limit | Window | Tracking Method |
+|----------|-------|--------|-----------------|
+| `/auth/register` | 5 | 1 hour | IP + Email |
+| `/auth/login` | 5 | 15 min | IP + Email |
+| `/auth/verify-email` | No limit | - | Token-based (single use) |
+| `/auth/resend-verification` | 3 | 1 hour | Email |
+| `/auth/forgot-password` | 3 | 1 hour | Email |
+| `/auth/reset-password` | 10 | 1 hour | Token-based |
+| `/auth/change-password` | 5 | 1 hour | User ID |
+| `/auth/link-local-account` | 5 | 1 hour | User ID |
+| `/auth/refresh` | 10 | 1 min | Refresh Token |
+| `/auth/logout` | 20 | 1 min | Access Token |
+| OAuth Callbacks | 10 | 1 min | IP |
+
+### Rate Limit Response Headers
+
+```http
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 5
+X-RateLimit-Remaining: 3
+X-RateLimit-Reset: 1640995200
+```
+
+### Rate Limit Exceeded Response
+
+```json
+{
+  "statusCode": 429,
+  "message": "Too many requests. Please try again later.",
+  "error": "Too Many Requests",
+  "retryAfter": 900
+}
+```
+
+**Response Headers:**
+```http
+HTTP/1.1 429 Too Many Requests
+X-RateLimit-Limit: 5
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1640995200
+Retry-After: 900
+```
+
+### Implementation Notes
+
+- **IP Tracking**: Use `X-Forwarded-For` header behind proxies
+- **Email Tracking**: Prevent email enumeration by still rate limiting even if email doesn't exist
+- **Token Tracking**: Track by token ID (jti) to prevent token replay
+- **Storage**: Use Redis for distributed rate limiting
+- **Bypass**: Allow admins to bypass rate limits (careful!)
+
+---
+
+## 14. Security Audit Logging
+
+### Events to Log
+
+#### Authentication Events
+- `AUTH_REGISTER` - New user registration
+- `AUTH_EMAIL_VERIFIED` - Email verification completed
+- `AUTH_LOGIN_SUCCESS` - Successful login
+- `AUTH_LOGIN_FAILED` - Failed login attempt
+- `AUTH_LOGOUT` - User logout
+- `AUTH_TOKEN_REFRESHED` - Token refresh
+- `AUTH_PASSWORD_RESET_REQUESTED` - Password reset email sent
+- `AUTH_PASSWORD_RESET_COMPLETED` - Password successfully reset
+- `AUTH_PASSWORD_CHANGED` - Password changed (authenticated)
+- `AUTH_OAUTH_LOGIN` - OAuth login (Google/Facebook)
+- `AUTH_LOCAL_ACCOUNT_LINKED` - Local account linked to OAuth
+- `AUTH_RESEND_VERIFICATION` - Verification email resent
+
+#### Security Events
+- `AUTH_SUSPICIOUS_LOGIN` - Login from unusual location/device
+- `AUTH_BRUTE_FORCE_DETECTED` - Multiple failed login attempts
+- `AUTH_RATE_LIMIT_EXCEEDED` - Rate limit hit
+- `AUTH_TOKEN_BLACKLISTED` - Token manually revoked
+- `AUTH_INVALID_TOKEN` - Invalid token used
+- `AUTH_EXPIRED_TOKEN` - Expired token attempted
+- `AUTH_ACCOUNT_LOCKED` - Account locked due to suspicious activity
+- `AUTH_ACCOUNT_UNLOCKED` - Account unlocked by admin
+
+### Log Structure
+
+```typescript
+interface AuditLog {
+  id: string;
+  userId: string | null; // null for failed login attempts
+  event: string;
+  status: 'SUCCESS' | 'FAILURE' | 'WARNING';
+  ipAddress: string;
+  userAgent: string;
+  metadata: Record<string, any>;
+  timestamp: Date;
+}
+```
+
+### Example Log Entries
+
+**Successful Login:**
+```json
+{
+  "id": "log_abc123",
+  "userId": "user_xyz789",
+  "event": "AUTH_LOGIN_SUCCESS",
+  "status": "SUCCESS",
+  "ipAddress": "192.168.1.1",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
+  "metadata": {
+    "provider": "local",
+    "device": "Chrome on Windows",
+    "location": "Jakarta, Indonesia"
+  },
+  "timestamp": "2026-01-18T10:30:00Z"
+}
+```
+
+**Failed Login:**
+```json
+{
+  "id": "log_abc124",
+  "userId": null,
+  "event": "AUTH_LOGIN_FAILED",
+  "status": "FAILURE",
+  "ipAddress": "192.168.1.1",
+  "userAgent": "Mozilla/5.0...",
+  "metadata": {
+    "email": "user@example.com",
+    "reason": "invalid_credentials",
+    "attemptCount": 3
+  },
+  "timestamp": "2026-01-18T10:31:00Z"
+}
+```
+
+**OAuth Login:**
+```json
+{
+  "id": "log_abc125",
+  "userId": "user_xyz789",
+  "event": "AUTH_OAUTH_LOGIN",
+  "status": "SUCCESS",
+  "ipAddress": "192.168.1.1",
+  "userAgent": "Mozilla/5.0...",
+  "metadata": {
+    "provider": "google",
+    "providerId": "1234567890",
+    "newUser": false
+  },
+  "timestamp": "2026-01-18T10:32:00Z"
+}
+```
+
+**Local Account Linked:**
+```json
+{
+  "id": "log_abc127",
+  "userId": "user_xyz789",
+  "event": "AUTH_LOCAL_ACCOUNT_LINKED",
+  "status": "SUCCESS",
+  "ipAddress": "192.168.1.1",
+  "userAgent": "Mozilla/5.0...",
+  "metadata": {
+    "previousProvider": "google",
+    "passwordSet": true
+  },
+  "timestamp": "2026-01-18T10:35:00Z"
+}
+```
+
+**Suspicious Activity:**
+```json
+{
+  "id": "log_abc126",
+  "userId": "user_xyz789",
+  "event": "AUTH_SUSPICIOUS_LOGIN",
+  "status": "WARNING",
+  "ipAddress": "203.0.113.42",
+  "userAgent": "Mozilla/5.0...",
+  "metadata": {
+    "reason": "unusual_location",
+    "previousLocation": "Jakarta, Indonesia",
+    "currentLocation": "Moscow, Russia",
+    "timeDifference": "2 hours"
+  },
+  "timestamp": "2026-01-18T12:00:00Z"
+}
+```
+
+### Monitoring & Alerts
+
+**Alert Triggers:**
+- 5+ failed login attempts from same IP in 5 minutes
+- Login from new country/device without 2FA
+- Multiple password reset requests in short time
+- Token refresh from different IP than original login
+- Sudden spike in registration from same IP range
+
+**Notification Methods:**
+- Email to user for suspicious activity
+- Email to admin for security events
+- Slack/Discord webhook for critical events
+- Dashboard for real-time monitoring
+
+---
+
+## 15. Security Best Practices
 
 ### Flow Diagram
 
@@ -922,6 +1508,12 @@ Revoke Tokens → Blacklist Access Token → Clear Client Storage
 - [ ] Audit logging for authentication events
 - [ ] CSRF protection
 - [ ] Input sanitization and validation
+- [ ] **Provider validation** for forgot-password
+- [ ] **Provider validation** for resend-verification
+- [ ] **Link local account** endpoint for OAuth users
+- [ ] **Password existence check** in change-password
+- [ ] **Security audit logging** system
+- [ ] **Rate limiting** per email (not just IP)
 
 ### Frontend
 
@@ -938,6 +1530,9 @@ Revoke Tokens → Blacklist Access Token → Clear Client Storage
 - [ ] Password strength indicator
 - [ ] Loading states and error messages
 - [ ] Redirect after authentication
+- [ ] **Link local account** page for OAuth users
+- [ ] **Error handling** for all edge cases
+- [ ] **Rate limit** feedback to users
 
 ### Database
 
@@ -955,6 +1550,7 @@ Revoke Tokens → Blacklist Access Token → Clear Client Storage
 - [ ] Password changed confirmation
 - [ ] New login notification (optional)
 - [ ] Suspicious activity alert (optional)
+- [ ] **Local account linked** confirmation
 
 ---
 
@@ -979,8 +1575,21 @@ Revoke Tokens → Blacklist Access Token → Clear Client Storage
 7. Write integration tests for all flows
 8. Document environment variables
 9. Set up monitoring and alerts
+10. **Implement provider validation** in forgot-password, resend-verification
+11. **Add link-local-account** endpoint for OAuth users
+12. **Set up audit logging** for security events
+13. **Configure rate limiting** with Redis
 
 ---
 
-**Last Updated:** December 31, 2025
-**Version:** 1.0.0
+**Last Updated:** January 23, 2026
+**Version:** 2.0.0
+
+**Major Changes in v2.0.0:**
+- Added Link Local Account flow for OAuth users
+- Added Account Linking & Management section
+- Added comprehensive Error Handling & Edge Cases
+- Added Rate Limiting Configuration details
+- Added Security Audit Logging section
+- Provider validation for password-related operations
+- Enhanced security best practices

@@ -75,7 +75,7 @@ export class UsersService {
   async findByIdSelective<K extends keyof User>(
     id: string,
     fields: K[]
-  ): Promise<Pick<User, K> | null> {
+  ): Promise<Pick<User, K>> {
     // Cache key includes fields to differentiate between different field selections
     const cacheKey = `${UserCacheKeys.byId(id)}:fields:${fields.sort().join(',')}`;
 

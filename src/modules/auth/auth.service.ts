@@ -16,8 +16,11 @@ import { AllConfigType } from "src/config/config.type";
 import { ConfigService } from "@nestjs/config";
 import { Environment } from "src/config/app/app-config.type";
 import { AuditService } from "../audit/audit.service";
-import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError } from "../users/errors";
+import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError, UserNotFoundError } from "../users/errors";
 import { TokenExpiredError, TokenInvalidError } from "../token/errors";
+import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-response.dto";
+import { UserInvalidProviderError } from "../users/errors/user-invalid-provider.error";
+import { IPasswordResetPayload } from "../token/interfaces/password-reset-payload.interface";
 
 @Injectable()
 export class AuthService {
@@ -102,15 +105,36 @@ export class AuthService {
   }
 
   async resendVerification(email: string): Promise<ResendVerificationResponseDto> {
-    // 1. Find user by email
-    const user = await this.usersService.findByEmail(email); // User not found handled by usersService
+    // Security: Always return success message to prevent email enumeration
+    const responseMessage: string = 'If an account with that email exists, a verification email has been resent.'
 
-    // 2. Generate new token & send verification email
-    await this.sendVerificationEmail(user.id, user.email, `${user.firstName} ${user.lastName}`, user.emailVerified);
+    try {
+      // 1. Find user by email
+      const user = await this.usersService.findByEmail(email); // User not found handled by usersService
 
-    return new ResendVerificationResponseDto({
-      message: 'Verification email resent successfully.',
-    });
+      // 2. Generate new token & send verification email
+      await this.sendVerificationEmail(user.id, user.email, `${user.firstName} ${user.lastName}`, user.emailVerified);
+
+      return new ResendVerificationResponseDto({
+        message: responseMessage,
+      });
+    } catch (err) {
+      if (err instanceof UserEmailAlreadyVerifiedError) {
+        // Log the incident for monitoring
+        this.logger.warn(`Resend verification requested for already verified email: ${email}`);
+        return new ResendVerificationResponseDto({
+          message: responseMessage,
+        });
+      }
+      if (err instanceof UserNotFoundError) {
+        // Log the incident for monitoring
+        this.logger.warn(`Resend verification requested for non-existent email: ${email}`);
+        return new ResendVerificationResponseDto({
+          message: responseMessage,
+        });
+      }
+      throw err
+    }
   }
 
   async verifyEmail(token: string): Promise<VerifyEmailResponseDto> {
@@ -121,6 +145,7 @@ export class AuthService {
     const user = await this.usersService.findById(payload.sub);
 
     // Already Verified
+    // If already verifed, the provider check is not needed
     if (user.emailVerified) {
       throw new UserEmailAlreadyVerifiedError(user.email);
     }
@@ -152,12 +177,85 @@ export class AuthService {
     return new VerifyEmailResponseDto({ message: 'Email verified successfully.' });
   }
 
-  async forgotPassword() {
+  async forgotPassword(email: string): Promise<ForgotPasswordResponseDto> {
     // Implement forgot password logic
+    // Security: Always return a success message to prevent email enumeration
+    const responseMessage: string = 'If an account with that email exists, a password reset link has been sent.'
+
+    try {
+      // Check if user exists by email
+      const user = await this.usersService.findByEmail(email);
+
+      // Check provider
+      if (user.provider !== AuthProvider.LOCAL) {
+        throw new UserInvalidProviderError(`This account uses ${user.provider} login. Please use '${user.provider}' to sign in.`);
+      }
+
+      // Generate password reset token with Dynamic Secret (using user's current hashed password)
+      const passwordResetToken = await this.tokenService.generatePasswordResetToken(user.id, user.password!);
+
+      // Send password reset email
+      await this.mailService.sendResetPasswordEmail({
+        to: user.email,
+        name: `${user.firstName} ${user.lastName}`,
+        token: passwordResetToken
+      });
+
+      // Return Response DTO
+      return new ForgotPasswordResponseDto({ message: responseMessage });
+
+    } catch (err) {
+      if (err instanceof UserNotFoundError) {
+        // Log the incident for monitoring
+        this.logger.warn(`Password reset requested for non-existent email: ${email}`);
+        return new ForgotPasswordResponseDto({ message: responseMessage });
+      }
+      if (err instanceof UserInvalidProviderError) {
+        // Log the incident for monitoring
+        this.logger.warn(`Password reset requested for email with invalid provider: ${email}`);
+        return new ForgotPasswordResponseDto({ message: responseMessage });
+      }
+
+      // Re-throw other unexpected errors
+      throw err;
+    }
   }
 
-  async resetPassword() {
-    // Implement reset password logic
+  async resetPassword(token: string, newPassword: string) {
+    try {
+      // Decode to get userId without verifying
+      const decoded: IPasswordResetPayload | null = await this.tokenService.decodeToken(token);
+      // Validate decoded token
+      if (!decoded || !decoded.sub) {
+        throw new TokenInvalidError('Password reset token is invalid');
+      }
+
+      // Get user current hash password for dynamic secret
+      const user = await this.usersService.findByIdSelective(decoded.sub, ['password']);
+
+      // Verify Token, Dynamic Secret pass must be sliced (0, 10)
+      await this.tokenService.verifyToken(token, TokenType.PASSWORD_RESET, user.password!.slice(0, 10));
+
+      // Hash new password
+      const hashedNewPassword = await this.hashPassword(newPassword);
+
+      // Update user's password in the database
+      await this.usersService.update(
+        decoded.sub,
+        {
+          password: hashedNewPassword,
+        }
+      );
+    } catch (err) {
+      // Handle token errors
+      if (err instanceof JwtTokenExpiredError) {
+        throw new TokenExpiredError('Password reset token has expired');
+      }
+      if (err instanceof JsonWebTokenError) {
+        throw new TokenInvalidError('Password reset token is invalid');
+      }
+      throw new TokenInvalidError('Password reset token is invalid or expired');
+    }
   }
 
   async login() {

@@ -4,6 +4,7 @@ import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { AllConfigType } from "src/config/config.type";
 import { TokenType } from "./enums/token-type.enum";
 import { IEmailVerificationPayload } from "./interfaces/email-verification-payload.interface";
+import { IPasswordResetPayload } from "./interfaces/password-reset-payload.interface";
 
 @Injectable()
 export class TokenService {
@@ -16,15 +17,19 @@ export class TokenService {
 
   /**
    * Generate token based on type
+   * @param payload - Payload to include in the token
+   * @param type - Type of token to generate
+   * @param dynamicSecretSuffix - Optional suffix for dynamic secret generation (e.g., for password reset)
    */
   private async generateToken<T>(
     payload: T extends object ? T : never,
     type: TokenType,
+    dynamicSecretSuffix?: string,
   ): Promise<string> {
     const config = this.getTokenConfig(type);
 
     return this.jwtService.signAsync<typeof payload>(payload, {
-      secret: config.secret,
+      secret: dynamicSecretSuffix ? `${config.secret}${dynamicSecretSuffix}` : config.secret,
       expiresIn: config.expiresIn
     });
   }
@@ -44,16 +49,29 @@ export class TokenService {
   }
 
   /**
+   * Generate password reset token with dynamic secret
+   */
+  async generatePasswordResetToken(userId: string, password: string): Promise<string> {
+    const payload: IPasswordResetPayload = {
+      sub: userId,
+      type: TokenType.PASSWORD_RESET,
+    }
+
+    return this.generateToken<IPasswordResetPayload>(payload, TokenType.PASSWORD_RESET, password.slice(0, 10));
+  }
+
+  /**
    * Verify token based on type
    */
   async verifyToken(
     token: string,
     type: TokenType,
+    dynamicSecretSuffix?: string,
   ): Promise<any> {
     const config = this.getTokenConfig(type);
 
     return this.jwtService.verifyAsync(token, {
-      secret: config.secret
+      secret: dynamicSecretSuffix ? `${config.secret}${dynamicSecretSuffix}` : config.secret
     });
   }
 

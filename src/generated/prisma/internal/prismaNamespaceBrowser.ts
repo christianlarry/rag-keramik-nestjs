@@ -67,7 +67,8 @@ export const ModelName = {
   DocumentChunk: 'DocumentChunk',
   ChatSession: 'ChatSession',
   ChatMessage: 'ChatMessage',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  Outbox: 'Outbox'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -351,6 +352,20 @@ export const AuditLogScalarFieldEnum = {
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
+export const OutboxScalarFieldEnum = {
+  id: 'id',
+  aggregateId: 'aggregateId',
+  aggregateType: 'aggregateType',
+  eventType: 'eventType',
+  payload: 'payload',
+  createdAt: 'createdAt',
+  processedAt: 'processedAt',
+  errorMessage: 'errorMessage'
+} as const
+
+export type OutboxScalarFieldEnum = (typeof OutboxScalarFieldEnum)[keyof typeof OutboxScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -365,6 +380,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: 'JsonNull'
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

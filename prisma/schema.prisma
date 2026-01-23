@@ -473,3 +473,19 @@ model AuditLog {
   @@index([actorId])
   @@index([action])
 }
+
+// --------------------------
+// Transactional Outbox Pattern
+// --------------------------
+model Outbox {
+  id            String    @id @default(uuid())
+  aggregateId   String    @db.VarChar(255)
+  aggregateType String    @db.VarChar(255)
+  eventType     String    @db.VarChar(255)
+  payload       Json
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime? // kapan event ini sudah diproses, Jika null berarti belum
+  errorMessage  String?   @db.VarChar(1000) // jika processing gagal, jika null berarti sukses
+
+  @@index([processedAt])
+}

@@ -155,7 +155,7 @@ export class MailProcessor extends WorkerHost {
       context: {
         name: data.name,
         resetUrl,
-        expiresIn: data.expiresIn || '1 hour',
+        expiresIn: data.expiresIn || `${this.configService.get('auth.forgotPasswordTokenExpirationHours', { infer: true })!} hours`,
         year: new Date().getFullYear(),
       },
     });

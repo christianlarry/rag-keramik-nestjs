@@ -36,7 +36,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async updateProfile(
     @User('id') currentUserId: string,
-    @Body() data: { name?: string; email?: string },
+    @Body() data: { firstName?: string; },
   ) {
     return this.usersService.update(currentUserId, data);
   }

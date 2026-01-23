@@ -56,6 +56,7 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
     USER_EMAIL_INVALID: HttpStatus.BAD_REQUEST,
     USER_EMAIL_NOT_VERIFIED: HttpStatus.BAD_REQUEST,
     USER_PROFILE_INCOMPLETE: HttpStatus.BAD_REQUEST,
+    USER_INVALID_PROVIDER: HttpStatus.BAD_REQUEST,
 
     TOKEN_INVALID: HttpStatus.BAD_REQUEST,
     TOKEN_EXPIRED: HttpStatus.BAD_REQUEST,

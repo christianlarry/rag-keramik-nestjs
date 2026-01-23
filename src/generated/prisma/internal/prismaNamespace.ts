@@ -400,7 +400,8 @@ export const ModelName = {
   DocumentChunk: 'DocumentChunk',
   ChatSession: 'ChatSession',
   ChatMessage: 'ChatMessage',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  Outbox: 'Outbox'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "address" | "product" | "inventory" | "discount" | "productDiscount" | "discountProduct" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "document" | "documentChunk" | "chatSession" | "chatMessage" | "auditLog"
+    modelProps: "user" | "address" | "product" | "inventory" | "discount" | "productDiscount" | "discountProduct" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "document" | "documentChunk" | "chatSession" | "chatMessage" | "auditLog" | "outbox"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1678,6 +1679,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Outbox: {
+      payload: Prisma.$OutboxPayload<ExtArgs>
+      fields: Prisma.OutboxFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OutboxFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OutboxFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>
+        }
+        findFirst: {
+          args: Prisma.OutboxFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OutboxFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>
+        }
+        findMany: {
+          args: Prisma.OutboxFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>[]
+        }
+        create: {
+          args: Prisma.OutboxCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>
+        }
+        createMany: {
+          args: Prisma.OutboxCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OutboxCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>[]
+        }
+        delete: {
+          args: Prisma.OutboxDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>
+        }
+        update: {
+          args: Prisma.OutboxUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>
+        }
+        deleteMany: {
+          args: Prisma.OutboxDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OutboxUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OutboxUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>[]
+        }
+        upsert: {
+          args: Prisma.OutboxUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxPayload>
+        }
+        aggregate: {
+          args: Prisma.OutboxAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOutbox>
+        }
+        groupBy: {
+          args: Prisma.OutboxGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OutboxGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OutboxCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OutboxCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1982,6 +2057,20 @@ export const AuditLogScalarFieldEnum = {
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
+export const OutboxScalarFieldEnum = {
+  id: 'id',
+  aggregateId: 'aggregateId',
+  aggregateType: 'aggregateType',
+  eventType: 'eventType',
+  payload: 'payload',
+  createdAt: 'createdAt',
+  processedAt: 'processedAt',
+  errorMessage: 'errorMessage'
+} as const
+
+export type OutboxScalarFieldEnum = (typeof OutboxScalarFieldEnum)[keyof typeof OutboxScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1996,6 +2085,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -2441,6 +2537,7 @@ export type GlobalOmitConfig = {
   chatSession?: Prisma.ChatSessionOmit
   chatMessage?: Prisma.ChatMessageOmit
   auditLog?: Prisma.AuditLogOmit
+  outbox?: Prisma.OutboxOmit
 }
 
 /* Types for Logging */

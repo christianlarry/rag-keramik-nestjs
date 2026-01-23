@@ -48,6 +48,7 @@ export const UserErrorCode = {
   USER_OAUTH_LINK_FAILED: "USER_OAUTH_LINK_FAILED",
   USER_OAUTH_ALREADY_LINKED: "USER_OAUTH_ALREADY_LINKED",
   USER_PROVIDER_NOT_LINKED: "USER_PROVIDER_NOT_LINKED",
+  USER_INVALID_PROVIDER: "USER_INVALID_PROVIDER",
 } as const;
 
 export type UserErrorCode = typeof UserErrorCode[keyof typeof UserErrorCode];

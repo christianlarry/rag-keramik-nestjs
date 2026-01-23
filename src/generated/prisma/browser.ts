@@ -102,3 +102,8 @@ export type ChatMessage = Prisma.ChatMessageModel
  * 
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model Outbox
+ * 
+ */
+export type Outbox = Prisma.OutboxModel

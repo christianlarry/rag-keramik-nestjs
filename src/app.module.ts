@@ -76,7 +76,10 @@ import { AuditModule } from './modules/audit/audit.module';
           ttl: configService.get('rateLimit.ttl', { infer: true }) || 60000,
           limit: configService.get('rateLimit.limit', { infer: true }) || 10,
         }],
-        storage: new ThrottlerStorageRedisService(redis)
+        storage: new ThrottlerStorageRedisService(redis),
+        skipIf: () => {
+          return configService.get('app.nodeEnv', { infer: true })! === 'development';
+        },
       }),
     }),
     TokenModule,

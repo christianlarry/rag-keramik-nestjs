@@ -10,6 +10,8 @@ import { ResendVerificationThrottlerGuard } from "src/common/guards/throttler/re
 import { LIMIT, TTL } from "src/common/constants/rate-limit.constants";
 import { VerifyEmailDto } from "./dto/verify-email.dto";
 import { VerifyEmailResponseDto } from "./dto/response/verify-email-response.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -18,6 +20,7 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: LIMIT.STRICT, ttl: TTL.FIFTEEN_MINUTES } }) // 5 requests per 15 minutes
   async register(
     @Body() registerDto: AuthRegisterDto
   ): Promise<AuthRegisterResponseDto> {
@@ -46,15 +49,19 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.VERY_STRICT, ttl: TTL.ONE_HOUR } }) // 3 requests per hour
-  async forgotPassword() {
-    // Implement forgot password logic
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto
+  ) {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_HOUR } }) // 10 requests per hour
-  async resetPassword() {
-    // Implement reset password logic
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto
+  ) {
+    return this.authService.resetPassword(resetPasswordDto.token, resetPasswordDto.newPassword);
   }
 
   @Post('login')
