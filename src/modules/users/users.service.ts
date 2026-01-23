@@ -242,6 +242,32 @@ export class UsersService {
   }
 
   /**
+   * Update user password
+   * @param id 
+   * @param newPassword 
+   * @param tx Optional transaction client
+   * @throws UserNotFoundError if user not found
+   */
+  async updatePassword(id: string, newPassword: string, tx?: TransactionClient) {
+    try {
+      const client = tx || this.prismaService;
+
+      await client.user.update({
+        where: { id },
+        data: {
+          password: newPassword,
+          passwordChangedAt: new Date(),
+        },
+      });
+    } catch (err) {
+      if (this.prismaService.isPrismaRecordNotFoundError(err)) {
+        throw new UserNotFoundError({ field: 'id', value: id });
+      }
+      throw err;
+    }
+  }
+
+  /**
    * Create user (untuk OAuth atau admin)
    * @throws UserAlreadyExistsError jika email sudah terdaftar
    */
@@ -366,14 +392,17 @@ export class UsersService {
    * @returns boolean indicating success or failure
    * @throws UserNotFoundError if user does not exist
    */
-  async clearRefreshTokens(userId: string): Promise<boolean> {
+  async clearRefreshTokens(userId: string, tx?: TransactionClient): Promise<boolean> {
     try {
-      await this.prismaService.user.update({
+      const client = tx || this.prismaService;
+
+      await client.user.update({
         where: { id: userId },
         data: { refreshTokens: [] }
       });
 
       // TODO: Invalidate cache for user's refresh tokens
+      await this.cacheService.del(UserCacheKeys.refreshTokens(userId));
 
       return true;
 

@@ -21,6 +21,7 @@ import { TokenExpiredError, TokenInvalidError } from "../token/errors";
 import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-response.dto";
 import { UserInvalidProviderError } from "../users/errors/user-invalid-provider.error";
 import { IPasswordResetPayload } from "../token/interfaces/password-reset-payload.interface";
+import { ResetPasswordResponseDto } from "./dto/response/reset-password-response.dto";
 
 @Injectable()
 export class AuthService {
@@ -221,31 +222,73 @@ export class AuthService {
     }
   }
 
-  async resetPassword(token: string, newPassword: string) {
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<ResetPasswordResponseDto> {
     try {
       // Decode to get userId without verifying
       const decoded: IPasswordResetPayload | null = await this.tokenService.decodeToken(token);
+
       // Validate decoded token
       if (!decoded || !decoded.sub) {
         throw new TokenInvalidError('Password reset token is invalid');
       }
 
       // Get user current hash password for dynamic secret
-      const user = await this.usersService.findByIdSelective(decoded.sub, ['password']);
+      const user = await this.usersService.findByIdSelective(decoded.sub, ['password', 'email', 'firstName', 'lastName', 'provider']);
+
+      // Check provider
+      if (user.provider !== AuthProvider.LOCAL) {
+        throw new UserInvalidProviderError(`This account uses ${user.provider} login. Please use '${user.provider}' to sign in.`);
+      }
 
       // Verify Token, Dynamic Secret pass must be sliced (0, 10)
       await this.tokenService.verifyToken(token, TokenType.PASSWORD_RESET, user.password!.slice(0, 10));
 
       // Hash new password
-      const hashedNewPassword = await this.hashPassword(newPassword);
+      const hashedPassword = await this.hashPassword(newPassword);
 
-      // Update user's password in the database
-      await this.usersService.update(
-        decoded.sub,
-        {
-          password: hashedNewPassword,
-        }
-      );
+      await this.prismaService.$transaction(async (tx) => {
+        // Update Password
+        await this.usersService.updatePassword(
+          decoded.sub,
+          hashedPassword,
+          tx
+        );
+
+        // Clear all existing refresh tokens
+        await this.usersService.clearRefreshTokens(
+          decoded.sub,
+          tx
+        );
+
+        // Insert to AuditLog
+        await this.auditService.logUserAction(
+          decoded.sub,
+          AuditAction.PASSWORD_RESET,
+          AuditTargetType.USER,
+          decoded.sub,
+          {
+            email: user.email,
+          },
+          tx
+        );
+
+        // Send Email
+        await this.mailService.sendPasswordChangedEmail({
+          changedAt: new Date(),
+          to: user.email!,
+          name: `${user.firstName} ${user.lastName}`,
+          ipAddress: ipAddress,
+          userAgent: userAgent,
+        })
+      })
+
+      return new ResetPasswordResponseDto({ message: 'Password has been reset successfully.' });
+
     } catch (err) {
       // Handle token errors
       if (err instanceof JwtTokenExpiredError) {
@@ -254,6 +297,16 @@ export class AuthService {
       if (err instanceof JsonWebTokenError) {
         throw new TokenInvalidError('Password reset token is invalid');
       }
+
+      // Re-throw known errors
+      if (err instanceof TokenInvalidError ||
+        err instanceof TokenExpiredError ||
+        err instanceof UserInvalidProviderError) {
+        throw err;
+      }
+
+      // Log unexpected errors
+      this.logger.error(`Unexpected error in resetPassword: ${err.message}`);
       throw new TokenInvalidError('Password reset token is invalid or expired');
     }
   }

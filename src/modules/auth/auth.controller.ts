@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
@@ -12,6 +12,7 @@ import { VerifyEmailDto } from "./dto/verify-email.dto";
 import { VerifyEmailResponseDto } from "./dto/response/verify-email-response.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
+import type { Request } from "express";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -59,9 +60,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_HOUR } }) // 10 requests per hour
   async resetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto
+    @Body() resetPasswordDto: ResetPasswordDto,
+    @Req() req: Request
   ) {
-    return this.authService.resetPassword(resetPasswordDto.token, resetPasswordDto.newPassword);
+    return this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+      req.ip,
+      req.headers["user-agent"] as string | undefined
+    );
   }
 
   @Post('login')

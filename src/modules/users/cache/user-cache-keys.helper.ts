@@ -69,4 +69,8 @@ export class UserCacheKeys {
   static get listPattern(): string {
     return `${this.PREFIX}list:*`;
   }
+
+  static refreshTokens(userId: string): string {
+    return `${this.PREFIX}refresh-tokens:${userId}`;
+  }
 }

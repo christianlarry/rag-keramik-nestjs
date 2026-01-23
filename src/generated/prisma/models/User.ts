@@ -40,6 +40,7 @@ export type UserMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
+  passwordChangedAt: Date | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -58,6 +59,7 @@ export type UserMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
+  passwordChangedAt: Date | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -77,6 +79,7 @@ export type UserCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   deletedAt: number
+  passwordChangedAt: number
   _all: number
 }
 
@@ -97,6 +100,7 @@ export type UserMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  passwordChangedAt?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -115,6 +119,7 @@ export type UserMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  passwordChangedAt?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -134,6 +139,7 @@ export type UserCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  passwordChangedAt?: true
   _all?: true
 }
 
@@ -226,6 +232,7 @@ export type UserGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
+  passwordChangedAt: Date | null
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
@@ -266,6 +273,7 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  passwordChangedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   carts?: Prisma.CartListRelationFilter
   orders?: Prisma.OrderListRelationFilter
   sessions?: Prisma.ChatSessionListRelationFilter
@@ -290,6 +298,7 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   carts?: Prisma.CartOrderByRelationAggregateInput
   orders?: Prisma.OrderOrderByRelationAggregateInput
   sessions?: Prisma.ChatSessionOrderByRelationAggregateInput
@@ -317,6 +326,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  passwordChangedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   carts?: Prisma.CartListRelationFilter
   orders?: Prisma.OrderListRelationFilter
   sessions?: Prisma.ChatSessionListRelationFilter
@@ -341,6 +351,7 @@ export type UserOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
@@ -366,6 +377,7 @@ export type UserScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  passwordChangedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
 }
 
 export type UserCreateInput = {
@@ -385,6 +397,7 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
@@ -409,6 +422,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
@@ -433,6 +447,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
@@ -457,6 +472,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
@@ -481,6 +497,7 @@ export type UserCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -500,6 +517,7 @@ export type UserUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -519,6 +537,7 @@ export type UserUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type StringNullableListFilter<$PrismaModel = never> = {
@@ -546,6 +565,7 @@ export type UserCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  passwordChangedAt?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -564,6 +584,7 @@ export type UserMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  passwordChangedAt?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -582,6 +603,7 @@ export type UserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  passwordChangedAt?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -730,6 +752,7 @@ export type UserCreateWithoutAddressesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
@@ -753,6 +776,7 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
@@ -792,6 +816,7 @@ export type UserUpdateWithoutAddressesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
@@ -815,6 +840,7 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
@@ -838,6 +864,7 @@ export type UserCreateWithoutCartsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
@@ -861,6 +888,7 @@ export type UserUncheckedCreateWithoutCartsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
@@ -900,6 +928,7 @@ export type UserUpdateWithoutCartsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
@@ -923,6 +952,7 @@ export type UserUncheckedUpdateWithoutCartsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
@@ -946,6 +976,7 @@ export type UserCreateWithoutOrdersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
@@ -969,6 +1000,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
@@ -1008,6 +1040,7 @@ export type UserUpdateWithoutOrdersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
@@ -1031,6 +1064,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
@@ -1054,6 +1088,7 @@ export type UserCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
@@ -1077,6 +1112,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
@@ -1116,6 +1152,7 @@ export type UserUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
@@ -1139,6 +1176,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
@@ -1162,6 +1200,7 @@ export type UserCreateWithoutAuditsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
@@ -1185,6 +1224,7 @@ export type UserUncheckedCreateWithoutAuditsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
   carts?: Prisma.CartUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
@@ -1224,6 +1264,7 @@ export type UserUpdateWithoutAuditsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
@@ -1247,6 +1288,7 @@ export type UserUncheckedUpdateWithoutAuditsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carts?: Prisma.CartUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
@@ -1337,6 +1379,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  passwordChangedAt?: boolean
   carts?: boolean | Prisma.User$cartsArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1362,6 +1405,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  passwordChangedAt?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1381,6 +1425,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  passwordChangedAt?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -1400,9 +1445,10 @@ export type UserSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  passwordChangedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "emailVerifiedAt" | "password" | "firstName" | "lastName" | "gender" | "role" | "status" | "provider" | "providerId" | "refreshTokens" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "emailVerifiedAt" | "password" | "firstName" | "lastName" | "gender" | "role" | "status" | "provider" | "providerId" | "refreshTokens" | "createdAt" | "updatedAt" | "deletedAt" | "passwordChangedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   carts?: boolean | Prisma.User$cartsArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
@@ -1440,6 +1486,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
+    passwordChangedAt: Date | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1884,6 +1931,7 @@ export interface UserFieldRefs {
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly passwordChangedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
     
 

@@ -101,6 +101,7 @@ enum AuditAction {
   LOGIN
   LOGOUT
   PASSWORD_CHANGE
+  PASSWORD_RESET
   EMAIL_VERIFICATION
   PROFILE_UPDATE
   ADDRESS_ADD
@@ -153,9 +154,10 @@ model User {
   refreshTokens String[]      @default([])
 
   // Audit
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  passwordChangedAt DateTime?
 
   carts     Cart[]
   orders    Order[]
