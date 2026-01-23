@@ -245,6 +245,11 @@ export class AuthService {
         throw new UserInvalidProviderError(`This account uses ${user.provider} login. Please use '${user.provider}' to sign in.`);
       }
 
+      // Check Pass Existence
+      if (!user.password) {
+        throw new TokenInvalidError('Password reset token is invalid');
+      }
+
       // Verify Token, Dynamic Secret pass must be sliced (0, 10)
       await this.tokenService.verifyToken(token, TokenType.PASSWORD_RESET, user.password!.slice(0, 10));
 
