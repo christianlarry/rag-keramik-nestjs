@@ -57,7 +57,7 @@ export class TokenService {
       type: TokenType.PASSWORD_RESET,
     }
 
-    return this.generateToken<IPasswordResetPayload>(payload, TokenType.PASSWORD_RESET, password.slice(0, 10));
+    return this.generateToken<IPasswordResetPayload>(payload, TokenType.PASSWORD_RESET, password);
   }
 
   /**

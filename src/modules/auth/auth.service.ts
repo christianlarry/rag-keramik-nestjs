@@ -192,10 +192,15 @@ export class AuthService {
         throw new UserInvalidProviderError(`This account uses ${user.provider} login. Please use '${user.provider}' to sign in.`);
       }
 
-      // Generate password reset token with Dynamic Secret (using user's current hashed password)
-      const passwordResetToken = await this.tokenService.generatePasswordResetToken(user.id, user.password!);
+      // Check Password Existence
+      if (!user.password) {
+        throw new TokenInvalidError('Password reset token is invalid');
+      }
 
-      // Send password reset email
+      // Generate password reset token with Dynamic Secret (using user's current hashed password)
+      const passwordResetToken = await this.tokenService.generatePasswordResetToken(user.id, user.password);
+
+      //Send password reset email
       await this.mailService.sendResetPasswordEmail({
         to: user.email,
         name: `${user.firstName} ${user.lastName}`,
@@ -237,6 +242,11 @@ export class AuthService {
         throw new TokenInvalidError('Password reset token is invalid');
       }
 
+      // Check Token Type
+      if (decoded.type !== TokenType.PASSWORD_RESET) {
+        throw new TokenInvalidError('Password reset token is invalid');
+      }
+
       // Get user current hash password for dynamic secret
       const user = await this.usersService.findByIdSelective(decoded.sub, ['password', 'email', 'firstName', 'lastName', 'provider']);
 
@@ -245,13 +255,15 @@ export class AuthService {
         throw new UserInvalidProviderError(`This account uses ${user.provider} login. Please use '${user.provider}' to sign in.`);
       }
 
-      // Check Pass Existence
+      // Check Password Existence
       if (!user.password) {
         throw new TokenInvalidError('Password reset token is invalid');
       }
 
-      // Verify Token, Dynamic Secret pass must be sliced (0, 10)
-      await this.tokenService.verifyToken(token, TokenType.PASSWORD_RESET, user.password!.slice(0, 10));
+      this.logger.log(`User password: ${user.password}`);
+
+      // Verify Token
+      await this.tokenService.verifyToken(token, TokenType.PASSWORD_RESET, user.password);
 
       // Hash new password
       const hashedPassword = await this.hashPassword(newPassword);
@@ -289,7 +301,7 @@ export class AuthService {
           name: `${user.firstName} ${user.lastName}`,
           ipAddress: ipAddress,
           userAgent: userAgent,
-        })
+        });
       })
 
       return new ResetPasswordResponseDto({ message: 'Password has been reset successfully.' });
@@ -333,6 +345,9 @@ export class AuthService {
   private async verifyVerificationEmailToken(token: string): Promise<IEmailVerificationPayload> {
     try {
       const payload: IEmailVerificationPayload = await this.tokenService.verifyToken(token, TokenType.EMAIL_VERIFICATION);
+      if (payload.type !== TokenType.EMAIL_VERIFICATION) {
+        throw new TokenInvalidError('Email verification token is invalid');
+      }
 
       return payload;
     } catch (error) {

@@ -259,6 +259,11 @@ export class UsersService {
           passwordChangedAt: new Date(),
         },
       });
+
+      // Invalidate cache for updated user
+      await this.cacheService.del(UserCacheKeys.byId(id));
+      await this.cacheService.delPattern(UserCacheKeys.userPattern(id));
+
     } catch (err) {
       if (this.prismaService.isPrismaRecordNotFoundError(err)) {
         throw new UserNotFoundError({ field: 'id', value: id });
