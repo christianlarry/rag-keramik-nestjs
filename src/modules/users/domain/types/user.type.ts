@@ -18,3 +18,10 @@ export const UserGender = {
   FEMALE: 'female'
 } as const;
 export type UserGender = typeof UserGender[keyof typeof UserGender];
+
+export const UserProvider = {
+  GOOGLE: 'google',
+  FACEBOOK: 'facebook',
+  GITHUB: 'github',
+} as const;
+export type UserProvider = typeof UserProvider[keyof typeof UserProvider];

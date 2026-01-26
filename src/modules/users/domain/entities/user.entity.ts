@@ -11,17 +11,17 @@ export class UserEntity {
 
   firstName?: string;
   lastName?: string;
-  gender?: UserGender;
+  gender: UserGender;
   dateOfBirth?: Date;
   phoneNumber?: string;
-  phoneVerified?: boolean;
+  phoneVerified: boolean;
   avatarUrl?: string; // URL to avatar image
 
   role: UserRole;
   status: UserStatus;
 
   @Exclude() // Token should not be exposed
-  refreshTokens?: string[]; // For JWT refresh token
+  refreshTokens: string[]; // For JWT refresh token
 
   createdAt: Date;
   updatedAt: Date;
