@@ -1,4 +1,4 @@
-import { UserEntity } from '../entities/user.entity';
+import { User } from '../entities/user.entity';
 import { CreateUserParams } from '../types/create-user-params.type';
 import { UpdateUserParams } from '../types/update-user-params.type';
 import { UserProvider, UserRole, UserStatus } from '../types/user.type';
@@ -16,7 +16,7 @@ import { UserProvider, UserRole, UserStatus } from '../types/user.type';
  * - Cache management (implementation detail)
  * 
  * @principles
- * - Always returns domain entities (UserEntity) for business operations
+ * - Always returns domain entities (User) for business operations
  * - Throws domain exceptions, never returns error codes
  * - Supports transactional operations
  * - Repository pattern, not DAO pattern
@@ -36,7 +36,7 @@ export interface IUserRepository {
    * const user = await repo.findById('uuid-123');
    * if (!user) throw new UserNotFoundError();
    */
-  findById(id: string): Promise<UserEntity | null>;
+  findById(id: string): Promise<User | null>;
 
   /**
    * Retrieves a user by unique email address
@@ -46,7 +46,7 @@ export interface IUserRepository {
    * @example
    * const user = await repo.findByEmail('user@example.com');
    */
-  findByEmail(email: string): Promise<UserEntity | null>;
+  findByEmail(email: string): Promise<User | null>;
 
   /**
    * Retrieves multiple users matching criteria with pagination
@@ -60,7 +60,7 @@ export interface IUserRepository {
    *   limit: 20 
    * });
    */
-  findMany(criteria: UserSearchCriteria): Promise<PagedResult<UserEntity>>;
+  findMany(criteria: UserSearchCriteria): Promise<PagedResult<User>>;
 
   /**
    * Checks existence of user by email without loading full entity
@@ -91,7 +91,7 @@ export interface IUserRepository {
    * @returns Persisted domain entity
    * @throws UserEmailAlreadyExistsError if email already registered
    */
-  save(data: CreateUserParams): Promise<UserEntity>;
+  save(data: CreateUserParams): Promise<User>;
 
   /**
    * Updates existing user entity
@@ -102,7 +102,7 @@ export interface IUserRepository {
    * @returns Updated domain entity
    * @throws UserNotFoundError if user does not exist
    */
-  updateById(id: string, data: UpdateUserParams): Promise<UserEntity>;
+  updateById(id: string, data: UpdateUserParams): Promise<User>;
 
   /**
    * Updates user password securely
@@ -156,7 +156,7 @@ export interface IUserRepository {
    * @returns Persisted domain entity
    * @behavior Creates new user if not exists, updates provider link if exists
    */
-  upsertOAuthUser(data: OAuthUserData): Promise<UserEntity>;
+  upsertOAuthUser(data: OAuthUserData): Promise<User>;
 }
 
 // =====================================================
@@ -200,6 +200,8 @@ export interface UserSearchCriteria {
   /** Filter users created before date */
   createdBefore?: Date;
 }
+
+export type UserCountOnSearchCriteria = Partial<Omit<UserSearchCriteria, 'page' | 'pageSize' | 'sortBy' | 'sortOrder'>>;
 
 /**
  * Generic paginated result container

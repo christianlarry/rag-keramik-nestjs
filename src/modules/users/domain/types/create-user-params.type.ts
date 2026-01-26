@@ -1,26 +1,14 @@
-import { AddressLabel, AuthProvider, Gender, UserStatus, Role } from "src/generated/prisma/enums";
+import { UserGender, UserProvider, UserRole, UserStatus } from "./user.type";
+
 export type CreateUserParams = {
   firstName: string;
   lastName: string;
   password?: string;
-  gender: Gender;
+  gender: UserGender;
   email: string;
   emailVerified?: boolean;
-  provider?: AuthProvider;
+  provider?: UserProvider;
   providerId?: string;
-  role?: Role;
+  role?: UserRole;
   status?: UserStatus;
-  address?: {
-    label: AddressLabel;
-    recipient: string;
-    phone: string;
-    street: string;
-    city: string;
-    province: string;
-    postalCode: string;
-    country?: string;
-    latitude?: number;
-    longitude?: number;
-    isDefault?: boolean;
-  };
 };
