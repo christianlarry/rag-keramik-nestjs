@@ -5,6 +5,9 @@ import { AllConfigType } from "src/config/config.type";
 import { TokenType } from "./enums/token-type.enum";
 import { IEmailVerificationPayload } from "./interfaces/email-verification-payload.interface";
 import { IPasswordResetPayload } from "./interfaces/password-reset-payload.interface";
+import { IAccessPayload } from "./interfaces/access-payload.interface";
+import { IRefreshPayload } from "./interfaces/refresh-payload.interface";
+import { UserRole } from "../users/domain/entities/user.entity";
 
 @Injectable()
 export class TokenService {
@@ -58,6 +61,26 @@ export class TokenService {
     }
 
     return this.generateToken<IPasswordResetPayload>(payload, TokenType.PASSWORD_RESET, password);
+  }
+
+  async generateAccessToken(userId: string, email: string, role: UserRole): Promise<string> {
+    const payload: IAccessPayload = {
+      sub: userId,
+      role: role,
+      email: email,
+      type: TokenType.ACCESS
+    };
+    return this.generateToken<IAccessPayload>(payload, TokenType.ACCESS);
+  }
+
+  async generateRefreshToken(userId: string, email: string, role: UserRole): Promise<string> {
+    const payload: IRefreshPayload = {
+      sub: userId,
+      type: TokenType.REFRESH,
+      email,
+      role
+    };
+    return this.generateToken<IRefreshPayload>(payload, TokenType.REFRESH);
   }
 
   /**

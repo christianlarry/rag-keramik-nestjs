@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { UsersService } from "../users/users.service";
+import { UsersService } from "../users/application/users.service";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
 import bcrypt from 'bcrypt';
 import { PrismaService } from "../prisma/prisma.service";
@@ -16,13 +16,14 @@ import { AllConfigType } from "src/config/config.type";
 import { ConfigService } from "@nestjs/config";
 import { Environment } from "src/config/app/app-config.type";
 import { AuditService } from "../audit/audit.service";
-import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError, UserNotFoundError } from "../users/errors";
+import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError, UserInvalidCredentialsError, UserNotFoundError } from "../users/domain/errors";
 import { TokenExpiredError, TokenInvalidError } from "../token/errors";
 import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-response.dto";
-import { UserInvalidProviderError } from "../users/errors/user-invalid-provider.error";
+import { UserInvalidProviderError } from "../users/domain/errors/user-invalid-provider.error";
 import { IPasswordResetPayload } from "../token/interfaces/password-reset-payload.interface";
 import { ResetPasswordResponseDto } from "./dto/response/reset-password-response.dto";
 import { UserMapper } from "../users/domain/mappers/user.mapper";
+import { UserEntity } from "../users/domain/entities/user.entity";
 
 @Injectable()
 export class AuthService {
@@ -327,8 +328,78 @@ export class AuthService {
     }
   }
 
-  async loginWithEmail(email: string, password: string) {
+  async loginWithEmail(email: string, password: string): Promise<{ accessToken: string; refreshToken: string, user: UserEntity }> {
+    try {
+      // Find user by email
+      const user = await this.usersService.findByEmail(email);
 
+      // Check provider
+      if (user.provider !== AuthProvider.LOCAL) {
+        throw new UserInvalidCredentialsError('INVALID_PROVIDER');
+      }
+
+      // Check email verification
+      if (!user.emailVerified) {
+        throw new UserInvalidCredentialsError('EMAIL_NOT_VERIFIED');
+      }
+
+      // Check user status
+      switch (user.status) {
+        case UserStatus.INACTIVE:
+          throw new UserInvalidCredentialsError('USER_INACTIVE');
+        case UserStatus.SUSPENDED:
+          throw new UserInvalidCredentialsError('USER_SUSPENDED');
+        case UserStatus.DELETED:
+          throw new UserInvalidCredentialsError('USER_DELETED');
+      }
+
+      if (!user.password) {
+        throw new UserInvalidCredentialsError('INVALID_CREDENTIALS');
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.password!);
+      if (!isPasswordValid) {
+        throw new UserInvalidCredentialsError('INVALID_CREDENTIALS');
+      }
+
+      // Generate Tokens
+      const accessToken = await this.tokenService.generateAccessToken(user.id, user.email, user.role);
+      const refreshToken = await this.tokenService.generateRefreshToken(user.id, user.email, user.role);
+
+      // Store To DB
+      await this.prismaService.$transaction(async (tx) => {
+        // Add refresh token to user's record
+        await this.usersService.addRefreshToken(user.id, refreshToken, tx);
+
+        // Update last login timestamp
+        await this.usersService.updateLastLogin(user.id, new Date(), tx);
+
+        // Audit Log
+        await this.auditService.logUserAction(
+          user.id,
+          AuditAction.LOGIN,
+          AuditTargetType.USER,
+          user.id,
+          {
+            email: user.email,
+          },
+          tx
+        );
+      });
+
+      return {
+        accessToken,
+        refreshToken,
+        user: UserMapper.toEntity(user),
+      }
+
+    } catch (err) {
+      if (err instanceof UserNotFoundError) {
+        // To prevent user enumeration, throw generic invalid credentials error
+        throw new UserInvalidCredentialsError(`INVALID_CREDENTIALS`);
+      }
+    }
   }
 
   async logout() {

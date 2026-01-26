@@ -1,5 +1,5 @@
-import { Role } from "src/generated/prisma/enums";
 import { TokenType } from "../enums/token-type.enum";
+import { UserRole } from "src/modules/users/domain/entities/user.entity";
 
 export interface IAccessPayload {
   /**
@@ -16,7 +16,7 @@ export interface IAccessPayload {
   /**
    * User role untuk authorization
    */
-  role: Role;
+  role: UserRole;
 
   /**
    * Token type untuk membedakan access token vs refresh token

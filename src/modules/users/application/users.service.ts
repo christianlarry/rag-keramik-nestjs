@@ -1,16 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { AuthProvider, Role, UserStatus } from 'src/generated/prisma/enums';
 import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace';
 import { AllConfigType } from 'src/config/config.type';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/generated/prisma/client';
-import { UserNotFoundError } from './errors';
-import { UserEmailAlreadyExistsError } from './errors';
-import { CacheService } from '../cache/cache.service';
-import { UserCacheKeys, UserCacheTTL } from './cache';
-import { UpdateUserParams } from './types/update-user-params.type';
-import { CreateUserParams } from './types/create-user-params.type';
+import { UserNotFoundError } from '../domain/errors';
+import { UserEmailAlreadyExistsError } from '../domain/errors';
+import { CacheService } from '../../cache/cache.service';
+import { UserCacheKeys, UserCacheTTL } from '../infrastructure/cache';
+import { UpdateUserParams } from '../domain/types/update-user-params.type';
+import { CreateUserParams } from '../domain/types/create-user-params.type';
+import { UserEntity } from '../domain/entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -28,7 +29,7 @@ export class UsersService {
    * Find user by ID
    * @throws UserNotFoundError if user not found
    */
-  async findById(id: string) {
+  async findById(id: string): Promise<UserEntity> {
     // Cache-aside pattern with 5 minutes TTL
     const cacheKey = UserCacheKeys.byId(id);
 
@@ -36,61 +37,40 @@ export class UsersService {
       cacheKey,
       async () => {
         const user = await this.prismaService.user.findUnique({
-          where: { id },
-          select: {
-            id: true,
-            email: true,
-            emailVerified: true,
-            emailVerifiedAt: true,
-            firstName: true,
-            lastName: true,
-            gender: true,
-            role: true,
-            provider: true,
-            providerId: true,
-            status: true,
-            createdAt: true,
-            updatedAt: true,
-            deletedAt: true,
-            refreshTokens: true,
-
-            // password tidak di-return untuk security
-          },
+          where: { id }
         });
 
         if (!user) {
           throw new UserNotFoundError({ field: 'id', value: id });
         }
 
-        return user;
+        return UserMapper.toEntity(user);
       },
       UserCacheTTL.USER_DETAIL,
     );
   }
 
   /**
-   * Find user by ID with selective fields
+   * Find user by ID with selective fields (optimized - only fetch needed fields from DB)
    * @throws UserNotFoundError if user not found
    */
   async findByIdSelective<K extends keyof User>(
     id: string,
     fields: K[]
-  ): Promise<Pick<User, K>> {
+  ) {
     // Cache key includes fields to differentiate between different field selections
-    const cacheKey = `${UserCacheKeys.byId(id)}:fields:${fields.sort().join(',')}`;
+    const cacheKey = `${UserCacheKeys.byId(id)}:fields:${fields.sort().join(',')}`
 
     return this.cacheService.wrap(
       cacheKey,
       async () => {
-        // 1. Membuat object select secara dinamis
+        // Build dynamic select object
         const select = fields.reduce((acc, field) => {
           acc[field] = true;
           return acc;
         }, {} as Record<K, boolean>);
 
-        // 2. Eksekusi query Prisma
-        // Kita gunakan 'as any' saat memanggil findUnique karena Prisma 
-        // butuh tipe statis, namun return type kita paksa sesuai Generic K
+        // Only fetch requested fields from database
         const user = await this.prismaService.user.findUnique({
           where: { id },
           select,

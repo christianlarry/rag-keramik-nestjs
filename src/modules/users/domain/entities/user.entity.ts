@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { UserGender, UserRole, UserStatus } from '../types/user.type';
 
 export class UserEntity {
   id: string; // Unique identifier UUID
@@ -46,35 +47,4 @@ export class UserEntity {
     const ageDate = new Date(ageDifMs);
     return Math.abs(ageDate.getUTCFullYear() - 1970) >= adultAge;
   }
-
-  /**
-   * Converts the user entity to a JSON object, excluding sensitive fields.
-   * @returns A JSON representation of the user entity without sensitive data.
-   */
-  toJSON() {
-    const user: Omit<UserEntity, 'password' | 'refreshToken'> = { ...this };
-
-    return user;
-  }
 }
-
-export const UserRole = {
-  ADMIN: 'admin',
-  USER: 'user',
-  MODERATOR: 'moderator',
-} as const;
-export type UserRole = typeof UserRole[keyof typeof UserRole];
-
-export const UserStatus = {
-  ACTIVE: 'active',
-  INACTIVE: 'inactive',
-  SUSPENDED: 'suspended',
-  PENDING: 'pending',
-} as const;
-export type UserStatus = typeof UserStatus[keyof typeof UserStatus];
-
-export const UserGender = {
-  MALE: 'male',
-  FEMALE: 'female'
-} as const;
-export type UserGender = typeof UserGender[keyof typeof UserGender];

@@ -1,4 +1,4 @@
-import { Role } from "src/generated/prisma/enums";
+import { UserRole } from "src/modules/users/domain/entities/user.entity";
 
 /**
  * Type untuk user object yang ada di request setelah JWT validation
@@ -18,7 +18,7 @@ export interface IRequestUser {
   /**
    * User role untuk authorization
    */
-  role: Role;
+  role: UserRole;
 
   /**
    * User name (optional)

@@ -11,7 +11,7 @@ import prismaConfig from 'src/modules/prisma/config/prisma.config';
 import { PrismaModule } from './modules/prisma/prisma.module';
 
 // Feature Modules
-import { UsersModule } from './modules/users/users.module';
+import { UsersModule } from './modules/users/presentation/users.module';
 import mailConfig from './modules/mail/config/mail.config';
 import { MailerModule } from './modules/mailer/mailer.module';
 import { MailModule } from './modules/mail/mail.module';
