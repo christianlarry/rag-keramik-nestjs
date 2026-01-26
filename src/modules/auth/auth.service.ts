@@ -22,6 +22,7 @@ import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-respon
 import { UserInvalidProviderError } from "../users/errors/user-invalid-provider.error";
 import { IPasswordResetPayload } from "../token/interfaces/password-reset-payload.interface";
 import { ResetPasswordResponseDto } from "./dto/response/reset-password-response.dto";
+import { UserMapper } from "../users/domain/mappers/user.mapper";
 
 @Injectable()
 export class AuthService {
@@ -260,8 +261,6 @@ export class AuthService {
         throw new TokenInvalidError('Password reset token is invalid');
       }
 
-      this.logger.log(`User password: ${user.password}`);
-
       // Verify Token
       await this.tokenService.verifyToken(token, TokenType.PASSWORD_RESET, user.password);
 
@@ -328,8 +327,8 @@ export class AuthService {
     }
   }
 
-  async login() {
-    // Implement login logic
+  async loginWithEmail(email: string, password: string) {
+
   }
 
   async logout() {

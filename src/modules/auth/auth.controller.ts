@@ -13,6 +13,9 @@ import { VerifyEmailResponseDto } from "./dto/response/verify-email-response.dto
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import type { Request } from "express";
+import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
+import { JwtRefreshGuard } from "src/common/guards/jwt-refresh.guard";
+import { AuthLoginDto } from "./dto/auth-login.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -71,16 +74,27 @@ export class AuthController {
     );
   }
 
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_HOUR } }) // 10 requests per hour
+  @UseGuards(JwtAuthGuard) // Must be authenticated
+  async changePassword() {
+    // Implement change password logic
+  }
+
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.STRICT, ttl: TTL.FIFTEEN_MINUTES } }) // 5 requests per 15 minutes
-  async login() {
-    // Implement login logic
+  async login(
+    @Body() loginDto: AuthLoginDto
+  ) {
+    return this.authService.loginWithEmail(loginDto.email, loginDto.password);
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.LENIENT, ttl: TTL.ONE_MINUTE } }) // 20 requests per minute
+  @UseGuards(JwtAuthGuard) // Must be authenticated
   async logout() {
     // Implement logout logic
   }
@@ -88,6 +102,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_MINUTE } }) // 10 requests per minute
+  @UseGuards(JwtRefreshGuard) // Must have a valid refresh token
   async refreshToken() {
     // Implement token refresh logic
   }

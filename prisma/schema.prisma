@@ -144,6 +144,11 @@ model User {
   firstName       String?   @db.VarChar(255)
   lastName        String?   @db.VarChar(255)
   gender          Gender
+  dateOfBirth     DateTime?
+  phoneNumber     String?   @db.VarChar(50)
+  phoneVerified   Boolean   @default(false)
+  phoneVerifiedAt DateTime?
+  avatarUrl       String?   @db.VarChar(2048)
 
   // OAuth fields
   role          Role          @default(CUSTOMER)
@@ -158,6 +163,7 @@ model User {
   updatedAt         DateTime  @updatedAt
   deletedAt         DateTime?
   passwordChangedAt DateTime?
+  lastLoginAt       DateTime?
 
   carts     Cart[]
   orders    Order[]
