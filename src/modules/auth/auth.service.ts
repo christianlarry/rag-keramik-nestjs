@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { UsersService } from "../users/application/users.service";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
 import bcrypt from 'bcrypt';
-import { PrismaService } from "../prisma/prisma.service";
+import { PrismaService } from "../../infrastructure/database/prisma/prisma.service";
 import { AuditAction, AuditTargetType, AuthProvider, Role, UserStatus } from "src/generated/prisma/enums";
 import { TokenService } from "../token/token.service";
 import { MailService } from "../mail/mail.service";

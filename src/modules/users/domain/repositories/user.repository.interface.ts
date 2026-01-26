@@ -1,7 +1,6 @@
 import { UserEntity } from '../entities/user.entity';
 import { CreateUserParams } from '../types/create-user-params.type';
 import { UpdateUserParams } from '../types/update-user-params.type';
-import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace';
 import { UserProvider, UserRole, UserStatus } from '../types/user.type';
 
 /**
@@ -92,7 +91,7 @@ export interface IUserRepository {
    * @returns Persisted domain entity
    * @throws UserEmailAlreadyExistsError if email already registered
    */
-  save(data: CreateUserParams, options?: RepositoryOptions): Promise<UserEntity>;
+  save(data: CreateUserParams): Promise<UserEntity>;
 
   /**
    * Updates existing user entity
@@ -103,7 +102,7 @@ export interface IUserRepository {
    * @returns Updated domain entity
    * @throws UserNotFoundError if user does not exist
    */
-  updateById(id: string, data: UpdateUserParams, options?: RepositoryOptions): Promise<UserEntity>;
+  updateById(id: string, data: UpdateUserParams): Promise<UserEntity>;
 
   /**
    * Updates user password securely
@@ -113,7 +112,7 @@ export interface IUserRepository {
    * @param options - Transaction options
    * @throws UserNotFoundError if user does not exist
    */
-  updatePassword(id: string, hashedPassword: string, options?: RepositoryOptions): Promise<void>;
+  updatePassword(id: string, hashedPassword: string): Promise<void>;
 
   /**
    * Removes a user (soft or hard delete based on configuration)
@@ -137,7 +136,7 @@ export interface IUserRepository {
    * @throws UserNotFoundError if user does not exist
    * @sideEffect Activates user account
    */
-  confirmEmail(id: string, options?: RepositoryOptions): Promise<EmailVerificationResult>;
+  confirmEmail(id: string): Promise<EmailVerificationResult>;
 
   /**
    * Revokes all active refresh tokens for security purposes
@@ -147,7 +146,7 @@ export interface IUserRepository {
    * @throws UserNotFoundError if user does not exist
    * @useCase Logout from all devices, security breach response
    */
-  revokeAllRefreshTokens(id: string, options?: RepositoryOptions): Promise<void>;
+  revokeAllRefreshTokens(id: string): Promise<void>;
 
   /**
    * Creates or updates OAuth-linked user
@@ -157,7 +156,7 @@ export interface IUserRepository {
    * @returns Persisted domain entity
    * @behavior Creates new user if not exists, updates provider link if exists
    */
-  upsertOAuthUser(data: OAuthUserData, options?: RepositoryOptions): Promise<UserEntity>;
+  upsertOAuthUser(data: OAuthUserData): Promise<UserEntity>;
 }
 
 // =====================================================
@@ -234,24 +233,21 @@ export interface PagedResult<T> {
 /**
  * Repository operation options
  */
-export interface RepositoryOptions {
-  /** Transaction client for atomic operations */
-  transaction?: TransactionClient;
+// export interface RepositoryOptions {
+//   /** Actor performing the operation (for audit) */
+//   actorId?: string;
 
-  /** Actor performing the operation (for audit) */
-  actorId?: string;
+//   /** Skip cache for this operation */
+//   skipCache?: boolean;
 
-  /** Skip cache for this operation */
-  skipCache?: boolean;
-
-  /** Request correlation ID for tracing */
-  correlationId?: string;
-}
+//   /** Request correlation ID for tracing */
+//   correlationId?: string;
+// }
 
 /**
  * Deletion operation options
  */
-export interface RemoveOptions extends RepositoryOptions {
+export interface RemoveOptions {
   /** Perform hard delete instead of soft delete */
   hard?: boolean;
 

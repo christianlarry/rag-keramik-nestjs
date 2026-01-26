@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { UserGender, UserRole, UserStatus } from '../types/user.type';
+import { UserGender, UserProvider, UserRole, UserStatus } from '../types/user.type';
 
 export class UserEntity {
   id: string; // Unique identifier UUID
@@ -19,6 +19,7 @@ export class UserEntity {
 
   role: UserRole;
   status: UserStatus;
+  provider: UserProvider; // OAuth provider name
 
   @Exclude() // Token should not be exposed
   refreshTokens: string[]; // For JWT refresh token

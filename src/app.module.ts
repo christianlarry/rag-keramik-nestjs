@@ -5,13 +5,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Config Modules
 import appConfig from 'src/config/app/app.config'
-import prismaConfig from 'src/modules/prisma/config/prisma.config';
+import prismaConfig from 'src/infrastructure/database/prisma/config/prisma.config';
 
 // Database Module
-import { PrismaModule } from './modules/prisma/prisma.module';
+import { PrismaModule } from './infrastructure/database/prisma/prisma.module';
 
 // Feature Modules
-import { UsersModule } from './modules/users/presentation/users.module';
 import mailConfig from './modules/mail/config/mail.config';
 import { MailerModule } from './modules/mailer/mailer.module';
 import { MailModule } from './modules/mail/mail.module';
@@ -29,6 +28,7 @@ import { Redis } from 'ioredis';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { CacheModule } from './modules/cache/cache.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [

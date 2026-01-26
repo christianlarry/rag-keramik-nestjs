@@ -267,7 +267,7 @@ export type UserGroupByOutputType = {
   avatarUrl: string | null
   role: $Enums.Role
   status: $Enums.UserStatus
-  provider: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId: string | null
   refreshTokens: string[]
   createdAt: Date
@@ -314,7 +314,7 @@ export type UserWhereInput = {
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderNullableFilter<"User"> | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
   providerId?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -345,7 +345,7 @@ export type UserOrderByWithRelationInput = {
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  provider?: Prisma.SortOrderInput | Prisma.SortOrder
+  provider?: Prisma.SortOrder
   providerId?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokens?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -379,7 +379,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderNullableFilter<"User"> | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
   providerId?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -410,7 +410,7 @@ export type UserOrderByWithAggregationInput = {
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  provider?: Prisma.SortOrderInput | Prisma.SortOrder
+  provider?: Prisma.SortOrder
   providerId?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokens?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -442,7 +442,7 @@ export type UserScalarWhereWithAggregatesInput = {
   avatarUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusWithAggregatesFilter<"User"> | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderNullableWithAggregatesFilter<"User"> | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderWithAggregatesFilter<"User"> | $Enums.AuthProvider
   providerId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -468,7 +468,7 @@ export type UserCreateInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -499,7 +499,7 @@ export type UserUncheckedCreateInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -530,7 +530,7 @@ export type UserUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -561,7 +561,7 @@ export type UserUncheckedUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -592,7 +592,7 @@ export type UserCreateManyInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -618,7 +618,7 @@ export type UserUpdateManyMutationInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -644,7 +644,7 @@ export type UserUncheckedUpdateManyInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -780,8 +780,8 @@ export type EnumUserStatusFieldUpdateOperationsInput = {
   set?: $Enums.UserStatus
 }
 
-export type NullableEnumAuthProviderFieldUpdateOperationsInput = {
-  set?: $Enums.AuthProvider | null
+export type EnumAuthProviderFieldUpdateOperationsInput = {
+  set?: $Enums.AuthProvider
 }
 
 export type UserUpdaterefreshTokensInput = {
@@ -883,7 +883,7 @@ export type UserCreateWithoutAddressesInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -913,7 +913,7 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -959,7 +959,7 @@ export type UserUpdateWithoutAddressesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -989,7 +989,7 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1019,7 +1019,7 @@ export type UserCreateWithoutCartsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -1049,7 +1049,7 @@ export type UserUncheckedCreateWithoutCartsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -1095,7 +1095,7 @@ export type UserUpdateWithoutCartsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1125,7 +1125,7 @@ export type UserUncheckedUpdateWithoutCartsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1155,7 +1155,7 @@ export type UserCreateWithoutOrdersInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -1185,7 +1185,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -1231,7 +1231,7 @@ export type UserUpdateWithoutOrdersInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1261,7 +1261,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1291,7 +1291,7 @@ export type UserCreateWithoutSessionsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -1321,7 +1321,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -1367,7 +1367,7 @@ export type UserUpdateWithoutSessionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1397,7 +1397,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1427,7 +1427,7 @@ export type UserCreateWithoutAuditsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -1457,7 +1457,7 @@ export type UserUncheckedCreateWithoutAuditsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider?: $Enums.AuthProvider | null
+  provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   createdAt?: Date | string
@@ -1503,7 +1503,7 @@ export type UserUpdateWithoutAuditsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1533,7 +1533,7 @@ export type UserUncheckedUpdateWithoutAuditsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.NullableEnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1761,7 +1761,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     avatarUrl: string | null
     role: $Enums.Role
     status: $Enums.UserStatus
-    provider: $Enums.AuthProvider | null
+    provider: $Enums.AuthProvider
     providerId: string | null
     refreshTokens: string[]
     createdAt: Date

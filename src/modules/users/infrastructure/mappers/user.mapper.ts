@@ -1,6 +1,6 @@
 import { User } from "src/generated/prisma/client";
 import { UserEntity } from "../../domain";
-import { createMapper } from "src/modules/users/infrastructure/mappers/mapper-helper";
+import { createMapper } from "src/infrastructure/database/prisma/helper/mapper-helper";
 
 export class UserMapper {
   static toDomain(user: User): UserEntity {
@@ -21,11 +21,16 @@ export class UserMapper {
       role: this.role.toEntity(user.role),
       status: this.status.toEntity(user.status),
       refreshTokens: user.refreshTokens,
+      provider: this.provider.toEntity(user.provider),
 
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastLoginAt: user.lastLoginAt ?? undefined,
     });
+  }
+
+  static toArrayDomain(users: User[]): UserEntity[] {
+    return users.map(this.toDomain);
   }
 
   static toPersistence(entity: UserEntity): User {
@@ -48,8 +53,8 @@ export class UserMapper {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       lastLoginAt: entity.lastLoginAt ?? null,
+      provider: this.provider.toPrisma(entity.provider),
 
-      provider: null, // Assuming provider is not part of UserEntity
       providerId: null, // Assuming providerId is not part of UserEntity
       deletedAt: null, // Assuming deletedAt is not part of UserEntity
       emailVerifiedAt: null, // Assuming emailVerifiedAt is not part of UserEntity
@@ -74,5 +79,11 @@ export class UserMapper {
   static gender = createMapper<UserEntity["gender"], User["gender"]>({
     female: "FEMALE",
     male: "MALE",
+  });
+
+  static provider = createMapper<UserEntity["provider"], User["provider"]>({
+    google: "GOOGLE",
+    facebook: "FACEBOOK",
+    local: "LOCAL",
   });
 }

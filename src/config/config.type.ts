@@ -1,4 +1,4 @@
-import { PrismaConfig } from "src/modules/prisma/config/prisma-config.type";
+import { PrismaConfig } from "src/infrastructure/database/prisma/config/prisma-config.type";
 import { MailConfig } from "src/modules/mail/config/mail-config.type";
 import { AppConfig } from "./app/app-config.type";
 import { RedisConfig } from "src/modules/redis/config/redis-config.type";
