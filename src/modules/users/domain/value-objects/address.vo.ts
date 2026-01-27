@@ -3,13 +3,12 @@ import { AddressLabel } from "../types/address.type";
 /**
  * Address Value Object
  * 
- * Represents a physical address with validation and business rules.
- * Immutable by design (except for isDefault flag which is managed by aggregate).
+ * Represents a physical address as an immutable value object.
+ * Identity and lifecycle are managed by the User aggregate root.
  * 
- * @value-object Address is a value object with equality based on its properties
+ * @value-object Immutable value object with equality based on all properties
  */
 export class AddressVO {
-  private readonly _id: string;
   private readonly _label: AddressLabel;
   private readonly _recipient: string;
   private readonly _phone: string;
@@ -20,14 +19,10 @@ export class AddressVO {
   private readonly _country: string;
   private readonly _latitude?: number;
   private readonly _longitude?: number;
-  private _isDefault: boolean;
-  private readonly _createdAt: Date;
-  private _updatedAt: Date;
 
   constructor(props: AddressVOProps) {
     this.validate(props);
 
-    this._id = props.id;
     this._label = props.label;
     this._recipient = props.recipient;
     this._phone = props.phone;
@@ -38,18 +33,11 @@ export class AddressVO {
     this._country = props.country ?? 'Indonesia';
     this._latitude = props.latitude;
     this._longitude = props.longitude;
-    this._isDefault = props.isDefault ?? false;
-    this._createdAt = props.createdAt ?? new Date();
-    this._updatedAt = props.updatedAt ?? new Date();
   }
 
   // =====================================================
   // Getters
   // =====================================================
-
-  get id(): string {
-    return this._id;
-  }
 
   get label(): AddressLabel {
     return this._label;
@@ -91,20 +79,8 @@ export class AddressVO {
     return this._longitude;
   }
 
-  get isDefault(): boolean {
-    return this._isDefault;
-  }
-
-  get createdAt(): Date {
-    return this._createdAt;
-  }
-
-  get updatedAt(): Date {
-    return this._updatedAt;
-  }
-
   // =====================================================
-  // Business Logic
+  // Business Logic (Read-only)
   // =====================================================
 
   get hasCoordinates(): boolean {
@@ -117,27 +93,6 @@ export class AddressVO {
 
   get shortAddress(): string {
     return `${this._city}, ${this._province}`;
-  }
-
-  // =====================================================
-  // Domain Methods
-  // =====================================================
-
-  /**
-   * Set this address as default
-   * Note: Caller is responsible for unsetting other addresses
-   */
-  setAsDefault(): void {
-    this._isDefault = true;
-    this._updatedAt = new Date();
-  }
-
-  /**
-   * Unset this address as default
-   */
-  unsetAsDefault(): void {
-    this._isDefault = false;
-    this._updatedAt = new Date();
   }
 
   /**
@@ -171,6 +126,7 @@ export class AddressVO {
 
   /**
    * Value objects are equal if all their properties are equal
+   * (excluding isPrimary which is managed by aggregate)
    */
   equals(other: AddressVO): boolean {
     if (!other) return false;
@@ -195,7 +151,6 @@ export class AddressVO {
    */
   copyWith(props: Partial<AddressVOProps>): AddressVO {
     return new AddressVO({
-      id: props.id ?? this._id,
       label: props.label ?? this._label,
       recipient: props.recipient ?? this._recipient,
       phone: props.phone ?? this._phone,
@@ -206,9 +161,6 @@ export class AddressVO {
       country: props.country ?? this._country,
       latitude: props.latitude ?? this._latitude,
       longitude: props.longitude ?? this._longitude,
-      isDefault: props.isDefault ?? this._isDefault,
-      createdAt: this._createdAt,
-      updatedAt: new Date(),
     });
   }
 
@@ -217,10 +169,7 @@ export class AddressVO {
   // =====================================================
 
   private validate(props: AddressVOProps): void {
-    if (!props.id) {
-      throw new Error('Address ID is required');
-    }
-
+    // Required fields
     if (!props.recipient || props.recipient.trim().length === 0) {
       throw new Error('Recipient name is required');
     }
@@ -245,7 +194,28 @@ export class AddressVO {
       throw new Error('Postal code is required');
     }
 
-    // Validate coordinates if provided
+    // Length validations
+    if (props.recipient.length > 100) {
+      throw new Error('Recipient name too long (max 100 characters)');
+    }
+
+    if (props.street.length > 200) {
+      throw new Error('Street address too long (max 200 characters)');
+    }
+
+    // Phone format validation (Indonesian)
+    const phoneRegex = /^(\+62|62|0)[0-9]{9,12}$/;
+    if (!phoneRegex.test(props.phone.replace(/[\s-]/g, ''))) {
+      throw new Error('Invalid phone number format');
+    }
+
+    // Postal code validation (Indonesian: 5 digits)
+    const country = props.country ?? 'Indonesia';
+    if (country === 'Indonesia' && !/^\d{5}$/.test(props.postalCode)) {
+      throw new Error('Invalid Indonesian postal code format (5 digits required)');
+    }
+
+    // Coordinate validations
     if (props.latitude !== undefined) {
       if (props.latitude < -90 || props.latitude > 90) {
         throw new Error('Latitude must be between -90 and 90');
@@ -277,7 +247,6 @@ export class AddressVO {
 
   toJSON() {
     return {
-      id: this._id,
       label: this._label,
       recipient: this._recipient,
       phone: this._phone,
@@ -288,9 +257,6 @@ export class AddressVO {
       country: this._country,
       latitude: this._latitude,
       longitude: this._longitude,
-      isDefault: this._isDefault,
-      createdAt: this._createdAt,
-      updatedAt: this._updatedAt,
     };
   }
 }
@@ -299,7 +265,6 @@ export class AddressVO {
  * Props for creating an Address value object
  */
 export interface AddressVOProps {
-  id: string;
   label: AddressLabel;
   recipient: string;
   phone: string;
@@ -310,7 +275,4 @@ export interface AddressVOProps {
   country?: string;
   latitude?: number;
   longitude?: number;
-  isDefault?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
 }

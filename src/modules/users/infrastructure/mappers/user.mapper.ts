@@ -1,16 +1,37 @@
-import { User } from "src/generated/prisma/client";
-import { UserEntity } from "../../domain";
+import { User as PrismaUser, Address as PrismaAddress } from "src/generated/prisma/client";
+import { User } from "../../domain";
 import { createMapper } from "src/infrastructure/database/prisma/helper/mapper-helper";
+import { AddressVO } from "../../domain/value-objects/address.vo";
+
+type PrismaUserRaw = PrismaUser & {
+  addresses: PrismaAddress[]; // Adjust the type as per your Prisma schema
+};
 
 export class UserMapper {
-  static toDomain(user: User): UserEntity {
-    return new UserEntity({
+  static toDomain(user: PrismaUserRaw): User {
+
+
+
+    const addressVOs = user.addresses.map(addr => new AddressVO({
+      label: this.addressLabel.toEntity(addr.label),
+      recipient: addr.recipient,
+      city: addr.city,
+      country: addr.country,
+      phone: addr.phone,
+      postalCode: addr.postalCode,
+      province: addr.province,
+      street: addr.street,
+      latitude: addr.latitude ? Number(addr.latitude) : undefined,
+      longitude: addr.longitude ? Number(addr.longitude) : undefined,
+    }));
+
+    return new User({
       id: user.id,
       email: user.email,
       emailVerified: user.emailVerified,
       phoneNumber: user.phoneNumber ?? undefined,
       phoneVerified: user.phoneVerified,
-      password: user.password ?? undefined,
+      passwordHash: user.password ?? undefined,
 
       firstName: user.firstName ?? undefined,
       lastName: user.lastName ?? undefined,
@@ -26,14 +47,16 @@ export class UserMapper {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastLoginAt: user.lastLoginAt ?? undefined,
+
+      addresses: addressVOs
     });
   }
 
-  static toArrayDomain(users: User[]): UserEntity[] {
+  static toArrayDomain(users: PrismaUser[]): User[] {
     return users.map(this.toDomain);
   }
 
-  static toPersistence(entity: UserEntity): User {
+  static toPersistence(entity: User): PrismaUser {
     // Mapping logic here
     return {
       id: entity.id,
@@ -41,7 +64,7 @@ export class UserMapper {
       emailVerified: entity.emailVerified,
       phoneNumber: entity.phoneNumber ?? null,
       phoneVerified: entity.phoneVerified,
-      password: entity.password ?? null,
+      password: entity.passwordHash ?? null,
       firstName: entity.firstName ?? null,
       lastName: entity.lastName ?? null,
       dateOfBirth: entity.dateOfBirth ?? null,
@@ -63,27 +86,33 @@ export class UserMapper {
     };
   }
 
-  static role = createMapper<UserEntity["role"], User["role"]>({
+  static role = createMapper<User["role"], PrismaUser["role"]>({
     admin: "ADMIN",
     user: "CUSTOMER",
     moderator: "STAFF",
   });
 
-  static status = createMapper<UserEntity["status"], User["status"]>({
+  static status = createMapper<User["status"], PrismaUser["status"]>({
     active: "ACTIVE",
     inactive: "INACTIVE",
     deleted: "DELETED",
     suspended: "SUSPENDED"
   });
 
-  static gender = createMapper<UserEntity["gender"], User["gender"]>({
+  static gender = createMapper<User["gender"], PrismaUser["gender"]>({
     female: "FEMALE",
     male: "MALE",
   });
 
-  static provider = createMapper<UserEntity["provider"], User["provider"]>({
+  static provider = createMapper<User["provider"], PrismaUser["provider"]>({
     google: "GOOGLE",
     facebook: "FACEBOOK",
     local: "LOCAL",
+  });
+
+  static addressLabel = createMapper<AddressVO["label"], PrismaAddress["label"]>({
+    home: "HOME",
+    work: "OFFICE",
+    other: "OTHER",
   });
 }

@@ -49,6 +49,7 @@ export class User {
 
   // Relationships
   private _addresses: AddressVO[];
+  private _primaryAddress: AddressVO | null;
 
   constructor(props: UserProps) {
     this._id = props.id;
@@ -75,6 +76,7 @@ export class User {
     this._lastLoginAt = props.lastLoginAt;
     this._deletedAt = props.deletedAt;
     this._addresses = props.addresses ?? [];
+    this._primaryAddress = props.primaryAddress ?? null;
   }
 
   // =====================================================
@@ -378,21 +380,30 @@ export class User {
   // =====================================================
 
   addAddress(address: AddressVO): void {
-    // If this is set as default, unset other defaults
-    if (address.isDefault) {
-      this._addresses.forEach(addr => addr.unsetAsDefault());
+    // Max 3 addresses
+    if (this._addresses.length >= 3) {
+      throw new Error('Cannot add more than 3 addresses');
     }
+
     this._addresses.push(address);
     this._updatedAt = new Date();
   }
 
-  removeAddress(addressId: string): void {
-    this._addresses = this._addresses.filter(addr => addr.id !== addressId);
+  removeAddress(address: AddressVO): void {
+    this._addresses = this._addresses.filter(addr => !addr.equals(address));
     this._updatedAt = new Date();
   }
 
-  getDefaultAddress(): AddressVO | undefined {
-    return this._addresses.find(addr => addr.isDefault);
+  getPrimaryAddress(): AddressVO | null {
+    return this._primaryAddress
+  }
+
+  setPrimaryAddress(address: AddressVO) {
+    // Ensure the address belongs to the user
+    if (!this._addresses.some(a => a.equals(address))) {
+      throw new Error('Address not owned by user')
+    }
+    this._primaryAddress = address
   }
 
   // =====================================================
@@ -445,4 +456,5 @@ export interface UserProps {
   lastLoginAt?: Date;
   deletedAt?: Date;
   addresses?: AddressVO[];
+  primaryAddress?: AddressVO;
 }
