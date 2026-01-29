@@ -6,8 +6,8 @@ import { IRequestUser } from '../../../common/decorator/interfaces/request-user.
 import { AllConfigType } from 'src/config/config.type';
 import { UsersService } from 'src/modules/users/application/users.service';
 import { UserStatus } from 'src/generated/prisma/enums';
-import { IAccessPayload } from 'src/modules/token/interfaces/access-payload.interface';
-import { TokenType } from 'src/modules/token/enums/token-type.enum';
+import { IAccessPayload } from 'src/infrastructure/token/interfaces/access-payload.interface';
+import { TokenType } from 'src/infrastructure/token/enums/token-type.enum';
 
 /**
  * JWT Authentication Strategy

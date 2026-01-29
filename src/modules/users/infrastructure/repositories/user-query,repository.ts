@@ -19,7 +19,7 @@ import {
 import { PrismaService } from "src/infrastructure/database/prisma/prisma.service";
 import { UserRole } from "../../domain/types/user.type";
 import { UserMapper } from "../mappers/user.mapper";
-import { CacheService } from "src/modules/cache/cache.service";
+import { CacheService } from "src/infrastructure/cache/cache.service";
 import { UserCacheKeys, UserCacheTTL } from "../cache";
 import { UserOrderByWithAggregationInput, UserWhereInput } from "src/generated/prisma/models";
 
@@ -30,8 +30,11 @@ export class UserQueryRepository implements IUserQueryRepository {
     private readonly cacheService: CacheService
   ) { }
 
-  async findMany(criteria: UserSearchCriteria): Promise<PagedResult<User>> {
+  // =====================================================
+  // List & Count Operations
+  // =====================================================
 
+  async findMany(criteria: UserSearchCriteria): Promise<PagedResult<User>> {
     const cacheKey = UserCacheKeys.list(criteria);
 
     // Cache Aside Pattern
@@ -61,7 +64,7 @@ export class UserQueryRepository implements IUserQueryRepository {
         } : { createdAt: 'asc' };
 
         const page = criteria.page && criteria.page > 0 ? criteria.page : 1;
-        const pageSize = criteria.pageSize && criteria.pageSize > 0 ? criteria.pageSize : 20; // Same as limit
+        const pageSize = criteria.pageSize && criteria.pageSize > 0 ? criteria.pageSize : 20;
         const skip = (page - 1) * pageSize;
 
         const [users, count] = await Promise.all([
@@ -91,7 +94,6 @@ export class UserQueryRepository implements IUserQueryRepository {
   }
 
   async count(criteria?: UserCountOnSearchCriteria): Promise<number> {
-
     const cacheKey = UserCacheKeys.count(criteria);
 
     // Cache Aside Pattern
@@ -125,6 +127,10 @@ export class UserQueryRepository implements IUserQueryRepository {
       UserCacheTTL.COUNT
     );
   }
+
+  // =====================================================
+  // Command Operations (should ideally be in command repository)
+  // =====================================================
 
   async remove(id: string, options?: RemoveOptions): Promise<void> {
     if (options?.hard) {
@@ -193,7 +199,6 @@ export class UserQueryRepository implements IUserQueryRepository {
   }
 
   async revokeAllRefreshTokens(id: string): Promise<void> {
-
     await this.prismaService.user.update({
       where: { id },
       data: {
@@ -203,7 +208,6 @@ export class UserQueryRepository implements IUserQueryRepository {
   }
 
   async upsertOAuthUser(data: OAuthUserData): Promise<User> {
-
     // Split display name into first and last name
     const nameParts = data.displayName.split(' ');
     const firstName = nameParts[0] || data.displayName;
@@ -283,14 +287,6 @@ export class UserQueryRepository implements IUserQueryRepository {
       emailVerified: user.emailVerified,
       password: user.password,
     } : null;
-  }
-
-  async checkEmailExists(email: string): Promise<boolean> {
-    const count = await this.prismaService.user.count({
-      where: { email },
-    });
-
-    return count > 0;
   }
 
   // =====================================================
@@ -448,7 +444,7 @@ export class UserQueryRepository implements IUserQueryRepository {
   }
 
   // =====================================================
-  // Existence Checks
+  // Existence & Validation Checks
   // =====================================================
 
   async exists(id: string): Promise<boolean> {
@@ -477,6 +473,14 @@ export class UserQueryRepository implements IUserQueryRepository {
     });
 
     return map;
+  }
+
+  async checkEmailExists(email: string): Promise<boolean> {
+    const count = await this.prismaService.user.count({
+      where: { email },
+    });
+
+    return count > 0;
   }
 
   // =====================================================

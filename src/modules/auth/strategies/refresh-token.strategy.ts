@@ -6,8 +6,8 @@ import { IRequestUser } from "src/common/decorator/interfaces/request-user.inter
 import { AllConfigType } from "src/config/config.type";
 import { Request } from "express";
 import { UsersService } from "src/modules/users/application/users.service";
-import { IRefreshPayload } from "src/modules/token/interfaces/refresh-payload.interface";
-import { TokenType } from "src/modules/token/enums/token-type.enum";
+import { IRefreshPayload } from "src/infrastructure/token/interfaces/refresh-payload.interface";
+import { TokenType } from "src/infrastructure/token/enums/token-type.enum";
 import { UserStatus } from "src/modules/users/domain/entities/user.entity";
 
 @Injectable()

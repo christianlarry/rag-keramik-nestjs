@@ -4,15 +4,12 @@ import { createMapper } from "src/infrastructure/database/prisma/helper/mapper-h
 import { AddressVO } from "../../domain/value-objects/address.vo";
 
 type PrismaUserRaw = PrismaUser & {
-  addresses: PrismaAddress[]; // Adjust the type as per your Prisma schema
+  addresses?: PrismaAddress[]; // Adjust the type as per your Prisma schema
 };
 
 export class UserMapper {
   static toDomain(user: PrismaUserRaw): User {
-
-
-
-    const addressVOs = user.addresses.map(addr => new AddressVO({
+    const addressVOs = user.addresses && user.addresses.map(addr => new AddressVO({
       label: this.addressLabel.toEntity(addr.label),
       recipient: addr.recipient,
       city: addr.city,

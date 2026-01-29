@@ -12,23 +12,23 @@ import { PrismaModule } from './infrastructure/database/prisma/prisma.module';
 
 // Feature Modules
 import mailConfig from './modules/mail/config/mail.config';
-import { MailerModule } from './modules/mailer/mailer.module';
+import { MailerModule } from './infrastructure/mailer/mailer.module';
 import { MailModule } from './modules/mail/mail.module';
 import { BullModule } from '@nestjs/bullmq';
 import { AllConfigType } from './config/config.type';
 import { AuthModule } from './modules/auth/auth.module';
-import redisConfig from './modules/redis/config/redis.config';
+import redisConfig from './infrastructure/redis/config/redis.config';
 import authConfig from './modules/auth/config/auth.config';
-import { TokenModule } from './modules/token/token.module';
+import { TokenModule } from './infrastructure/token/token.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import rateLimitConfig from './config/rate-limit/rate-limit.config';
-import { REDIS_CLIENT, RedisModule } from './modules/redis/redis.module';
+import { REDIS_CLIENT, RedisModule } from './infrastructure/redis/redis.module';
 import { Redis } from 'ioredis';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
-import { CacheModule } from './modules/cache/cache.module';
-import { AuditModule } from './modules/audit/audit.module';
+import { CacheModule } from './infrastructure/cache/cache.module';
 import { UsersModule } from './modules/users/users.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [

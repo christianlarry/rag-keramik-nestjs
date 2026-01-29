@@ -18,6 +18,16 @@ import { UserQueryRepository } from './infrastructure/repositories/user-query,re
       useClass: UserQueryRepository,
     }
   ],
-  exports: [UsersService], // Export untuk digunakan module lain (Auth, dll)
+  exports: [
+    UsersService,
+    {
+      provide: USER_REPOSITORY,
+      useClass: UserRepository,
+    },
+    {
+      provide: USER_QUERY_REPOSITORY,
+      useClass: UserQueryRepository,
+    }
+  ], // Export untuk digunakan module lain (Auth, dll)
 })
 export class UsersModule { }

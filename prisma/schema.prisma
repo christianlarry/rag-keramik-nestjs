@@ -143,7 +143,7 @@ model User {
   password        String?   @db.VarChar(255)
   firstName       String?   @db.VarChar(255)
   lastName        String?   @db.VarChar(255)
-  gender          Gender
+  gender          Gender?
   dateOfBirth     DateTime?
   phoneNumber     String?   @db.VarChar(50)
   phoneVerified   Boolean   @default(false)

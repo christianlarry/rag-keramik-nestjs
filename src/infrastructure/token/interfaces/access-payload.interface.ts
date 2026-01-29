@@ -1,5 +1,5 @@
+import { UserRole } from "src/modules/users/domain/types/user.type";
 import { TokenType } from "../enums/token-type.enum";
-import { UserRole } from "src/modules/users/domain/entities/user.entity";
 
 export interface IAccessPayload {
   /**

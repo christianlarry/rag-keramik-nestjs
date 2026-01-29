@@ -1,4 +1,5 @@
-import { UserRole } from "src/modules/users/domain/entities/user.entity";
+import { UserRole } from "src/modules/users/domain/types/user.type";
+
 
 /**
  * Type untuk user object yang ada di request setelah JWT validation

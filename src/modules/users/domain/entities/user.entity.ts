@@ -23,7 +23,7 @@ export class User {
   // Profile Information
   private _firstName?: string;
   private _lastName?: string;
-  private _gender: UserGender;
+  private _gender?: UserGender;
   private _dateOfBirth?: Date;
   private _phoneNumber?: string;
   private _phoneVerified: boolean;
@@ -49,7 +49,7 @@ export class User {
 
   // Relationships
   private _addresses: AddressVO[];
-  private _primaryAddress: AddressVO | null;
+  private _primaryAddress?: AddressVO;
 
   constructor(props: UserProps) {
     this._id = props.id;
@@ -60,7 +60,7 @@ export class User {
     this._passwordChangedAt = props.passwordChangedAt;
     this._firstName = props.firstName;
     this._lastName = props.lastName;
-    this._gender = props.gender;
+    this._gender = props.gender ?? undefined;
     this._dateOfBirth = props.dateOfBirth;
     this._phoneNumber = props.phoneNumber;
     this._phoneVerified = props.phoneVerified ?? false;
@@ -76,7 +76,46 @@ export class User {
     this._lastLoginAt = props.lastLoginAt;
     this._deletedAt = props.deletedAt;
     this._addresses = props.addresses ?? [];
-    this._primaryAddress = props.primaryAddress ?? null;
+    this._primaryAddress = props.primaryAddress;
+  }
+
+  static create(props: CreateUserProps): User {
+    // Validate addresses - maximum 3 addresses allowed
+    if (props.addresses && props.addresses.length > 3) {
+      throw new Error('Cannot create user with more than 3 addresses');
+    }
+
+    // Validate primary address belongs to addresses list
+    if (props.primaryAddress && props.addresses) {
+      const addressExists = props.addresses.some(addr => addr.equals(props.primaryAddress!));
+      if (!addressExists) {
+        throw new Error('Primary address must be in the addresses list');
+      }
+    }
+
+    const newUser = new User({
+      id: crypto.randomUUID(),
+      email: props.email,
+      emailVerified: props.emailVerified ?? false,
+      passwordHash: props.passwordHash,
+      firstName: props.firstName,
+      lastName: props.lastName,
+      gender: props.gender,
+      dateOfBirth: props.dateOfBirth,
+      phoneNumber: props.phoneNumber,
+      phoneVerified: props.phoneVerified ?? false,
+      avatarUrl: props.avatarUrl,
+      provider: 'local', // Default provider for static create
+      role: props.role ?? 'user',
+      status: props.status ?? 'inactive',
+      addresses: props.addresses ?? [],
+      primaryAddress: props.primaryAddress,
+      refreshTokens: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    return newUser;
   }
 
   // =====================================================
@@ -127,7 +166,7 @@ export class User {
     return `${this._firstName || ''} ${this._lastName || ''}`.trim();
   }
 
-  get gender(): UserGender {
+  get gender(): UserGender | undefined {
     return this._gender;
   }
 
@@ -394,7 +433,7 @@ export class User {
     this._updatedAt = new Date();
   }
 
-  getPrimaryAddress(): AddressVO | null {
+  getPrimaryAddress(): AddressVO | undefined {
     return this._primaryAddress
   }
 
@@ -440,7 +479,7 @@ export interface UserProps {
   passwordChangedAt?: Date;
   firstName?: string;
   lastName?: string;
-  gender: UserGender;
+  gender?: UserGender;
   dateOfBirth?: Date;
   phoneNumber?: string;
   phoneVerified?: boolean;
@@ -455,6 +494,23 @@ export interface UserProps {
   updatedAt?: Date;
   lastLoginAt?: Date;
   deletedAt?: Date;
+  addresses?: AddressVO[];
+  primaryAddress?: AddressVO;
+}
+
+export interface CreateUserProps {
+  email: string;
+  emailVerified?: boolean;
+  passwordHash?: string;
+  firstName?: string;
+  lastName?: string;
+  gender?: UserGender;
+  dateOfBirth?: Date;
+  phoneNumber?: string;
+  phoneVerified?: boolean;
+  avatarUrl?: string;
+  role?: UserRole;
+  status?: UserStatus;
   addresses?: AddressVO[];
   primaryAddress?: AddressVO;
 }

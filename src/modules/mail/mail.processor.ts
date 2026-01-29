@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
 import { join } from 'path';
 import { AllConfigType } from 'src/config/config.type';
-import { MailerService } from '../mailer/mailer.service';
+import { MailerService } from '../../infrastructure/mailer/mailer.service';
 import { MAIL_QUEUE_NAME } from './constants/mail-queue.constants';
 import { MailJobType } from './enums/mail-job.enum';
 import {
