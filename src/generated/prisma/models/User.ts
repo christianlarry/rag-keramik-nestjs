@@ -20,8 +20,18 @@ export type UserModel = runtime.Types.Result.DefaultSelection<Prisma.$UserPayloa
 
 export type AggregateUser = {
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
+}
+
+export type UserAvgAggregateOutputType = {
+  loginAttempts: number | null
+}
+
+export type UserSumAggregateOutputType = {
+  loginAttempts: number | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -42,6 +52,7 @@ export type UserMinAggregateOutputType = {
   status: $Enums.UserStatus | null
   provider: $Enums.AuthProvider | null
   providerId: string | null
+  loginAttempts: number | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -67,6 +78,7 @@ export type UserMaxAggregateOutputType = {
   status: $Enums.UserStatus | null
   provider: $Enums.AuthProvider | null
   providerId: string | null
+  loginAttempts: number | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -93,6 +105,7 @@ export type UserCountAggregateOutputType = {
   provider: number
   providerId: number
   refreshTokens: number
+  loginAttempts: number
   createdAt: number
   updatedAt: number
   deletedAt: number
@@ -101,6 +114,14 @@ export type UserCountAggregateOutputType = {
   _all: number
 }
 
+
+export type UserAvgAggregateInputType = {
+  loginAttempts?: true
+}
+
+export type UserSumAggregateInputType = {
+  loginAttempts?: true
+}
 
 export type UserMinAggregateInputType = {
   id?: true
@@ -120,6 +141,7 @@ export type UserMinAggregateInputType = {
   status?: true
   provider?: true
   providerId?: true
+  loginAttempts?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -145,6 +167,7 @@ export type UserMaxAggregateInputType = {
   status?: true
   provider?: true
   providerId?: true
+  loginAttempts?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -171,6 +194,7 @@ export type UserCountAggregateInputType = {
   provider?: true
   providerId?: true
   refreshTokens?: true
+  loginAttempts?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -217,6 +241,18 @@ export type UserAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: UserAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: UserSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: UserMinAggregateInputType
@@ -247,6 +283,8 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: UserCountAggregateInputType | true
+  _avg?: UserAvgAggregateInputType
+  _sum?: UserSumAggregateInputType
   _min?: UserMinAggregateInputType
   _max?: UserMaxAggregateInputType
 }
@@ -270,12 +308,15 @@ export type UserGroupByOutputType = {
   provider: $Enums.AuthProvider
   providerId: string | null
   refreshTokens: string[]
+  loginAttempts: number
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
   passwordChangedAt: Date | null
   lastLoginAt: Date | null
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
 }
@@ -317,6 +358,7 @@ export type UserWhereInput = {
   provider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
   providerId?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
+  loginAttempts?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -348,6 +390,7 @@ export type UserOrderByWithRelationInput = {
   provider?: Prisma.SortOrder
   providerId?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokens?: Prisma.SortOrder
+  loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -382,6 +425,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   provider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
   providerId?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
+  loginAttempts?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -413,14 +457,17 @@ export type UserOrderByWithAggregationInput = {
   provider?: Prisma.SortOrder
   providerId?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokens?: Prisma.SortOrder
+  loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
+  _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
+  _sum?: Prisma.UserSumOrderByAggregateInput
 }
 
 export type UserScalarWhereWithAggregatesInput = {
@@ -445,6 +492,7 @@ export type UserScalarWhereWithAggregatesInput = {
   provider?: Prisma.EnumAuthProviderWithAggregatesFilter<"User"> | $Enums.AuthProvider
   providerId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
+  loginAttempts?: Prisma.IntWithAggregatesFilter<"User"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -471,6 +519,7 @@ export type UserCreateInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -502,6 +551,7 @@ export type UserUncheckedCreateInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -533,6 +583,7 @@ export type UserUpdateInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -564,6 +615,7 @@ export type UserUncheckedUpdateInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -595,6 +647,7 @@ export type UserCreateManyInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -621,6 +674,7 @@ export type UserUpdateManyMutationInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -647,6 +701,7 @@ export type UserUncheckedUpdateManyInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -681,11 +736,16 @@ export type UserCountOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
   refreshTokens?: Prisma.SortOrder
+  loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
+}
+
+export type UserAvgOrderByAggregateInput = {
+  loginAttempts?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -706,6 +766,7 @@ export type UserMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
+  loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -731,11 +792,16 @@ export type UserMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   providerId?: Prisma.SortOrder
+  loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
+}
+
+export type UserSumOrderByAggregateInput = {
+  loginAttempts?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -787,6 +853,14 @@ export type EnumAuthProviderFieldUpdateOperationsInput = {
 export type UserUpdaterefreshTokensInput = {
   set?: string[]
   push?: string | string[]
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -886,6 +960,7 @@ export type UserCreateWithoutAddressesInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -916,6 +991,7 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -962,6 +1038,7 @@ export type UserUpdateWithoutAddressesInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -992,6 +1069,7 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1022,6 +1100,7 @@ export type UserCreateWithoutCartsInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1052,6 +1131,7 @@ export type UserUncheckedCreateWithoutCartsInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1098,6 +1178,7 @@ export type UserUpdateWithoutCartsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1128,6 +1209,7 @@ export type UserUncheckedUpdateWithoutCartsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1158,6 +1240,7 @@ export type UserCreateWithoutOrdersInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1188,6 +1271,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1234,6 +1318,7 @@ export type UserUpdateWithoutOrdersInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1264,6 +1349,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1294,6 +1380,7 @@ export type UserCreateWithoutSessionsInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1324,6 +1411,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1370,6 +1458,7 @@ export type UserUpdateWithoutSessionsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1400,6 +1489,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1430,6 +1520,7 @@ export type UserCreateWithoutAuditsInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1460,6 +1551,7 @@ export type UserUncheckedCreateWithoutAuditsInput = {
   provider: $Enums.AuthProvider
   providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1506,6 +1598,7 @@ export type UserUpdateWithoutAuditsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1536,6 +1629,7 @@ export type UserUncheckedUpdateWithoutAuditsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1633,6 +1727,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   provider?: boolean
   providerId?: boolean
   refreshTokens?: boolean
+  loginAttempts?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1665,6 +1760,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   provider?: boolean
   providerId?: boolean
   refreshTokens?: boolean
+  loginAttempts?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1691,6 +1787,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   provider?: boolean
   providerId?: boolean
   refreshTokens?: boolean
+  loginAttempts?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1717,6 +1814,7 @@ export type UserSelectScalar = {
   provider?: boolean
   providerId?: boolean
   refreshTokens?: boolean
+  loginAttempts?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1724,7 +1822,7 @@ export type UserSelectScalar = {
   lastLoginAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "emailVerifiedAt" | "password" | "firstName" | "lastName" | "gender" | "dateOfBirth" | "phoneNumber" | "phoneVerified" | "phoneVerifiedAt" | "avatarUrl" | "role" | "status" | "provider" | "providerId" | "refreshTokens" | "createdAt" | "updatedAt" | "deletedAt" | "passwordChangedAt" | "lastLoginAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "emailVerifiedAt" | "password" | "firstName" | "lastName" | "gender" | "dateOfBirth" | "phoneNumber" | "phoneVerified" | "phoneVerifiedAt" | "avatarUrl" | "role" | "status" | "provider" | "providerId" | "refreshTokens" | "loginAttempts" | "createdAt" | "updatedAt" | "deletedAt" | "passwordChangedAt" | "lastLoginAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   carts?: boolean | Prisma.User$cartsArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
@@ -1764,6 +1862,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     provider: $Enums.AuthProvider
     providerId: string | null
     refreshTokens: string[]
+    loginAttempts: number
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -2215,6 +2314,7 @@ export interface UserFieldRefs {
   readonly provider: Prisma.FieldRef<"User", 'AuthProvider'>
   readonly providerId: Prisma.FieldRef<"User", 'String'>
   readonly refreshTokens: Prisma.FieldRef<"User", 'String[]'>
+  readonly loginAttempts: Prisma.FieldRef<"User", 'Int'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"User", 'DateTime'>

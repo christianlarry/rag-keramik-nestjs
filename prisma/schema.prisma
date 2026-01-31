@@ -158,6 +158,8 @@ model User {
   // Array refresh tokens for multiple device sessions
   refreshTokens String[]     @default([])
 
+  loginAttempts Int @default(0)
+
   // Audit
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

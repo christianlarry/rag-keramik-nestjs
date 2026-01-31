@@ -106,6 +106,7 @@ export const UserScalarFieldEnum = {
   provider: 'provider',
   providerId: 'providerId',
   refreshTokens: 'refreshTokens',
+  loginAttempts: 'loginAttempts',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',

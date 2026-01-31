@@ -1,5 +1,3 @@
-import { UserCountOnSearchCriteria, UserSearchCriteria } from "../../domain";
-
 /**
  * Static class for managing user cache keys
  * Provides centralized cache key generation for user-related data
