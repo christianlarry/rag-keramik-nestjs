@@ -1,16 +1,23 @@
+import { AuthProvider } from "../value-objects/auth-provider.vo";
 import { Email } from "../value-objects/email.vo";
+import { Password } from "../value-objects/password.vo";
+import { Role } from "../value-objects/role.vo";
+import { Status } from "../value-objects/status.vo";
 
-export interface AuthAccountProps {
+export interface CreateAuthAccountProps {
+  id: string;
   userId: string;
   email: Email;
-  provider: string;
+  provider: AuthProvider;
   providerId: string | null;
-  role: string;
+  role: Role;
   refreshTokens: string[];
   emailVerified: boolean;
   emailVerifiedAt: Date | null;
-  password: string;
+  password: Password | null;
   passwordChangedAt: Date | null;
-  status: string;
+  status: Status;
   failedLoginAttempts: number;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }

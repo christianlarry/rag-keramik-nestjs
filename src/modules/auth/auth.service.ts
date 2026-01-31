@@ -19,7 +19,7 @@ import { AuditService } from "../audit/audit.service";
 import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError, UserInvalidCredentialsError, UserNotFoundError } from "../users/domain/errors";
 import { TokenExpiredError, TokenInvalidError } from "../../infrastructure/token/errors";
 import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-response.dto";
-import { UserInvalidProviderError } from "../users/domain/errors/user-invalid-provider.error";
+import { UserInvalidProviderError } from "../users/domain/errors/user/user-invalid-provider.error";
 import { IPasswordResetPayload } from "../../infrastructure/token/interfaces/password-reset-payload.interface";
 import { ResetPasswordResponseDto } from "./dto/response/reset-password-response.dto";
 import { UserMapper } from "../users/domain/mappers/user.mapper";

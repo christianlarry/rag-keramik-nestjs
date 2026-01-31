@@ -1,4 +1,4 @@
-import { EmailFormatInvalidError } from "../../../users/domain/errors";
+import { EmailFormatInvalidError } from "src/modules/users/domain/errors";
 
 export class Email {
   private constructor(

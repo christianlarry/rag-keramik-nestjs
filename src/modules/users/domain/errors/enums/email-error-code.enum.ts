@@ -7,3 +7,5 @@ export const EmailErrorCode = {
   EMAIL_VERIFICATION_STATE_MISMATCH: "EMAIL_VERIFICATION_STATE_MISMATCH",
 
 } as const;
+
+export type EmailErrorCode = typeof EmailErrorCode[keyof typeof EmailErrorCode];

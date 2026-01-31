@@ -1,0 +1,10 @@
+export const PasswordErrorCode = {
+  PASSWORD_TOO_WEAK: 'PASSWORD_TOO_WEAK',
+  PASSWORD_EXPIRED: 'PASSWORD_EXPIRED',
+  PASSWORD_INVALID: 'PASSWORD_INVALID',
+  PASSWORD_MISMATCH: 'PASSWORD_MISMATCH',
+  PASSWORD_REUSED: 'PASSWORD_REUSED',
+  PASSWORD_MISSING: 'PASSWORD_MISSING',
+} as const;
+
+export type PasswordErrorCode = typeof PasswordErrorCode[keyof typeof PasswordErrorCode];
