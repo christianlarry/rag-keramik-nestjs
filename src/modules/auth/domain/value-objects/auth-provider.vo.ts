@@ -1,4 +1,4 @@
-import { InvalidAuthProviderError } from '../errors';
+import { InvalidProviderError } from "../exceptions";
 
 export class AuthProvider {
   private static readonly LOCAL = 'LOCAL';
@@ -30,7 +30,7 @@ export class AuthProvider {
       case this.FACEBOOK:
         return this.createFacebook();
       default:
-        throw new InvalidAuthProviderError(value);
+        throw new InvalidProviderError(value);
     }
   }
 

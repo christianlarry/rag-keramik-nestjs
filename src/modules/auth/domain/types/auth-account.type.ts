@@ -6,7 +6,6 @@ import { Status } from "../value-objects/status.vo";
 
 export interface CreateAuthAccountProps {
   id: string;
-  userId: string;
   email: Email;
   provider: AuthProvider;
   providerId: string | null;

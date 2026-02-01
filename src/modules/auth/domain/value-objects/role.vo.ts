@@ -1,4 +1,4 @@
-import { InvalidRoleError } from '../errors';
+import { InvalidRoleError } from "../exceptions";
 
 export class Role {
   private static readonly ADMIN = 'ADMIN';
@@ -30,7 +30,7 @@ export class Role {
       case this.CUSTOMER:
         return this.createCustomer();
       default:
-        throw new InvalidRoleError(value);
+        throw new InvalidRoleError(upperValue);
     }
   }
 

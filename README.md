@@ -28,6 +28,37 @@ Backend REST API untuk **platform toko keramik** yang mencakup:
 - **Payment gateway Midtrans** (Snap + webhook)
 - **RAG-powered Product Knowledge Assistant** (dokumen katalog/FAQ/aturan pemasangan)
 
+## 🏗️ Architecture
+
+Proyek ini dibangun menggunakan **Clean Architecture** dan **Domain-Driven Design (DDD)** principles:
+
+- **Clean Architecture**: Pemisahan jelas antara domain, application, dan infrastructure layers
+- **Domain-Driven Design**: 
+  - Value Objects untuk business rules encapsulation
+  - Rich domain entities dengan business logic
+  - Repository pattern untuk data persistence abstraction
+  - Domain events untuk decoupled communication
+  - CQRS untuk core modules (Orders, Payments)
+
+**Struktur Layer**:
+```
+domain/          # Business logic & rules (framework-agnostic)
+├── entities/    # Domain entities (Order, Payment, AuthAccount)
+├── value-objects/  # Immutable value objects (Email, Money, Status)
+├── repositories/   # Repository interfaces
+└── events/      # Domain events
+
+application/     # Use cases & orchestration
+├── commands/    # Write operations (CQRS)
+├── queries/     # Read operations (CQRS)
+└── services/    # Application services
+
+infrastructure/  # External concerns (DB, APIs, frameworks)
+├── repositories/   # Repository implementations
+├── mappers/     # Domain ↔ Persistence mapping
+└── adapters/    # External service adapters
+```
+
 Dokumen desain & roadmap ada di:
 - `../docs/SYSTEM_DESIGN.md`
 - `../docs/IMPLEMENTATION_ROADMAP.md`

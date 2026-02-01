@@ -1,8 +1,10 @@
-import { PasswordTooWeakError } from "src/modules/users/domain/errors";
-import { PasswordHasher } from "../hasher/password.hasher.interface";
+import { PasswordTooWeakError } from "../exceptions";
+import { PasswordHasher } from "../hasher/password-hasher.interface";
 
 export class Password {
-  private constructor(public readonly value: string) { }
+  private constructor(private readonly value: string) {
+    Object.freeze(this); // Make the instance immutable
+  }
 
   static create(raw: string, hasher: PasswordHasher): Password {
     // Validation logic for password strength can be added here
@@ -35,7 +37,7 @@ export class Password {
     return new Password(hash);
   }
 
-  comparePassword(plainText: string, hasher: PasswordHasher): Promise<boolean> {
+  compare(plainText: string, hasher: PasswordHasher): Promise<boolean> {
     return hasher.compare(plainText, this.value);
   }
 }

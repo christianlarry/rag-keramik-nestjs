@@ -1,4 +1,4 @@
-import { InvalidStatusError } from '../errors';
+import { InvalidStatusError } from '../exceptions';
 
 export class Status {
   private static readonly ACTIVE = 'ACTIVE';

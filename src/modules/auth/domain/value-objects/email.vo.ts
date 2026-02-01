@@ -1,11 +1,11 @@
-import { EmailFormatInvalidError } from "src/modules/users/domain/errors";
+import { EmailFormatInvalidError } from "../exceptions/email/email-format-invalid.error";
 
 export class Email {
-  private constructor(
-    public readonly value: string,
-  ) { }
+  private constructor(private readonly value: string) {
+    Object.freeze(this); // Make the instance immutable
+  }
 
-  public static create(
+  static create(
     email: string
   ): Email {
 
@@ -15,10 +15,17 @@ export class Email {
       throw new EmailFormatInvalidError();
     }
 
-    return new Email(email);
+    // Normalize email to lowercase
+    const loweredEmail = email.toLowerCase().trim();
+
+    return new Email(loweredEmail);
   }
 
-  public equals(other: Email): boolean {
+  getValue(): string {
+    return this.value;
+  }
+
+  equals(other: Email): boolean {
     return this.value === other.value;
   }
 }
