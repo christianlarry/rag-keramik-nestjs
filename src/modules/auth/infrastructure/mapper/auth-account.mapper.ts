@@ -1,0 +1,52 @@
+import { User } from "src/generated/prisma/client";
+import { AuthAccount } from "../../domain/entities/auth-account.entity";
+import { Email } from "../../domain/value-objects/email.vo";
+import { Password } from "../../domain/value-objects/password.vo";
+import { PasswordHasher } from "../../domain/hasher/password-hasher.interface";
+import { AuthProvider } from "../../domain/value-objects/auth-provider.vo";
+import { Role } from "../../domain/value-objects/role.vo";
+import { Status } from "../../domain/value-objects/status.vo";
+
+export class AuthAccountMapper {
+
+  constructor(
+    private readonly hasher: PasswordHasher,
+  ) { }
+
+  toDomain(raw: User): AuthAccount {
+
+    // Email VO
+    const email = Email.create(raw.email);
+    // Password VO
+    const password = raw.password ? Password.create(raw.password, this.hasher) : null;
+    // Provider VO
+    const provider = AuthProvider.fromString(raw.provider);
+    // Role VO
+    const role = Role.fromString(raw.role);
+    // Status VO
+    const status = Status.fromString(raw.status);
+
+    return AuthAccount.create({
+      id: raw.id,
+      email,
+      password,
+      emailVerified: raw.emailVerified,
+      emailVerifiedAt: raw.emailVerifiedAt,
+      provider,
+      providerId: raw.providerId,
+      role,
+      status,
+      failedLoginAttempts: raw.loginAttempts,
+      refreshTokens: raw.refreshTokens || [],
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      passwordChangedAt: raw.passwordChangedAt,
+    })
+  }
+
+  toPersistence(account: AuthAccount): User {
+    return {
+
+    }
+  }
+}

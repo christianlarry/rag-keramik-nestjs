@@ -6,3 +6,5 @@ export interface AuthAccountRepository {
   emailExists(email: string): Promise<boolean>;
   save(account: AuthAccount): Promise<void>;
 }
+
+export const AUTH_ACCOUNT_REPOSITORY = 'AUTH_ACCOUNT_REPOSITORY';

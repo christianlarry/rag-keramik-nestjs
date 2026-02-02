@@ -8,6 +8,9 @@ import { TokenModule } from "../../infrastructure/token/token.module";
 import { MailModule } from "../mail/mail.module";
 import { AuditModule } from "../audit/audit.module";
 import { UsersModule } from "../users/users.module";
+import { PASSWORD_HASHER, PasswordHasher } from "./domain/hasher/password-hasher.interface";
+import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.hasher";
+import { AuthAccountMapper } from "./infrastructure/mapper/auth-account.mapper";
 
 @Module({
   imports: [
@@ -21,7 +24,18 @@ import { UsersModule } from "../users/users.module";
   providers: [
     AuthService,
     AccessTokenStrategy,
-    RefreshTokenStrategy
+    RefreshTokenStrategy,
+    {
+      provide: PASSWORD_HASHER,
+      useClass: BcryptPasswordHasher
+    },
+    {
+      provide: AuthAccountMapper,
+      useFactory: (hasher: PasswordHasher) => {
+        return new AuthAccountMapper(hasher);
+      },
+      inject: [PASSWORD_HASHER]
+    }
   ]
 })
 export class AuthModule { }
