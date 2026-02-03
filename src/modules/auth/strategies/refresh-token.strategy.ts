@@ -5,16 +5,13 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { IRequestUser } from "src/common/decorator/interfaces/request-user.interface";
 import { AllConfigType } from "src/config/config.type";
 import { Request } from "express";
-import { UsersService } from "src/modules/users/application/users.service";
 import { IRefreshPayload } from "src/infrastructure/token/interfaces/refresh-payload.interface";
 import { TokenType } from "src/infrastructure/token/enums/token-type.enum";
-import { UserStatus } from "src/modules/users/domain/entities/user.entity";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refresh") {
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
-    private readonly usersService: UsersService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([

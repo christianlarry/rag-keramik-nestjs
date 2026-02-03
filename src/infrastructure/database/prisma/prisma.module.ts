@@ -1,10 +1,17 @@
 import { Global, Logger, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { PrismaUnitOfWork } from './prisma.uow';
 
 @Global() // Membuat module ini global, tidak perlu import berulang
 @Module({
-  providers: [PrismaService],
-  exports: [PrismaService], // Export agar bisa digunakan module lain
+  providers: [
+    PrismaService,
+    PrismaUnitOfWork
+  ],
+  exports: [
+    PrismaService,
+    PrismaUnitOfWork
+  ], // Export agar bisa digunakan module lain
 })
 export class PrismaModule implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaModule.name);

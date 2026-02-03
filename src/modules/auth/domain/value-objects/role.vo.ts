@@ -1,51 +1,60 @@
 import { InvalidRoleError } from "../exceptions";
 
-export class Role {
-  private static readonly ADMIN = 'ADMIN';
-  private static readonly STAFF = 'STAFF';
-  private static readonly CUSTOMER = 'CUSTOMER';
+export const RoleValues = {
+  ADMIN: 'ADMIN',
+  STAFF: 'STAFF',
+  CUSTOMER: 'CUSTOMER',
+} as const
 
-  private constructor(private readonly value: string) { }
+export type RoleType = typeof RoleValues[keyof typeof RoleValues];
+
+export class Role {
+  private constructor(private readonly value: RoleType) {
+    if (!value || value.trim().length === 0) {
+      throw new InvalidRoleError(value);
+    }
+    Object.freeze(this);
+  }
 
   static createAdmin(): Role {
-    return new Role(this.ADMIN);
+    return new Role(RoleValues.ADMIN);
   }
 
   static createStaff(): Role {
-    return new Role(this.STAFF);
+    return new Role(RoleValues.STAFF);
   }
 
   static createCustomer(): Role {
-    return new Role(this.CUSTOMER);
+    return new Role(RoleValues.CUSTOMER);
   }
 
   static fromString(value: string): Role {
     const upperValue = value.toUpperCase();
 
     switch (upperValue) {
-      case this.ADMIN:
+      case RoleValues.ADMIN:
         return this.createAdmin();
-      case this.STAFF:
+      case RoleValues.STAFF:
         return this.createStaff();
-      case this.CUSTOMER:
+      case RoleValues.CUSTOMER:
         return this.createCustomer();
       default:
         throw new InvalidRoleError(upperValue);
     }
   }
 
-  getValue(): string {
+  getValue(): RoleType {
     return this.value;
   }
 
   // Hierarchy & Permissions
   private getHierarchy(): number {
     switch (this.value) {
-      case Role.ADMIN:
+      case RoleValues.ADMIN:
         return 3;
-      case Role.STAFF:
+      case RoleValues.STAFF:
         return 2;
-      case Role.CUSTOMER:
+      case RoleValues.CUSTOMER:
         return 1;
       default:
         return 0;
@@ -57,15 +66,15 @@ export class Role {
   }
 
   isAdmin(): boolean {
-    return this.value === Role.ADMIN;
+    return this.value === RoleValues.ADMIN;
   }
 
   isStaff(): boolean {
-    return this.value === Role.STAFF;
+    return this.value === RoleValues.STAFF;
   }
 
   isCustomer(): boolean {
-    return this.value === Role.CUSTOMER;
+    return this.value === RoleValues.CUSTOMER;
   }
 
   canAccessAdminPanel(): boolean {
@@ -86,11 +95,11 @@ export class Role {
 
   getDisplayName(): string {
     switch (this.value) {
-      case Role.ADMIN:
+      case RoleValues.ADMIN:
         return 'Administrator';
-      case Role.STAFF:
+      case RoleValues.STAFF:
         return 'Staff';
-      case Role.CUSTOMER:
+      case RoleValues.CUSTOMER:
         return 'Customer';
       default:
         return this.value;

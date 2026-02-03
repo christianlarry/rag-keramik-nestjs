@@ -7,7 +7,6 @@ import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
 import { TokenModule } from "../../infrastructure/token/token.module";
 import { MailModule } from "../mail/mail.module";
 import { AuditModule } from "../audit/audit.module";
-import { UsersModule } from "../users/users.module";
 import { PASSWORD_HASHER, PasswordHasher } from "./domain/hasher/password-hasher.interface";
 import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.hasher";
 import { AuthAccountMapper } from "./infrastructure/mapper/auth-account.mapper";
@@ -16,7 +15,6 @@ import { PrismaAuthAccountRepository } from "./infrastructure/repositories/prism
 
 @Module({
   imports: [
-    UsersModule,
     PassportModule,
     TokenModule,
     MailModule,

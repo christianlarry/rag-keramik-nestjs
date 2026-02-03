@@ -1,4 +1,3 @@
-import { UserRole } from "src/modules/users/domain/types/user.type";
 import { TokenType } from "../enums/token-type.enum";
 
 export interface IAccessPayload {
@@ -16,7 +15,7 @@ export interface IAccessPayload {
   /**
    * User role untuk authorization
    */
-  role: UserRole;
+  role: RoleType;
 
   /**
    * Token type untuk membedakan access token vs refresh token

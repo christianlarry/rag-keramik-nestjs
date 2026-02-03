@@ -3,11 +3,11 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { AllConfigType } from "src/config/config.type";
 import { TokenType } from "./enums/token-type.enum";
+
 import { IEmailVerificationPayload } from "./interfaces/email-verification-payload.interface";
 import { IPasswordResetPayload } from "./interfaces/password-reset-payload.interface";
 import { IAccessPayload } from "./interfaces/access-payload.interface";
 import { IRefreshPayload } from "./interfaces/refresh-payload.interface";
-import { UserRole } from "src/modules/users/domain/types/user.type";
 
 @Injectable()
 export class TokenService {

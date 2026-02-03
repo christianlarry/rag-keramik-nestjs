@@ -27,7 +27,6 @@ import { REDIS_CLIENT, RedisModule } from './infrastructure/redis/redis.module';
 import { Redis } from 'ioredis';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { CacheModule } from './infrastructure/cache/cache.module';
-import { UsersModule } from './modules/users/users.module';
 import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
@@ -86,7 +85,7 @@ import { AuditModule } from './modules/audit/audit.module';
     PrismaModule,
     MailerModule,
     MailModule,
-    UsersModule,
+    // UsersModule,
     AuthModule,
     AuditModule
   ],

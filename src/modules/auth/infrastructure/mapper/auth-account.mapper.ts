@@ -9,7 +9,7 @@ import { Email } from "../../domain/value-objects/email.vo";
 import { Password } from "../../domain/value-objects/password.vo";
 import { PasswordHasher } from "../../domain/hasher/password-hasher.interface";
 import { AuthProvider } from "../../domain/value-objects/auth-provider.vo";
-import { Role } from "../../domain/value-objects/role.vo";
+import { Role, RoleType } from "../../domain/value-objects/role.vo";
 import { Status } from "../../domain/value-objects/status.vo";
 
 export type AuthAccountPersistenceFields = Pick<User,
@@ -90,7 +90,7 @@ const authProviderMap: Record<string, PrismaAuthProvider> = {
   'FACEBOOK': PrismaAuthProvider.FACEBOOK,
 };
 
-const roleMap: Record<string, PrismaRole> = {
+const roleMap: Record<RoleType, PrismaRole> = {
   'CUSTOMER': PrismaRole.CUSTOMER,
   'ADMIN': PrismaRole.ADMIN,
   'STAFF': PrismaRole.STAFF
