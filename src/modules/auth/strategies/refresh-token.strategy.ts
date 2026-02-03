@@ -5,13 +5,16 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { IRequestUser } from "src/common/decorator/interfaces/request-user.interface";
 import { AllConfigType } from "src/config/config.type";
 import { Request } from "express";
-import { IRefreshPayload } from "src/infrastructure/token/interfaces/refresh-payload.interface";
-import { TokenType } from "src/infrastructure/token/enums/token-type.enum";
+import { UsersService } from "src/modules/users/users.service";
+import { UserStatus } from "src/generated/prisma/enums";
+import { IRefreshPayload } from "src/modules/token/interfaces/refresh-payload.interface";
+import { TokenType } from "src/modules/token/enums/token-type.enum";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refresh") {
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
+    private readonly usersService: UsersService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -20,7 +23,6 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
 
           return token;
         },
-        ExtractJwt.fromBodyField('refreshToken'),
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       secretOrKey: configService.getOrThrow<string>('auth.refreshTokenSecret', { infer: true }),
@@ -34,7 +36,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
       throw new UnauthorizedException('Invalid token type');
     }
 
-    const incomingRefreshToken: string = req.cookies?.refreshToken || req.body?.refreshToken || req.headers?.authorization?.replace('Bearer ', '');
+    const incomingRefreshToken: string = req.cookies?.refreshToken || req.headers?.authorization?.replace('Bearer ', '');
 
     if (!incomingRefreshToken) {
       throw new UnauthorizedException('Refresh token not found');

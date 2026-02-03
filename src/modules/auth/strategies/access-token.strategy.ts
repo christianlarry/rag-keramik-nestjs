@@ -4,9 +4,10 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { IRequestUser } from '../../../common/decorator/interfaces/request-user.interface';
 import { AllConfigType } from 'src/config/config.type';
+import { UsersService } from 'src/modules/users/users.service';
 import { UserStatus } from 'src/generated/prisma/enums';
-import { IAccessPayload } from 'src/infrastructure/token/interfaces/access-payload.interface';
-import { TokenType } from 'src/infrastructure/token/enums/token-type.enum';
+import { IAccessPayload } from 'src/modules/token/interfaces/access-payload.interface';
+import { TokenType } from 'src/modules/token/enums/token-type.enum';
 
 /**
  * JWT Authentication Strategy
@@ -34,6 +35,7 @@ import { TokenType } from 'src/infrastructure/token/enums/token-type.enum';
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
+    private readonly usersService: UsersService,
   ) {
     super({
       // Extract JWT dari Authorization header dengan format: "Bearer <token>"

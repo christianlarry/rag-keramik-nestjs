@@ -5,28 +5,29 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Config Modules
 import appConfig from 'src/config/app/app.config'
-import prismaConfig from 'src/infrastructure/database/prisma/config/prisma.config';
+import prismaConfig from 'src/modules/prisma/config/prisma.config';
 
 // Database Module
-import { PrismaModule } from './infrastructure/database/prisma/prisma.module';
+import { PrismaModule } from './modules/prisma/prisma.module';
 
 // Feature Modules
+import { UsersModule } from './modules/users/users.module';
 import mailConfig from './modules/mail/config/mail.config';
-import { MailerModule } from './infrastructure/mailer/mailer.module';
+import { MailerModule } from './modules/mailer/mailer.module';
 import { MailModule } from './modules/mail/mail.module';
 import { BullModule } from '@nestjs/bullmq';
 import { AllConfigType } from './config/config.type';
 import { AuthModule } from './modules/auth/auth.module';
-import redisConfig from './infrastructure/redis/config/redis.config';
+import redisConfig from './modules/redis/config/redis.config';
 import authConfig from './modules/auth/config/auth.config';
-import { TokenModule } from './infrastructure/token/token.module';
+import { TokenModule } from './modules/token/token.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import rateLimitConfig from './config/rate-limit/rate-limit.config';
-import { REDIS_CLIENT, RedisModule } from './infrastructure/redis/redis.module';
+import { REDIS_CLIENT, RedisModule } from './modules/redis/redis.module';
 import { Redis } from 'ioredis';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
-import { CacheModule } from './infrastructure/cache/cache.module';
+import { CacheModule } from './modules/cache/cache.module';
 import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
@@ -85,7 +86,7 @@ import { AuditModule } from './modules/audit/audit.module';
     PrismaModule,
     MailerModule,
     MailModule,
-    // UsersModule,
+    UsersModule,
     AuthModule,
     AuditModule
   ],

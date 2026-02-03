@@ -1801,22 +1801,15 @@ export const UserScalarFieldEnum = {
   firstName: 'firstName',
   lastName: 'lastName',
   gender: 'gender',
-  dateOfBirth: 'dateOfBirth',
-  phoneNumber: 'phoneNumber',
-  phoneVerified: 'phoneVerified',
-  phoneVerifiedAt: 'phoneVerifiedAt',
-  avatarUrl: 'avatarUrl',
   role: 'role',
   status: 'status',
   provider: 'provider',
   providerId: 'providerId',
   refreshTokens: 'refreshTokens',
-  loginAttempts: 'loginAttempts',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
-  passwordChangedAt: 'passwordChangedAt',
-  lastLoginAt: 'lastLoginAt'
+  passwordChangedAt: 'passwordChangedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -2225,20 +2218,6 @@ export type ListEnumAuthProviderFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-/**
  * Reference to a field of type 'AddressLabel'
  */
 export type EnumAddressLabelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AddressLabel'>
@@ -2263,6 +2242,20 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Decimal[]'
  */
 export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 

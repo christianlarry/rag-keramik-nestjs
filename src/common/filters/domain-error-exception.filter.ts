@@ -21,55 +21,57 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
    * This ensures that domain errors are translated to appropriate HTTP responses.
    */
   private readonly errorCodeToHttpStatusMap: Record<string, HttpStatus> = {
-    // ============================================
-    // AUTH DOMAIN ERRORS
-    // ============================================
+    // 404 Not Found
+    USER_NOT_FOUND: HttpStatus.NOT_FOUND,
+
+    // 409 Conflict - Resource already exists
+    USER_EMAIL_ALREADY_EXISTS: HttpStatus.CONFLICT,
+    USER_USERNAME_ALREADY_EXISTS: HttpStatus.CONFLICT,
+    USER_EMAIL_ALREADY_VERIFIED: HttpStatus.CONFLICT,
+    USER_OAUTH_ALREADY_LINKED: HttpStatus.CONFLICT,
+
+    // 403 Forbidden - State/Status issues
+    USER_INACTIVE: HttpStatus.FORBIDDEN,
+    USER_SUSPENDED: HttpStatus.FORBIDDEN,
+    USER_DELETED: HttpStatus.FORBIDDEN,
+    USER_BANNED: HttpStatus.FORBIDDEN,
 
     // 401 Unauthorized - Authentication issues
-    AUTH_INVALID_CREDENTIALS: HttpStatus.UNAUTHORIZED,
-    AUTH_UNAUTHORIZED: HttpStatus.UNAUTHORIZED,
-    AUTH_TOKEN_INVALID: HttpStatus.UNAUTHORIZED,
-    AUTH_TOKEN_EXPIRED: HttpStatus.UNAUTHORIZED,
-    AUTH_SESSION_EXPIRED: HttpStatus.UNAUTHORIZED,
-    AUTH_REFRESH_TOKEN_INVALID: HttpStatus.UNAUTHORIZED,
-    AUTH_REFRESH_TOKEN_EXPIRED: HttpStatus.UNAUTHORIZED,
+    USER_UNAUTHORIZED: HttpStatus.UNAUTHORIZED,
+    USER_INVALID_CREDENTIALS: HttpStatus.UNAUTHORIZED,
+    USER_TOKEN_INVALID: HttpStatus.UNAUTHORIZED,
+    USER_TOKEN_EXPIRED: HttpStatus.UNAUTHORIZED,
+    USER_SESSION_EXPIRED: HttpStatus.UNAUTHORIZED,
 
-    // 400 Bad Request - Password & Email issues
-    AUTH_PASSWORD_INVALID: HttpStatus.BAD_REQUEST,
-    AUTH_PASSWORD_MISMATCH: HttpStatus.BAD_REQUEST,
-    AUTH_PASSWORD_EXPIRED: HttpStatus.BAD_REQUEST,
-    AUTH_PASSWORD_TOO_WEAK: HttpStatus.BAD_REQUEST,
-    AUTH_PASSWORD_REUSED: HttpStatus.BAD_REQUEST,
-    AUTH_PASSWORD_MISSING: HttpStatus.BAD_REQUEST,
-    AUTH_EMAIL_NOT_VERIFIED: HttpStatus.FORBIDDEN,
-    AUTH_EMAIL_VERIFICATION_STATE_MISMATCH: HttpStatus.BAD_REQUEST,
-    AUTH_EMAIL_VERIFICATION_TOKEN_INVALID: HttpStatus.BAD_REQUEST,
-    AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRED: HttpStatus.BAD_REQUEST,
-    AUTH_EMAIL_FORMAT_INVALID: HttpStatus.BAD_REQUEST,
+    // 403 Forbidden - Authorization/Permission issues
+    USER_FORBIDDEN: HttpStatus.FORBIDDEN,
+    USER_INSUFFICIENT_PERMISSIONS: HttpStatus.FORBIDDEN,
+    USER_CANNOT_CHANGE_OWN_ROLE: HttpStatus.FORBIDDEN,
 
-    // 400 Bad Request - Role & Status Validation
-    AUTH_INVALID_ROLE: HttpStatus.BAD_REQUEST,
-    AUTH_INVALID_STATUS: HttpStatus.BAD_REQUEST,
+    // 400 Bad Request - Validation/Business rule violations
+    USER_PASSWORD_INVALID: HttpStatus.BAD_REQUEST,
+    USER_PASSWORD_MISMATCH: HttpStatus.BAD_REQUEST,
+    USER_PASSWORD_EXPIRED: HttpStatus.BAD_REQUEST,
+    USER_PASSWORD_TOO_WEAK: HttpStatus.BAD_REQUEST,
+    USER_EMAIL_INVALID: HttpStatus.BAD_REQUEST,
+    USER_EMAIL_NOT_VERIFIED: HttpStatus.BAD_REQUEST,
+    USER_PROFILE_INCOMPLETE: HttpStatus.BAD_REQUEST,
+    USER_INVALID_PROVIDER: HttpStatus.BAD_REQUEST,
 
-    // 409 Conflict - Already exists
-    AUTH_EMAIL_ALREADY_VERIFIED: HttpStatus.CONFLICT,
-    AUTH_OAUTH_ALREADY_LINKED: HttpStatus.CONFLICT,
+    TOKEN_INVALID: HttpStatus.BAD_REQUEST,
+    TOKEN_EXPIRED: HttpStatus.BAD_REQUEST,
 
-    // 400 Bad Request - OAuth & Provider
-    AUTH_INVALID_PROVIDER: HttpStatus.BAD_REQUEST,
+    // 422 Unprocessable Entity - Operation constraints
+    USER_CANNOT_BE_UPDATED: HttpStatus.UNPROCESSABLE_ENTITY,
+    USER_CANNOT_BE_DELETED: HttpStatus.UNPROCESSABLE_ENTITY,
+    USER_CANNOT_SELF_DELETE: HttpStatus.UNPROCESSABLE_ENTITY,
+
+    // 500 Internal Server Error - Upload/External service failures
+    USER_AVATAR_UPLOAD_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
+    USER_OAUTH_LINK_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
 
     // 404 Not Found - Provider not linked
-    AUTH_PROVIDER_NOT_LINKED: HttpStatus.NOT_FOUND,
-
-    // 500 Internal Server Error - OAuth failures
-    AUTH_OAUTH_LINK_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
-
-    // 403 Forbidden - Account status
-    AUTH_ACCOUNT_LOCKED: HttpStatus.FORBIDDEN,
-    AUTH_ACCOUNT_NOT_ACTIVE: HttpStatus.FORBIDDEN,
-
-    // 429 Too Many Requests
-    AUTH_TOO_MANY_LOGIN_ATTEMPTS: HttpStatus.TOO_MANY_REQUESTS,
+    USER_PROVIDER_NOT_LINKED: HttpStatus.NOT_FOUND,
   };
 
   catch(exception: DomainError, host: ArgumentsHost): void {
@@ -130,8 +132,7 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
       [HttpStatus.NOT_FOUND]: 'Not Found',
       [HttpStatus.CONFLICT]: 'Conflict',
       [HttpStatus.UNPROCESSABLE_ENTITY]: 'Unprocessable Entity',
-      [HttpStatus.TOO_MANY_REQUESTS]: 'Too Many Requests',
-      [HttpStatus.INTERNAL_SERVER_ERROR]: 'Internal Server Error',
+      [HttpStatus.INTERNAL_SERVER_ERROR]: 'Internal Server Error'
     };
 
     return errorNames[status] || 'Error';
