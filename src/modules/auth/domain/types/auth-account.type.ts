@@ -17,6 +17,6 @@ export interface CreateAuthAccountProps {
   passwordChangedAt: Date | null;
   status: Status;
   failedLoginAttempts: number;
-  createdAt: Date | null;
-  updatedAt: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

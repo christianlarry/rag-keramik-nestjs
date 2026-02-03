@@ -1,11 +1,16 @@
 import { InvalidProviderError } from "../exceptions";
 
 export class AuthProvider {
-  private static readonly LOCAL = 'LOCAL';
-  private static readonly GOOGLE = 'GOOGLE';
-  private static readonly FACEBOOK = 'FACEBOOK';
+  public static readonly LOCAL = 'LOCAL';
+  public static readonly GOOGLE = 'GOOGLE';
+  public static readonly FACEBOOK = 'FACEBOOK';
 
-  private constructor(private readonly value: string) { }
+  private constructor(private readonly value: string) {
+    if (!value || value.trim().length === 0) {
+      throw new InvalidProviderError(value);
+    }
+    Object.freeze(this);
+  }
 
   static createLocal(): AuthProvider {
     return new AuthProvider(this.LOCAL);

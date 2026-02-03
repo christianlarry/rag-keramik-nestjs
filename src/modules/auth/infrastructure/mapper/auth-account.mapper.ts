@@ -1,4 +1,9 @@
 import { User } from "src/generated/prisma/client";
+import {
+  AuthProvider as PrismaAuthProvider,
+  Role as PrismaRole,
+  UserStatus as PrismaUserStatus,
+} from "src/generated/prisma/enums"
 import { AuthAccount } from "../../domain/entities/auth-account.entity";
 import { Email } from "../../domain/value-objects/email.vo";
 import { Password } from "../../domain/value-objects/password.vo";
@@ -44,9 +49,40 @@ export class AuthAccountMapper {
     })
   }
 
-  toPersistence(account: AuthAccount): User {
+  toPersistence(entity: AuthAccount): Partial<User> {
     return {
-
+      id: entity.id,
+      email: entity.email.getValue(),
+      emailVerified: entity.emailVerified,
+      emailVerifiedAt: entity.emailVerifiedAt,
+      provider: authProviderMap[entity.provider.getValue()],
+      providerId: entity.providerId,
+      role: roleMap[entity.role.getValue()],
+      status: statusMap[entity.status.getValue()],
+      loginAttempts: entity.failedLoginAttempts,
+      refreshTokens: entity.refreshTokens,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      passwordChangedAt: entity.passwordChangedAt,
     }
   }
 }
+
+const authProviderMap: Record<string, PrismaAuthProvider> = {
+  'LOCAL': PrismaAuthProvider.LOCAL,
+  'GOOGLE': PrismaAuthProvider.GOOGLE,
+  'FACEBOOK': PrismaAuthProvider.FACEBOOK,
+};
+
+const roleMap: Record<string, PrismaRole> = {
+  'CUSTOMER': PrismaRole.CUSTOMER,
+  'ADMIN': PrismaRole.ADMIN,
+  'STAFF': PrismaRole.STAFF
+};
+
+const statusMap: Record<string, PrismaUserStatus> = {
+  'ACTIVE': PrismaUserStatus.ACTIVE,
+  'INACTIVE': PrismaUserStatus.INACTIVE,
+  'SUSPENDED': PrismaUserStatus.SUSPENDED,
+  'DELETED': PrismaUserStatus.DELETED,
+};

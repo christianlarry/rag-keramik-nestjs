@@ -28,8 +28,8 @@ export class AuthAccount {
     private _password: Password | null,
     private _status: Status,
     private _failedLoginAttempts: number,
-    private _createdAt: Date | null,
-    private _updatedAt: Date | null,
+    private _createdAt: Date,
+    private _updatedAt: Date,
     private _passwordChangedAt: Date | null,
   ) { }
 
@@ -77,8 +77,8 @@ export class AuthAccount {
       props.password,
       props.status,
       props.failedLoginAttempts,
-      props.createdAt,
-      props.updatedAt,
+      props.createdAt || new Date(),
+      props.updatedAt || new Date(),
       props.passwordChangedAt,
     );
   }
@@ -234,5 +234,55 @@ export class AuthAccount {
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
     return this._passwordChangedAt < ninetyDaysAgo;
+  }
+
+  // ═══════════════ Getter ═══════════════
+  get id(): string {
+    return this._id;
+  }
+  get email(): Email {
+    return this._email;
+  }
+  get emailVerified(): boolean {
+    return this._emailVerified;
+  }
+  get emailVerifiedAt(): Date | null {
+    return this._emailVerifiedAt;
+  }
+  get provider(): AuthProvider {
+    return this._provider;
+  }
+  get providerId(): string | null {
+    return this._providerId;
+  }
+  get role(): Role {
+    return this._role;
+  }
+  get refreshTokens(): string[] {
+    return this._refreshTokens;
+  }
+
+  get status(): Status {
+    return this._status;
+  }
+
+  get failedLoginAttempts(): number {
+    return this._failedLoginAttempts;
+  }
+
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+
+  get passwordChangedAt(): Date | null {
+    return this._passwordChangedAt;
+  }
+
+  get password(): Password | null {
+    return this._password;
   }
 }
