@@ -11,6 +11,8 @@ import { UsersModule } from "../users/users.module";
 import { PASSWORD_HASHER, PasswordHasher } from "./domain/hasher/password-hasher.interface";
 import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.hasher";
 import { AuthAccountMapper } from "./infrastructure/mapper/auth-account.mapper";
+import { AUTH_ACCOUNT_REPOSITORY } from "./domain/repositories/auth-account-repository.interface";
+import { PrismaAuthAccountRepository } from "./infrastructure/repositories/prisma-auth-account.repository";
 
 @Module({
   imports: [
@@ -35,6 +37,10 @@ import { AuthAccountMapper } from "./infrastructure/mapper/auth-account.mapper";
         return new AuthAccountMapper(hasher);
       },
       inject: [PASSWORD_HASHER]
+    },
+    {
+      provide: AUTH_ACCOUNT_REPOSITORY,
+      useClass: PrismaAuthAccountRepository
     }
   ]
 })

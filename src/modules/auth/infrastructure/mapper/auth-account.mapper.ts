@@ -12,6 +12,22 @@ import { AuthProvider } from "../../domain/value-objects/auth-provider.vo";
 import { Role } from "../../domain/value-objects/role.vo";
 import { Status } from "../../domain/value-objects/status.vo";
 
+export type AuthAccountPersistenceFields = Pick<User,
+  | 'id'
+  | 'email'
+  | 'emailVerified'
+  | 'emailVerifiedAt'
+  | 'provider'
+  | 'providerId'
+  | 'role'
+  | 'status'
+  | 'loginAttempts'
+  | 'refreshTokens'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'passwordChangedAt'
+>
+
 export class AuthAccountMapper {
 
   constructor(
@@ -49,7 +65,7 @@ export class AuthAccountMapper {
     })
   }
 
-  toPersistence(entity: AuthAccount): Partial<User> {
+  toPersistence(entity: AuthAccount): AuthAccountPersistenceFields {
     return {
       id: entity.id,
       email: entity.email.getValue(),

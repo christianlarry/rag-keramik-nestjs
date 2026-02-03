@@ -16,16 +16,30 @@ export class PrismaAuthAccountRepository implements AuthAccountRepository {
     const accountRecord = await this.prismaService.user.findUnique({
       where: { id },
     });
+
+    return accountRecord ? this.mapper.toDomain(accountRecord) : null;
   }
 
   async findByEmail(email: string): Promise<AuthAccount | null> {
-
+    const accountRecord = await this.prismaService.user.findUnique({
+      where: { email },
+    });
+    return accountRecord ? this.mapper.toDomain(accountRecord) : null;
   }
   async emailExists(email: string): Promise<boolean> {
-
+    const count = await this.prismaService.user.count({
+      where: { email },
+    });
+    return count > 0;
   }
 
   async save(account: AuthAccount): Promise<void> {
+    const persistence = this.mapper.toPersistence(account);
 
+    await this.prismaService.user.upsert({
+      where: { id: persistence.id },
+      create: persistence,
+      update: persistence,
+    });
   }
 }
