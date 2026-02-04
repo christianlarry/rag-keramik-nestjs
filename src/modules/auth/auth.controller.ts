@@ -85,9 +85,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.STRICT, ttl: TTL.FIFTEEN_MINUTES } }) // 5 requests per 15 minutes
-  async login(
-    @Body() loginDto: AuthLoginDto
-  ) {
+  async login(@Body() loginDto: AuthLoginDto) {
     return this.authService.loginWithEmail(loginDto.email, loginDto.password);
   }
 

@@ -42,6 +42,7 @@ export class UsersService {
             email: true,
             emailVerified: true,
             emailVerifiedAt: true,
+            password: true,
             firstName: true,
             lastName: true,
             gender: true,
@@ -57,44 +58,6 @@ export class UsersService {
             // password tidak di-return untuk security
           },
         });
-
-        if (!user) {
-          throw new UserNotFoundError({ field: 'id', value: id });
-        }
-
-        return user;
-      },
-      UserCacheTTL.USER_DETAIL,
-    );
-  }
-
-  /**
-   * Find user by ID with selective fields
-   * @throws UserNotFoundError if user not found
-   */
-  async findByIdSelective<K extends keyof User>(
-    id: string,
-    fields: K[]
-  ): Promise<Pick<User, K>> {
-    // Cache key includes fields to differentiate between different field selections
-    const cacheKey = `${UserCacheKeys.byId(id)}:fields:${fields.sort().join(',')}`;
-
-    return this.cacheService.wrap(
-      cacheKey,
-      async () => {
-        // 1. Membuat object select secara dinamis
-        const select = fields.reduce((acc, field) => {
-          acc[field] = true;
-          return acc;
-        }, {} as Record<K, boolean>);
-
-        // 2. Eksekusi query Prisma
-        // Kita gunakan 'as any' saat memanggil findUnique karena Prisma 
-        // butuh tipe statis, namun return type kita paksa sesuai Generic K
-        const user = await this.prismaService.user.findUnique({
-          where: { id },
-          select,
-        }) as Pick<User, K> | null;
 
         if (!user) {
           throw new UserNotFoundError({ field: 'id', value: id });
@@ -391,6 +354,15 @@ export class UsersService {
     });
   }
 
+  async updateLastLogin(userId: string, tx?: TransactionClient): Promise<void> {
+    const client = tx || this.prismaService;
+
+    await client.user.update({
+      where: { id: userId },
+      data: { lastLoginAt: new Date() },
+    });
+  }
+
   /**
    * Clear all refresh tokens for a user (e.g., on logout from all devices)
    * @param userId 
@@ -406,21 +378,53 @@ export class UsersService {
         data: { refreshTokens: [] }
       });
 
-      // TODO: Invalidate cache for user's refresh tokens
+      // Invalidate cache for user's refresh tokens
       await this.cacheService.del(UserCacheKeys.refreshTokens(userId));
+      await this.cacheService.delPattern(UserCacheKeys.userPattern(userId));
 
       return true;
 
     } catch (err) {
-      if (this.configService.get('app.nodeEnv', { infer: true }) !== 'development') {
-        this.logger.error(`Failed to clear refresh tokens for user ${userId}: ${err.message}`);
-      }
 
       if (this.prismaService.isPrismaRecordNotFoundError(err)) {
         throw new UserNotFoundError({ field: 'id', value: userId });
       }
 
       return false
+    }
+  }
+
+  /**
+   * Add a refresh token to user's list of tokens
+   * @param userId 
+   * @param refreshToken 
+   * @param tx 
+   * @returns boolean indicating success or failure
+   * @throws UserNotFoundError if user does not exist
+   */
+  async addRefreshToken(userId: string, refreshToken: string, tx?: TransactionClient): Promise<boolean> {
+    const client = tx || this.prismaService;
+    try {
+      await client.user.update({
+        where: { id: userId },
+        data: {
+          refreshTokens: {
+            push: refreshToken,
+          },
+        },
+      });
+
+      // Invalidate cache for user's refresh tokens
+      await this.cacheService.del(UserCacheKeys.refreshTokens(userId));
+      await this.cacheService.delPattern(UserCacheKeys.userPattern(userId));
+
+      return true;
+    } catch (err) {
+
+      if (this.prismaService.isPrismaRecordNotFoundError(err)) {
+        throw new UserNotFoundError({ field: 'id', value: userId });
+      }
+      return false;
     }
   }
 
@@ -435,7 +439,7 @@ export class UsersService {
     try {
       const client = tx || this.prismaService;
 
-      return await client.user.update({
+      const result = await client.user.update({
         where: { id: userId },
         data: {
           emailVerified: true,
@@ -451,6 +455,14 @@ export class UsersService {
           lastName: true,
         }
       });
+
+      // Invalidate cache for updated user
+      await this.cacheService.del(UserCacheKeys.byId(userId));
+      await this.cacheService.del(UserCacheKeys.byEmail(result.email));
+      await this.cacheService.delPattern(UserCacheKeys.userPattern(userId));
+
+      return result;
+
     } catch (err) {
       if (this.prismaService.isPrismaRecordNotFoundError(err)) {
         throw new UserNotFoundError({ field: 'id', value: userId });

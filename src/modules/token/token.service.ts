@@ -5,6 +5,9 @@ import { AllConfigType } from "src/config/config.type";
 import { TokenType } from "./enums/token-type.enum";
 import { IEmailVerificationPayload } from "./interfaces/email-verification-payload.interface";
 import { IPasswordResetPayload } from "./interfaces/password-reset-payload.interface";
+import { Role } from "src/generated/prisma/enums";
+import { IAccessPayload } from "./interfaces/access-payload.interface";
+import { IRefreshPayload } from "./interfaces/refresh-payload.interface";
 
 @Injectable()
 export class TokenService {
@@ -58,6 +61,33 @@ export class TokenService {
     }
 
     return this.generateToken<IPasswordResetPayload>(payload, TokenType.PASSWORD_RESET, password);
+  }
+
+  /**
+   * Generate access token
+   */
+  async generateAccessToken(userId: string, email: string, role: Role): Promise<string> {
+    const payload: IAccessPayload = {
+      sub: userId,
+      email: email,
+      role: role,
+      type: TokenType.ACCESS
+    }
+
+    return this.generateToken<IAccessPayload>(payload, TokenType.ACCESS);
+  }
+
+  /**
+   * Generate refresh token
+   */
+  async generateRefreshToken(userId: string, email: string, role: Role): Promise<string> {
+    const payload: IRefreshPayload = {
+      sub: userId,
+      type: TokenType.REFRESH,
+      email: email,
+      role: role
+    }
+    return this.generateToken<IRefreshPayload>(payload, TokenType.REFRESH);
   }
 
   /**

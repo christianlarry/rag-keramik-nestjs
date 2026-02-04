@@ -1,29 +1,29 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { UsersService } from "../users/application/users.service";
 import { AuthRegisterDto } from "./dto/auth-register.dto";
 import bcrypt from 'bcrypt';
-import { PrismaService } from "../../infrastructure/database/prisma/prisma.service";
 import { AuditAction, AuditTargetType, AuthProvider, Role, UserStatus } from "src/generated/prisma/enums";
-import { TokenService } from "../../infrastructure/token/token.service";
 import { MailService } from "../mail/mail.service";
 import { AuthRegisterResponseDto } from "./dto/response/auth-register-response.dto";
 import { ResendVerificationResponseDto } from "./dto/response/resend-verification-response.dto";
 import { VerifyEmailResponseDto } from "./dto/response/verify-email-response.dto";
-import { TokenType } from "../../infrastructure/token/enums/token-type.enum";
-import { IEmailVerificationPayload } from "../../infrastructure/token/interfaces/email-verification-payload.interface";
 import { JsonWebTokenError, TokenExpiredError as JwtTokenExpiredError } from "@nestjs/jwt";
 import { AllConfigType } from "src/config/config.type";
 import { ConfigService } from "@nestjs/config";
 import { Environment } from "src/config/app/app-config.type";
 import { AuditService } from "../audit/audit.service";
-import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError, UserInvalidCredentialsError, UserNotFoundError } from "../users/domain/errors";
-import { TokenExpiredError, TokenInvalidError } from "../../infrastructure/token/errors";
 import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-response.dto";
-import { UserInvalidProviderError } from "../users/domain/errors/user/user-invalid-provider.error";
-import { IPasswordResetPayload } from "../../infrastructure/token/interfaces/password-reset-payload.interface";
 import { ResetPasswordResponseDto } from "./dto/response/reset-password-response.dto";
-import { UserMapper } from "../users/domain/mappers/user.mapper";
-import { UserEntity } from "../users/domain/entities/user.entity";
+import { UsersService } from "../users/users.service";
+import { PrismaService } from "../prisma/prisma.service";
+import { TokenService } from "../token/token.service";
+import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError, UserInvalidCredentialsError, UserNotFoundError } from "../users/errors";
+import { UserInvalidProviderError } from "../users/errors/user-invalid-provider.error";
+import { TokenExpiredError, TokenInvalidError } from "../token/errors";
+import { IPasswordResetPayload } from "../token/interfaces/password-reset-payload.interface";
+import { TokenType } from "../token/enums/token-type.enum";
+import { IEmailVerificationPayload } from "../token/interfaces/email-verification-payload.interface";
+import { AuthLoginResponseDto } from "./dto/response/auth-login-response.dto";
+import { UserResponseDto } from "../users/dto/response/user-response.dto";
 
 @Injectable()
 export class AuthService {
@@ -250,7 +250,7 @@ export class AuthService {
       }
 
       // Get user current hash password for dynamic secret
-      const user = await this.usersService.findByIdSelective(decoded.sub, ['password', 'email', 'firstName', 'lastName', 'provider']);
+      const user = await this.usersService.findById(decoded.sub);
 
       // Check provider
       if (user.provider !== AuthProvider.LOCAL) {
@@ -328,7 +328,11 @@ export class AuthService {
     }
   }
 
-  async loginWithEmail(email: string, password: string): Promise<{ accessToken: string; refreshToken: string, user: UserEntity }> {
+  async changePassword() {
+    // Implement change password logic
+  }
+
+  async loginWithEmail(email: string, password: string): Promise<AuthLoginResponseDto> {
     try {
       // Find user by email
       const user = await this.usersService.findByEmail(email);
@@ -373,7 +377,7 @@ export class AuthService {
         await this.usersService.addRefreshToken(user.id, refreshToken, tx);
 
         // Update last login timestamp
-        await this.usersService.updateLastLogin(user.id, new Date(), tx);
+        await this.usersService.updateLastLogin(user.id, tx);
 
         // Audit Log
         await this.auditService.logUserAction(
@@ -388,17 +392,19 @@ export class AuthService {
         );
       });
 
-      return {
+      // Return Response DTO
+      return new AuthLoginResponseDto({
         accessToken,
         refreshToken,
-        user: UserMapper.toEntity(user),
-      }
+        user: new UserResponseDto(user)
+      })
 
     } catch (err) {
       if (err instanceof UserNotFoundError) {
         // To prevent user enumeration, throw generic invalid credentials error
         throw new UserInvalidCredentialsError(`INVALID_CREDENTIALS`);
       }
+      throw err; // Re-throw other errors
     }
   }
 

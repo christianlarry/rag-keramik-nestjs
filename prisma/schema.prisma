@@ -143,27 +143,37 @@ model User {
   password        String?   @db.VarChar(255)
   firstName       String?   @db.VarChar(255)
   lastName        String?   @db.VarChar(255)
-  gender          Gender
+  gender          Gender?
+  dateOfBirth     DateTime?
+  phoneNumber     String?   @db.VarChar(50)
+  phoneVerified   Boolean   @default(false)
+  phoneVerifiedAt DateTime?
+  avatarUrl       String?   @db.VarChar(2048)
 
   // OAuth fields
-  role          Role          @default(CUSTOMER)
-  status        UserStatus    @default(ACTIVE)
-  provider      AuthProvider? // e.g., google, facebook
-  providerId    String?       @db.VarChar(255) // e.g., google id, facebook id
+  role          Role         @default(CUSTOMER)
+  status        UserStatus   @default(ACTIVE)
+  provider      AuthProvider // e.g., google, facebook
+  providerId    String?      @db.VarChar(255) // e.g., google id, facebook id
   // Array refresh tokens for multiple device sessions
-  refreshTokens String[]      @default([])
+  refreshTokens String[]     @default([])
+
+  loginAttempts Int @default(0)
 
   // Audit
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   deletedAt         DateTime?
   passwordChangedAt DateTime?
+  lastLoginAt       DateTime?
 
   carts     Cart[]
   orders    Order[]
   sessions  ChatSession[]
   audits    AuditLog[]    @relation("AuditActor")
   addresses Address[]
+
+  @@index([status])
 }
 
 // --------------------------

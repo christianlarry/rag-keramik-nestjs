@@ -18,8 +18,23 @@ async function bootstrap() {
   // Retrieve configuration service
   const configService = app.get(ConfigService<AllConfigType>);
 
-  app.useGlobalFilters(new DomainErrorExceptionFilter)
-  app.useGlobalFilters(new PrismaClientExceptionFilter());
+  // Set up global exception filters
+  app.useGlobalFilters(
+    new DomainErrorExceptionFilter(),
+    new PrismaClientExceptionFilter()
+  );
+
+  // Set up global validation pipe
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    transform: true,
+    forbidNonWhitelisted: true,
+  }));
+
+  // Set up global serialization interceptor
+  // app.useGlobalInterceptors(
+  //   new ClassSerializerInterceptor(app.get(Reflector))
+  // )
 
   // Enable shutdown hooks for graceful shutdown
   app.enableShutdownHooks();
@@ -37,13 +52,6 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
-
-  // Set up global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-    forbidNonWhitelisted: true,
-  }));
 
   /* 
     app.useGlobalInterceptors(

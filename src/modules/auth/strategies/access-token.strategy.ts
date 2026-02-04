@@ -68,11 +68,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
     }
 
     // Cek status user
-    const user = await this.usersService.findByIdSelective(payload.sub, [
-      'emailVerified',
-      'status',
-    ]);
-    // TODO : Implement caching layer untuk user data agar performa tidak terlalu menurun, Hapus comment ini jika sudah diimplementasikan. Kalau lupa, tolong hapus aja commentnya.
+    const user = await this.usersService.findById(payload.sub);
 
     // Jika user tidak ditemukan atau statusnya tidak valid, tolak akses
     if (!user) {
