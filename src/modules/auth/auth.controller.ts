@@ -102,8 +102,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.LENIENT, ttl: TTL.ONE_MINUTE } }) // 20 requests per minute
   @UseGuards(JwtAuthGuard) // Must be authenticated
-  async logout() {
-    // Implement logout logic
+  async logout(@User('id') userId: string) {
+    return this.authService.logout(userId);
   }
 
   @Post('refresh')

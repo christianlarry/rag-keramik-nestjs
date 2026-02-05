@@ -25,6 +25,9 @@ import { IEmailVerificationPayload } from "../token/interfaces/email-verificatio
 import { AuthLoginResponseDto } from "./dto/response/auth-login-response.dto";
 import { UserResponseDto } from "../users/dto/response/user-response.dto";
 import { ChangePasswordResponseDto } from "./dto/response/change-password-response.dto";
+import { AuthLogoutResponseDto } from "./dto/response/auth-logout-response.dto";
+import { IRefreshPayload } from "../token/interfaces/refresh-payload.interface";
+import { RefreshTokenResponseDto } from "./dto/response/refresh-token-response.dto";
 
 @Injectable()
 export class AuthService {
@@ -469,12 +472,69 @@ export class AuthService {
     }
   }
 
-  async logout() {
-    // Implement logout logic
+  async logout(userId: string): Promise<AuthLogoutResponseDto> {
+    const user = await this.usersService.findById(userId);
+
+    await this.prismaService.$transaction(async (tx) => {
+      // Clear all existing refresh tokens
+      await this.usersService.clearRefreshTokens(
+        userId,
+        tx
+      );
+
+      // Insert to AuditLog
+      await this.auditService.logUserAction(
+        userId,
+        AuditAction.LOGOUT,
+        AuditTargetType.USER,
+        userId,
+        {
+          email: user.email,
+        },
+        tx
+      );
+    });
+
+    return new AuthLogoutResponseDto({ message: 'Logged out successfully' });
   }
 
-  async refreshToken() {
-    // Implement token refresh logic
+  async refreshToken(token: string) {
+    // Generate new access token
+    const payload: IRefreshPayload | null = await this.tokenService.decodeToken(token);
+    if (!payload || !payload.sub) {
+      throw new TokenInvalidError('Refresh token is invalid');
+    }
+
+    // Generate new tokens
+    const newAccessToken = await this.tokenService.generateAccessToken(
+      payload.sub,
+      payload.email,
+      payload.role
+    )
+
+    const newRefreshToken = await this.tokenService.generateRefreshToken(
+      payload.sub,
+      payload.email,
+      payload.role
+    )
+
+    await this.prismaService.$transaction(async (tx) => {
+      // Remove old refresh token from DB
+      await this.usersService.removeRefreshToken(payload.sub, token, tx);
+
+      // Store new refresh token in DB
+      await this.usersService.addRefreshToken(
+        payload.sub,
+        newRefreshToken,
+        tx
+      );
+    });
+
+
+    return new RefreshTokenResponseDto({
+      token: newAccessToken,
+      refreshToken: newRefreshToken
+    })
   }
 
 

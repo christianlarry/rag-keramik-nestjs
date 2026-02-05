@@ -92,6 +92,7 @@ export class TokenService {
 
   /**
    * Verify token based on type
+   * @returns Decoded token payload
    */
   async verifyToken(
     token: string,

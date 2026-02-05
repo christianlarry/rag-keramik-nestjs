@@ -432,6 +432,39 @@ export class UsersService {
     }
   }
 
+  async removeRefreshToken(userId: string, refreshToken: string, tx?: TransactionClient): Promise<boolean> {
+    const client = tx || this.prismaService;
+
+    try {
+      const user = await client.user.findUnique({
+        where: { id: userId },
+        select: { refreshTokens: true },
+      });
+      if (!user) {
+        throw new UserNotFoundError({ field: 'id', value: userId });
+      }
+      const updatedTokens = user.refreshTokens.filter(token => token !== refreshToken);
+
+      await client.user.update({
+        where: { id: userId },
+        data: { refreshTokens: updatedTokens },
+      });
+      // Invalidate cache for user's refresh tokens
+      await this.cacheService.del(UserCacheKeys.refreshTokens(userId));
+      await this.cacheService.delPattern(UserCacheKeys.userPattern(userId));
+      return true;
+    } catch (err) {
+
+      if (this.prismaService.isPrismaRecordNotFoundError(err)) {
+        throw new UserNotFoundError({ field: 'id', value: userId });
+      }
+      if (err instanceof UserNotFoundError) {
+        throw err;
+      }
+      return false;
+    }
+  }
+
   /**
    * Mark user's email as verified
    * @param userId 
