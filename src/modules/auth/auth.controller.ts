@@ -16,6 +16,8 @@ import type { Request } from "express";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { JwtRefreshGuard } from "src/common/guards/jwt-refresh.guard";
 import { AuthLoginDto } from "./dto/auth-login.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import { User } from "src/common/decorator/user.decorator";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -78,8 +80,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_HOUR } }) // 10 requests per hour
   @UseGuards(JwtAuthGuard) // Must be authenticated
-  async changePassword() {
-    // Implement change password logic
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @User('id') userId: string
+  ) {
+    return this.authService.changePassword(
+      userId,
+      changePasswordDto.currentPassword,
+      changePasswordDto.newPassword,
+    );
   }
 
   @Post('login')

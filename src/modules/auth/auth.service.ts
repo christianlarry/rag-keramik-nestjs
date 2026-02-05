@@ -16,7 +16,7 @@ import { ResetPasswordResponseDto } from "./dto/response/reset-password-response
 import { UsersService } from "../users/users.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { TokenService } from "../token/token.service";
-import { UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError, UserInvalidCredentialsError, UserNotFoundError } from "../users/errors";
+import { UserDeletedError, UserEmailAlreadyExistsError, UserEmailAlreadyVerifiedError, UserInactiveError, UserInvalidCredentialsError, UserNotFoundError, UserSuspendedError } from "../users/errors";
 import { UserInvalidProviderError } from "../users/errors/user-invalid-provider.error";
 import { TokenExpiredError, TokenInvalidError } from "../token/errors";
 import { IPasswordResetPayload } from "../token/interfaces/password-reset-payload.interface";
@@ -24,6 +24,7 @@ import { TokenType } from "../token/enums/token-type.enum";
 import { IEmailVerificationPayload } from "../token/interfaces/email-verification-payload.interface";
 import { AuthLoginResponseDto } from "./dto/response/auth-login-response.dto";
 import { UserResponseDto } from "../users/dto/response/user-response.dto";
+import { ChangePasswordResponseDto } from "./dto/response/change-password-response.dto";
 
 @Injectable()
 export class AuthService {
@@ -331,8 +332,65 @@ export class AuthService {
     }
   }
 
-  async changePassword() {
-    // Implement change password logic
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<ChangePasswordResponseDto> {
+    const user = await this.usersService.findById(userId);
+
+    // Check provider
+    if (user.provider !== AuthProvider.LOCAL) {
+      throw new UserInvalidProviderError(`This account uses ${user.provider} login. Please use '${user.provider}' to sign in.`);
+    }
+
+    // Check user status
+    switch (user.status) {
+      case UserStatus.INACTIVE:
+        throw new UserInactiveError(userId);
+      case UserStatus.SUSPENDED:
+        throw new UserSuspendedError(userId);
+      case UserStatus.DELETED:
+        throw new UserDeletedError(userId);
+    }
+
+    // Check Password Existence
+    if (!user.password) {
+      throw new UserInvalidCredentialsError('Password not set for this user');
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      throw new UserInvalidCredentialsError('Current password is incorrect');
+    }
+
+    // Hash new password
+    const hashedPassword = await this.hashPassword(newPassword);
+
+    await this.prismaService.$transaction(async (tx) => {
+      // Update Password
+      await this.usersService.updatePassword(
+        userId,
+        hashedPassword,
+        tx
+      );
+
+      // Clear all existing refresh tokens
+      await this.usersService.clearRefreshTokens(
+        userId,
+        tx
+      );
+
+      // Insert to AuditLog
+      await this.auditService.logUserAction(
+        userId,
+        AuditAction.PASSWORD_CHANGE,
+        AuditTargetType.USER,
+        userId,
+        {
+          email: user.email,
+        },
+        tx
+      );
+    });
+
+    return new ChangePasswordResponseDto({ message: 'Password changed successfully' });
   }
 
   async loginWithEmail(email: string, password: string): Promise<AuthLoginResponseDto> {
