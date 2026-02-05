@@ -1,7 +1,7 @@
 import { AddressLabel, AuthProvider, Gender, UserStatus, Role } from "src/generated/prisma/enums";
 export type CreateUserParams = {
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   password?: string;
   gender: Gender;
   email: string;
@@ -10,6 +10,10 @@ export type CreateUserParams = {
   providerId?: string;
   role?: Role;
   status?: UserStatus;
+  dateOfBirth?: Date;
+  phoneNumber?: string;
+  phoneVerified?: boolean;
+  avatarUrl?: string;
   address?: {
     label: AddressLabel;
     recipient: string;

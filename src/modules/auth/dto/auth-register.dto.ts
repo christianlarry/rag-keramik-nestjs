@@ -12,7 +12,9 @@ import {
   IsNumber,
   IsLatitude,
   IsLongitude,
-  IsBoolean
+  IsBoolean,
+  IsDate,
+  IsPhoneNumber
 } from "class-validator";
 import { Gender, AddressLabel } from "src/generated/prisma/enums";
 
@@ -115,4 +117,14 @@ export class AuthRegisterDto {
   @ValidateNested()
   @Type(() => RegisterAddressDto)
   address?: RegisterAddressDto;
+
+  @IsOptional()
+  @IsString()
+  @IsPhoneNumber("ID", { message: 'phoneNumber must be a valid Indonesian phone number' })
+  phoneNumber?: string;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  dateOfBirth?: Date;
 }

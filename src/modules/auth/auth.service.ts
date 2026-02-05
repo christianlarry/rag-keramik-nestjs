@@ -69,6 +69,9 @@ export class AuthService {
         role: Role.CUSTOMER,
         email: registerDto.email,
         emailVerified: false,
+        phoneNumber: registerDto.phoneNumber,
+        phoneVerified: false,
+        dateOfBirth: registerDto.dateOfBirth,
         status: UserStatus.INACTIVE,
         provider: AuthProvider.LOCAL,
         // Additional Profile Info

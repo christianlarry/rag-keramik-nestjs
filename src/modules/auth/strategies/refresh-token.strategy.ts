@@ -23,6 +23,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
 
           return token;
         },
+        ExtractJwt.fromBodyField('refreshToken'),
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       secretOrKey: configService.getOrThrow<string>('auth.refreshTokenSecret', { infer: true }),
@@ -36,7 +37,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
       throw new UnauthorizedException('Invalid token type');
     }
 
-    const incomingRefreshToken: string = req.cookies?.refreshToken || req.headers?.authorization?.replace('Bearer ', '');
+    const incomingRefreshToken: string = req.cookies?.refreshToken || req.body?.refreshToken || req.headers?.authorization?.replace('Bearer ', '');
 
     if (!incomingRefreshToken) {
       throw new UnauthorizedException('Refresh token not found');

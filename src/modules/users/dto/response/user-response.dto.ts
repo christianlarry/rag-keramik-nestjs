@@ -35,7 +35,24 @@ export class UserResponseDto {
 
   lastLoginAt?: Date | null;
 
-  constructor(partial: Partial<UserResponseDto>) {
-    Object.assign(this, partial);
+  constructor(data: UserResponseDto) {
+    this.id = data.id;
+    this.email = data.email;
+    this.emailVerified = data.emailVerified;
+    this.emailVerifiedAt = data.emailVerifiedAt;
+    this.firstName = data.firstName;
+    this.lastName = data.lastName;
+    this.gender = data.gender;
+    this.dateOfBirth = data.dateOfBirth;
+    this.phoneNumber = data.phoneNumber;
+    this.phoneVerified = data.phoneVerified;
+    this.phoneVerifiedAt = data.phoneVerifiedAt;
+    this.avatarUrl = data.avatarUrl;
+    this.role = data.role;
+    this.status = data.status;
+    this.provider = data.provider;
+    this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
+    this.lastLoginAt = data.lastLoginAt;
   }
 }

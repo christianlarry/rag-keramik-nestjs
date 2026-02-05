@@ -404,6 +404,10 @@ export class UsersService {
    */
   async addRefreshToken(userId: string, refreshToken: string, tx?: TransactionClient): Promise<boolean> {
     const client = tx || this.prismaService;
+
+    // TODO: Limit the number of stored refresh tokens to prevent unlimited growth : 5
+    // TODO: So, use Array.shift() if length exceeds limit
+
     try {
       await client.user.update({
         where: { id: userId },
