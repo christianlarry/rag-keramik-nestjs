@@ -34,6 +34,7 @@ export class AuthUser {
         provider: AuthProvider.createLocal(),
         loginAttempts: 0,
         lastLoginAt: null,
+        refreshTokens: [],
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -57,6 +58,7 @@ export class AuthUser {
         provider: params.provider,
         loginAttempts: 0,
         lastLoginAt: null,
+        refreshTokens: [],
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -120,6 +122,26 @@ export class AuthUser {
     if (this.props.emailVerified && this.props.emailVerifiedAt === null) {
       throw new InvalidAuthStateError('Email verified date must be set if email is verified');
     }
+
+    // Ensure createdAt is not in the future
+    if (this.props.createdAt && this.props.createdAt > new Date()) {
+      throw new InvalidAuthStateError('Creation date cannot be in the future');
+    }
+
+    // Ensure updatedAt is not before createdAt
+    if (this.props.createdAt && this.props.updatedAt && this.props.updatedAt < this.props.createdAt) {
+      throw new InvalidAuthStateError('Update date cannot be before creation date');
+    }
+
+    // Ensure updatedAt is not in the future
+    if (this.props.updatedAt && this.props.updatedAt > new Date()) {
+      throw new InvalidAuthStateError('Update date cannot be in the future');
+    }
+
+    // Ensure if user is not active, refreshTokens list is empty
+    if (!this.props.status.isActive() && this.props.refreshTokens.length > 0) {
+      throw new InvalidAuthStateError('Inactive users cannot have active refresh tokens');
+    }
   }
 
   // ===== Query methods ===== //
@@ -141,6 +163,28 @@ export class AuthUser {
   }
 
   // ===== Command methods ===== //
+
+  public addRefreshToken(token: string): void {
+    if (!this.props.status.isActive()) {
+      throw new InvalidAuthStateError('Cannot add refresh token to inactive user');
+    }
+    this.props.refreshTokens.push(token);
+    this.validate();
+    this.props.updatedAt = new Date();
+  }
+
+  public removeRefreshToken(token: string): void {
+    this.props.refreshTokens = this.props.refreshTokens.filter(t => t !== token);
+    this.validate();
+    this.props.updatedAt = new Date();
+  }
+
+  public clearRefreshTokens(): void {
+    this.props.refreshTokens = [];
+    this.validate();
+    this.props.updatedAt = new Date();
+  }
+
   public markEmailAsVerified(): void {
     this.props.emailVerified = true;
     this.props.emailVerifiedAt = new Date();
@@ -149,7 +193,7 @@ export class AuthUser {
     this.props.updatedAt = new Date();
   }
 
-  public recordLoginAttempt(successful: boolean): void {
+  public recordLogin(successful: boolean): void {
     if (successful) {
       this.props.loginAttempts = 0;
       this.props.lastLoginAt = new Date();
@@ -171,24 +215,28 @@ export class AuthUser {
     this.props.status = Status.create('inactive');
     this.validate();
     this.props.updatedAt = new Date();
+    this.clearRefreshTokens();
   }
 
   public activate(): void {
     this.props.status = Status.create('active');
     this.validate();
     this.props.updatedAt = new Date();
+    this.clearRefreshTokens();
   }
 
   public suspend(): void {
     this.props.status = Status.create('suspended');
     this.validate();
     this.props.updatedAt = new Date();
+    this.clearRefreshTokens();
   }
 
   public softDelete(): void {
     this.props.status = Status.create('deleted');
     this.validate();
     this.props.updatedAt = new Date();
+    this.clearRefreshTokens();
   }
 
   public changePassword(newPassword: Password): void {
@@ -198,6 +246,7 @@ export class AuthUser {
     this.props.password = newPassword;
     this.validate();
     this.props.updatedAt = new Date();
+    this.clearRefreshTokens();
   }
 
   // ===== Getters ===== //
@@ -211,8 +260,9 @@ export class AuthUser {
   public get provider(): AuthProvider { return this.props.provider; }
   public get loginAttempts(): number { return this.props.loginAttempts; }
   public get lastLoginAt(): Date | null { return this.props.lastLoginAt; }
-  public get createdAt(): Date | null { return this.props.createdAt; }
-  public get updatedAt(): Date | null { return this.props.updatedAt; }
+  public get refreshTokens(): string[] { return this.props.refreshTokens; }
+  public get createdAt(): Date { return this.props.createdAt; }
+  public get updatedAt(): Date { return this.props.updatedAt; }
 }
 
 interface AuthUserProps {
@@ -225,8 +275,9 @@ interface AuthUserProps {
   provider: AuthProvider;
   loginAttempts: number;
   lastLoginAt: Date | null;
-  createdAt: Date | null;
-  updatedAt: Date | null;
+  refreshTokens: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface RegisterParams {

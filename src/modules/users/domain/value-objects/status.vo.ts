@@ -16,8 +16,8 @@ export class Status {
     }
   }
 
-  public static create(value: StatusEnum): Status {
-    return new Status(value);
+  public static create(value: string): Status {
+    return new Status(value as StatusEnum);
   }
 
   public getValue(): StatusEnum {

@@ -22,8 +22,8 @@ export class AuthProvider {
     }
   }
 
-  public static create(provider: AuthProviderEnum, providerId: string | null): AuthProvider {
-    return new AuthProvider(provider, providerId);
+  public static create(provider: string, providerId: string | null): AuthProvider {
+    return new AuthProvider(provider as AuthProviderEnum, providerId);
   }
 
   public static createLocal(): AuthProvider {

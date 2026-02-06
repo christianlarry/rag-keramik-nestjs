@@ -16,8 +16,8 @@ export class Role {
     }
   }
 
-  public static create(role: UserRole): Role {
-    return new Role(role);
+  public static create(role: string): Role {
+    return new Role(role as UserRole);
   }
 
   public static createAdmin(): Role {
