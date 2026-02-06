@@ -5,11 +5,10 @@ import { AllConfigType } from "src/config/config.type";
 import { PrismaClient } from "src/generated/prisma/client";
 import { PrismaClientKnownRequestError, TransactionClient } from "src/generated/prisma/internal/prismaNamespace";
 import { PrismaErrorCode } from "./errors/prisma-error-code.enum";
+import { prismaCls } from "./prisma.cls";
 
 @Injectable()
 export class PrismaService extends PrismaClient {
-
-  private _transactionClient: TransactionClient | null = null;
 
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
@@ -22,11 +21,7 @@ export class PrismaService extends PrismaClient {
   }
 
   get client(): PrismaClient | TransactionClient {
-    return this._transactionClient ?? this;
-  }
-
-  setTransactionClient(txPrisma: TransactionClient) {
-    this._transactionClient = txPrisma;
+    return prismaCls.getStore() ?? this;
   }
 
   isPrismaUniqueError(err: unknown, fieldName?: string): boolean {

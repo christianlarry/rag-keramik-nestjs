@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { UnitOfWork } from "../../core/application/unit-of-work.interface";
 import { PrismaService } from "./prisma.service";
+import { prismaCls } from "./prisma.cls";
 
 @Injectable()
 export class PrismaUnitOfWork implements UnitOfWork {
@@ -11,10 +12,9 @@ export class PrismaUnitOfWork implements UnitOfWork {
 
   async withTransaction<T>(work: () => Promise<T>): Promise<T> {
     return this.prisma.$transaction(async (txPrisma) => {
-
-      this.prisma.setTransactionClient(txPrisma);
-
-      return work();
+      return prismaCls.run(txPrisma, async () => {
+        return work();
+      })
     });
   }
 }
