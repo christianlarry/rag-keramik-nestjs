@@ -250,7 +250,7 @@ export class AuthUser {
   }
 
   // ===== Getters ===== //
-  public get id(): UserId { return this.id; }
+  public get id(): UserId { return this._id; }
   public get email(): Email { return this.props.email; }
   public get emailVerified(): boolean { return this.props.emailVerified; }
   public get emailVerifiedAt(): Date | null { return this.props.emailVerifiedAt; }

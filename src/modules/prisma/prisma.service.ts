@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { AllConfigType } from "src/config/config.type";
@@ -10,8 +10,6 @@ import { prismaCls } from "./prisma.cls";
 @Injectable()
 export class PrismaService extends PrismaClient {
 
-  private readonly logger = new Logger(PrismaService.name);
-
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
   ) {
@@ -22,10 +20,7 @@ export class PrismaService extends PrismaClient {
     super({ adapter });
   }
 
-  get client(): PrismaClient | TransactionClient {
-
-    this.logger.debug(`Getting Prisma client. In transaction: ${prismaCls.getStore() ? 'yes' : 'no'}`);
-
+  getClient(): PrismaClient | TransactionClient {
     return prismaCls.getStore() ?? this;
   }
 

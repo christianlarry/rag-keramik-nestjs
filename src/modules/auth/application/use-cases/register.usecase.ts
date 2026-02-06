@@ -6,9 +6,6 @@ import { PASSWORD_HASHER_TOKEN, type PasswordHasher } from "../../domain/service
 import { AuthUser } from "../../domain/entities/auth-user.entity";
 import { Email } from "src/modules/users/domain/value-objects/email.vo";
 import { Role } from "src/modules/users/domain/value-objects/role.vo";
-import { MailService } from "src/modules/mail/mail.service";
-import { AuditService } from "src/modules/audit/audit.service";
-import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
 
 interface RegisterCommand {
   // Auth Info
@@ -33,12 +30,6 @@ interface RegisterCommand {
   }>;
 }
 
-interface PostRegistrationTasksCommand {
-  to: string;
-  name: string;
-  token: string;
-}
-
 @Injectable()
 export class RegisterUseCase {
 
@@ -48,21 +39,13 @@ export class RegisterUseCase {
     @Inject(AUTH_USER_REPOSITORY_TOKEN)
     private readonly authUserRepository: AuthUserRepository,
     @Inject(PASSWORD_HASHER_TOKEN)
-    private readonly passwordHasher: PasswordHasher,
-    @Inject(UNIT_OF_WORK_TOKEN)
-    private readonly uow: UnitOfWork,
-
-    private readonly mailService: MailService,
-    private readonly auditService: AuditService,
+    private readonly passwordHasher: PasswordHasher
   ) { }
 
   async execute(command: RegisterCommand): Promise<void> {
     // Check for email uniqueness
-    const isEmailExist = await this.authUserRepository.isEmailExisting(command.email);
-
-    if (isEmailExist) {
-      throw new EmailAlreadyInUseError(command.email);
-    }
+    const exists = await this.authUserRepository.isEmailExisting(command.email);
+    if (exists) throw new EmailAlreadyInUseError(command.email);
 
     // Create value objects
     const hashedPassword: Password = await Password.create(command.password, this.passwordHasher);
@@ -76,46 +59,11 @@ export class RegisterUseCase {
       role: role
     })
 
-    // TODO : Create user profile entity and link to auth user
+    // Save user
+    await this.authUserRepository.save(authUser);
 
-    await this.uow.withTransaction(async () => {
-
-      this.logger.debug(`Start transaction for registering user with email: ${command.email}`);
-
-      // Save user
-      await this.authUserRepository.save(authUser);
-      // TODO: Save user profile
-
-      // Audit log
-      await this.auditService.logUserAction(
-        authUser.id.getValue(),
-        'REGISTER',
-        'USER',
-        authUser.id.getValue(),
-        {
-          email: authUser.email.getValue()
-        }
-      )
-    });
-
-    this.logger.debug(`Completed transaction for registering user with email: ${command.email}`);
-
-    // Post registration tasks
-    await this.executePostRegistrationTasks({
-      to: authUser.email.getValue(),
-      name: `${command.firstName} ${command.lastName}`,
-      token: 'dummy-verification-token' // TODO: Generate real token
-    });
-  }
-
-  async executePostRegistrationTasks(command: PostRegistrationTasksCommand): Promise<void> {
-    // Send welcome email
-    await this.mailService.sendVerificationEmail({
-      to: command.to,
-      name: command.name,
-      token: command.token // TODO: Generate real token
-    });
-
-    // Other tasks can be added here (e.g., analytics, notifications, etc.)
+    // TODO : Added Event Publisher to publish UserRegisteredEvent
+    // TODO : Handle AuditLog in Event Handler
+    // TODO : Handle Post Registration Tasks in Event Handler, Send Verification Email, Welcome Email, etc.
   }
 }
