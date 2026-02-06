@@ -18,7 +18,6 @@ interface RawAuthUser {
   provider: PrismaAuthProvider;
   providerId: string | null;
   lastLoginAt: Date | null;
-  loginAttempts: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,7 +40,6 @@ export class PrismaAuthUserMapper {
       status: status,
       refreshTokens: raw.refreshTokens,
       lastLoginAt: raw.lastLoginAt,
-      loginAttempts: raw.loginAttempts,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       provider: provider
@@ -61,7 +59,6 @@ export class PrismaAuthUserMapper {
       provider: user.provider.getProvider() as PrismaAuthProvider,
       providerId: user.provider.getProviderId(),
       lastLoginAt: user.lastLoginAt,
-      loginAttempts: user.loginAttempts,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     }

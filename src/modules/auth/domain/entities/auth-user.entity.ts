@@ -32,7 +32,6 @@ export class AuthUser {
         role: params.role || Role.createCustomer(),
         status: Status.create('active'),
         provider: AuthProvider.createLocal(),
-        loginAttempts: 0,
         lastLoginAt: null,
         refreshTokens: [],
         createdAt: new Date(),
@@ -56,7 +55,6 @@ export class AuthUser {
         role: params.role || Role.createCustomer(),
         status: Status.create('active'),
         provider: params.provider,
-        loginAttempts: 0,
         lastLoginAt: null,
         refreshTokens: [],
         createdAt: new Date(),
@@ -98,19 +96,9 @@ export class AuthUser {
       throw new InvalidAuthStateError('Email verified date cannot be in the future');
     }
 
-    // Additional validations
-    if (this.props.loginAttempts < 0) {
-      throw new InvalidAuthStateError('Login attempts cannot be negative');
-    }
-
     // Ensure lastLoginAt is not in the future
     if (this.props.lastLoginAt && this.props.lastLoginAt > new Date()) {
       throw new InvalidAuthStateError('Last login date cannot be in the future');
-    }
-
-    // Ensure loginAttempts is zero if user is not Active
-    if (!this.props.status.isActive() && this.props.loginAttempts > 0) {
-      throw new InvalidAuthStateError('Inactive users cannot have login attempts');
     }
 
     // Ensure emailVerified is false if emailVerifiedAt is null
@@ -149,8 +137,7 @@ export class AuthUser {
     return (
       this.props.status.isActive() &&
       (this.props.provider.isLocal() || this.props.provider.isOAuth()) &&
-      (this.props.emailVerified || this.props.emailVerifiedAt !== null) &&
-      this.props.loginAttempts < 5
+      (this.props.emailVerified || this.props.emailVerifiedAt !== null)
     );
   }
 
@@ -193,20 +180,8 @@ export class AuthUser {
     this.props.updatedAt = new Date();
   }
 
-  public recordLogin(successful: boolean): void {
-    if (successful) {
-      this.props.loginAttempts = 0;
-      this.props.lastLoginAt = new Date();
-    } else {
-      this.props.loginAttempts += 1;
-    }
-
-    // Suspend account after 5 failed attempts
-    if (this.props.loginAttempts >= 5) {
-      this.suspend();
-      this.props.loginAttempts = 0; // reset after suspension
-    }
-
+  public recordLogin(): void {
+    this.props.lastLoginAt = new Date();
     this.validate();
     this.props.updatedAt = new Date();
   }
@@ -258,7 +233,6 @@ export class AuthUser {
   public get role(): Role { return this.props.role; }
   public get status(): Status { return this.props.status; }
   public get provider(): AuthProvider { return this.props.provider; }
-  public get loginAttempts(): number { return this.props.loginAttempts; }
   public get lastLoginAt(): Date | null { return this.props.lastLoginAt; }
   public get refreshTokens(): string[] { return this.props.refreshTokens; }
   public get createdAt(): Date { return this.props.createdAt; }
@@ -273,7 +247,6 @@ interface AuthUserProps {
   role: Role;
   status: Status;
   provider: AuthProvider;
-  loginAttempts: number;
   lastLoginAt: Date | null;
   refreshTokens: string[];
   createdAt: Date;
