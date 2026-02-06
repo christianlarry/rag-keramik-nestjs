@@ -13,6 +13,8 @@ import { PrismaAuthUserRepository } from "./infrastructure/repositories/prisma-a
 import { RegisterUseCase } from "./application/use-cases/register.usecase";
 import { PASSWORD_HASHER_TOKEN } from "./domain/services/password-hasher.interface";
 import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.hasher";
+import { UNIT_OF_WORK_TOKEN } from "src/core/application/unit-of-work.interface";
+import { PrismaUnitOfWork } from "../prisma/prisma-unit-of-work";
 
 @Module({
   imports: [
@@ -35,6 +37,10 @@ import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.ha
     {
       provide: PASSWORD_HASHER_TOKEN,
       useClass: BcryptPasswordHasher
+    },
+    {
+      provide: UNIT_OF_WORK_TOKEN,
+      useClass: PrismaUnitOfWork
     },
 
     // Use Cases can be added here

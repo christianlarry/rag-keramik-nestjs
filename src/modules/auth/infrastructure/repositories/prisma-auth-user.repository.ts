@@ -18,7 +18,7 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
     return this.cache.wrap(
       UserAuthCache.getUserByIdKey(userId),
       async () => {
-        const user = await this.prisma.user.findUnique({
+        const user = await this.prisma.client.user.findUnique({
           where: { id: userId },
           select: {
             id: true,
@@ -49,7 +49,7 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
       UserAuthCache.getUserByEmailKey(email),
       async () => {
 
-        const user = await this.prisma.user.findUnique({
+        const user = await this.prisma.client.user.findUnique({
           where: { email: email },
           select: {
             id: true,
@@ -77,7 +77,7 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
   }
 
   async isEmailExisting(email: string): Promise<boolean> {
-    const count = await this.prisma.user.count({
+    const count = await this.prisma.client.user.count({
       where: { email: email }
     });
     return count > 0;
@@ -86,7 +86,7 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
   async save(user: AuthUser): Promise<void> {
     const persistenceUser = PrismaAuthUserMapper.toPersistence(user);
 
-    await this.prisma.user.upsert({
+    await this.prisma.client.user.upsert({
       where: { id: persistenceUser.id },
       create: persistenceUser,
       update: persistenceUser

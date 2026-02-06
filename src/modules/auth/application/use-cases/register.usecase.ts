@@ -8,6 +8,7 @@ import { Email } from "src/modules/users/domain/value-objects/email.vo";
 import { Role } from "src/modules/users/domain/value-objects/role.vo";
 import { MailService } from "src/modules/mail/mail.service";
 import { AuditService } from "src/modules/audit/audit.service";
+import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
 
 interface RegisterCommand {
   // Auth Info
@@ -32,6 +33,12 @@ interface RegisterCommand {
   }>;
 }
 
+interface PostRegistrationTasksCommand {
+  to: string;
+  name: string;
+  token: string;
+}
+
 @Injectable()
 export class RegisterUseCase {
 
@@ -40,6 +47,9 @@ export class RegisterUseCase {
     private readonly authUserRepository: AuthUserRepository,
     @Inject(PASSWORD_HASHER_TOKEN)
     private readonly passwordHasher: PasswordHasher,
+    @Inject(UNIT_OF_WORK_TOKEN)
+    private readonly uow: UnitOfWork,
+
     private readonly mailService: MailService,
     private readonly auditService: AuditService,
   ) { }
@@ -66,28 +76,39 @@ export class RegisterUseCase {
 
     // TODO : Create user profile entity and link to auth user
 
-    // Save user
-    await this.authUserRepository.save(authUser);
-    // TODO : Save user profile in a transaction with auth user, Using uow pattern
+    await this.uow.withTransaction(async () => {
+      // Save user
+      await this.authUserRepository.save(authUser);
+      // TODO: Save user profile
 
-    // Audit log
-    await this.auditService.logUserAction(
-      authUser.id.getValue(),
-      'REGISTER',
-      'USER',
-      authUser.id.getValue(),
-      {
-        email: authUser.email.getValue()
-      }
-    )
+      // Audit log
+      await this.auditService.logUserAction(
+        authUser.id.getValue(),
+        'REGISTER',
+        'USER',
+        authUser.id.getValue(),
+        {
+          email: authUser.email.getValue()
+        }
+      )
+    });
 
-    // TODO: Generate email verification token and save it in cache with TTL
-
-    // Send welcome email
-    await this.mailService.sendVerificationEmail({
+    // Post registration tasks
+    await this.executePostRegistrationTasks({
       to: authUser.email.getValue(),
       name: `${command.firstName} ${command.lastName}`,
       token: 'dummy-verification-token' // TODO: Generate real token
     });
+  }
+
+  async executePostRegistrationTasks(command: PostRegistrationTasksCommand): Promise<void> {
+    // Send welcome email
+    await this.mailService.sendVerificationEmail({
+      to: command.to,
+      name: command.name,
+      token: command.token // TODO: Generate real token
+    });
+
+    // Other tasks can be added here (e.g., analytics, notifications, etc.)
   }
 }
