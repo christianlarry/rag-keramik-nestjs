@@ -1,4 +1,4 @@
-import { PasswordTooWeakError } from "../errors";
+import { PasswordTooWeakError } from "../../../users/domain/errors";
 import { PasswordHasher } from "../services/password-hasher.interface";
 
 export class Password {

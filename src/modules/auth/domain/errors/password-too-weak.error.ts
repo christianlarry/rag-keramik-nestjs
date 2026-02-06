@@ -1,5 +1,5 @@
 import { DomainError } from "src/common/errors/domain.error";
-import { UserErrorCode } from "./enums/user-error-code.enum";
+import { AuthErrorCode } from "./enums/auth-error-code.enum";
 
 const PasswordErrorCode = {
   TOO_SHORT: "PASSWORD_TOO_SHORT",
@@ -13,7 +13,7 @@ const PasswordErrorCode = {
 type PasswordErrorCode = typeof PasswordErrorCode[keyof typeof PasswordErrorCode];
 
 export class PasswordTooWeakError extends DomainError {
-  readonly code = UserErrorCode.PASSWORD_TOO_WEAK;
+  readonly code = AuthErrorCode.PASSWORD_TOO_WEAK;
 
   constructor(reason?: PasswordErrorCode) {
     switch (reason) {

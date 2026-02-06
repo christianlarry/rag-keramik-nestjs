@@ -1,22 +1,15 @@
 import { InvalidRoleError } from "../errors";
-
-const Roles = {
-  ADMIN: 'admin',
-  STAFF: 'staff',
-  CUSTOMER: 'customer',
-} as const;
-
-type RoleType = typeof Roles[keyof typeof Roles];
+import { Role as UserRole } from "../enums/role.enum"
 
 export class Role {
-  private readonly value: RoleType;
+  private readonly value: UserRole;
 
-  private constructor(role: RoleType) {
+  private constructor(role: UserRole) {
     this.value = role;
   }
 
-  public static create(role: RoleType): Role {
-    if (!Object.values(Roles).includes(role)) {
+  public static create(role: UserRole): Role {
+    if (!Object.values(UserRole).includes(role)) {
       throw new InvalidRoleError(role);
     }
 
@@ -24,31 +17,31 @@ export class Role {
   }
 
   public static createAdmin(): Role {
-    return new Role(Roles.ADMIN);
+    return new Role(UserRole.ADMIN);
   }
 
   public static createStaff(): Role {
-    return new Role(Roles.STAFF);
+    return new Role(UserRole.STAFF);
   }
 
   public static createCustomer(): Role {
-    return new Role(Roles.CUSTOMER);
+    return new Role(UserRole.CUSTOMER);
   }
 
-  public getValue(): RoleType {
+  public getValue(): UserRole {
     return this.value;
   }
 
   public isAdmin(): boolean {
-    return this.value === Roles.ADMIN;
+    return this.value === UserRole.ADMIN;
   }
 
   public isStaff(): boolean {
-    return this.value === Roles.STAFF;
+    return this.value === UserRole.STAFF;
   }
 
   public isCustomer(): boolean {
-    return this.value === Roles.CUSTOMER;
+    return this.value === UserRole.CUSTOMER;
   }
 
   public equals(other: Role): boolean {
