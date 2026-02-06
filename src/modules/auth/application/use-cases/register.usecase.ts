@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { EmailAlreadyInUseError } from "../../domain/errors";
 import { Password } from "../../domain/value-objects/password.vo";
@@ -20,7 +20,7 @@ interface RegisterCommand {
   lastName: string;
   gender: string;
   phone: string | null;
-  dateOfBirth: string | null;
+  dateOfBirth: Date | null;
   addresses: Array<{
     street: string;
     city: string;
@@ -41,6 +41,8 @@ interface PostRegistrationTasksCommand {
 
 @Injectable()
 export class RegisterUseCase {
+
+  private readonly logger = new Logger(RegisterUseCase.name);
 
   constructor(
     @Inject(AUTH_USER_REPOSITORY_TOKEN)
@@ -77,6 +79,9 @@ export class RegisterUseCase {
     // TODO : Create user profile entity and link to auth user
 
     await this.uow.withTransaction(async () => {
+
+      this.logger.debug(`Start transaction for registering user with email: ${command.email}`);
+
       // Save user
       await this.authUserRepository.save(authUser);
       // TODO: Save user profile
@@ -92,6 +97,8 @@ export class RegisterUseCase {
         }
       )
     });
+
+    this.logger.debug(`Completed transaction for registering user with email: ${command.email}`);
 
     // Post registration tasks
     await this.executePostRegistrationTasks({

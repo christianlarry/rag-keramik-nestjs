@@ -18,11 +18,15 @@ import { JwtRefreshGuard } from "src/common/guards/jwt-refresh.guard";
 import { AuthLoginDto } from "./dto/auth-login.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { User } from "src/common/decorator/user.decorator";
+import { RegisterUseCase } from "./application/use-cases/register.usecase";
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly registerUseCase: RegisterUseCase
+  ) { }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -30,7 +34,19 @@ export class AuthController {
   async register(
     @Body() registerDto: AuthRegisterDto
   ): Promise<AuthRegisterResponseDto> {
-    return this.authService.register(registerDto)
+    // return this.authService.register(registerDto)
+    await this.registerUseCase.execute({
+      firstName: registerDto.firstName,
+      lastName: registerDto.lastName,
+      email: registerDto.email,
+      password: registerDto.password,
+      addresses: [],
+      phone: registerDto.phoneNumber ?? null,
+      dateOfBirth: registerDto.dateOfBirth ?? null,
+      gender: registerDto.gender
+    });
+
+    return new AuthRegisterResponseDto({});
   }
 
   @Post('verify-email')

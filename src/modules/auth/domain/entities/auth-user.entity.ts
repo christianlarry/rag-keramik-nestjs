@@ -35,7 +35,8 @@ export class AuthUser {
         lastLoginAt: null,
         refreshTokens: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        deletedAt: null
       }
     );
   }
@@ -58,7 +59,8 @@ export class AuthUser {
         lastLoginAt: null,
         refreshTokens: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        deletedAt: null
       }
     );
   }
@@ -129,6 +131,26 @@ export class AuthUser {
     // Ensure if user is not active, refreshTokens list is empty
     if (!this.props.status.isActive() && this.props.refreshTokens.length > 0) {
       throw new InvalidAuthStateError('Inactive users cannot have active refresh tokens');
+    }
+
+    // Ensure refresh tokens are valid strings
+    if (this.props.refreshTokens.some(token => !token || token.trim() === '')) {
+      throw new InvalidAuthStateError('Refresh tokens cannot contain empty or invalid tokens');
+    }
+
+    // Ensure deletedAt is set appropriately based on status
+    if (this.props.deletedAt === null && this.props.status.isDeleted()) {
+      throw new InvalidAuthStateError('Deleted users must have a deletedAt timestamp');
+    }
+
+    // Ensure deletedAt is null if user is not deleted
+    if (this.props.deletedAt !== null && !this.props.status.isDeleted()) {
+      throw new InvalidAuthStateError('Only deleted users can have a deletedAt timestamp');
+    }
+
+    // Ensure deletedAt is not in the future
+    if (this.props.deletedAt !== null && this.props.deletedAt > new Date()) {
+      throw new InvalidAuthStateError('DeletedAt timestamp cannot be in the future');
     }
   }
 
@@ -209,9 +231,12 @@ export class AuthUser {
 
   public softDelete(): void {
     this.props.status = Status.create('deleted');
+    this.clearRefreshTokens();
+    this.props.deletedAt = new Date();
+
     this.validate();
     this.props.updatedAt = new Date();
-    this.clearRefreshTokens();
+
   }
 
   public changePassword(newPassword: Password): void {
@@ -237,6 +262,7 @@ export class AuthUser {
   public get refreshTokens(): string[] { return this.props.refreshTokens; }
   public get createdAt(): Date { return this.props.createdAt; }
   public get updatedAt(): Date { return this.props.updatedAt; }
+  public get deletedAt(): Date | null { return this.props.deletedAt; }
 }
 
 interface AuthUserProps {
@@ -251,6 +277,7 @@ interface AuthUserProps {
   refreshTokens: string[];
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
 }
 
 interface RegisterParams {

@@ -20,6 +20,7 @@ interface RawAuthUser {
   lastLoginAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
 }
 
 export class PrismaAuthUserMapper {
@@ -42,6 +43,7 @@ export class PrismaAuthUserMapper {
       lastLoginAt: raw.lastLoginAt,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
+      deletedAt: raw.deletedAt,
       provider: provider
     })
   }
@@ -61,6 +63,7 @@ export class PrismaAuthUserMapper {
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      deletedAt: user.deletedAt,
     }
   }
 }

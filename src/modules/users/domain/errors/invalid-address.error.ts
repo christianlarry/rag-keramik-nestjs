@@ -1,0 +1,10 @@
+import { DomainError } from "src/common/errors/domain.error";
+import { UserErrorCode } from "./enums/user-error-code.enum";
+
+export class InvalidAddressError extends DomainError {
+  readonly code = UserErrorCode.INVALID_ADDRESS;
+
+  constructor(message: string = 'The provided address is invalid.') {
+    super(message);
+  }
+}

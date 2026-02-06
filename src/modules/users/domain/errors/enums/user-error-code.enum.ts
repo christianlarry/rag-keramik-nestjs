@@ -3,6 +3,12 @@ export const UserErrorCode = {
   INVALID_EMAIL: 'USER_INVALID_EMAIL',
   INVALID_ROLE: 'USER_INVALID_ROLE',
   INVALID_STATUS: 'USER_INVALID_STATUS',
+  INVALID_NAME: 'USER_INVALID_NAME',
+  INVALID_PHONE_NUMBER: 'USER_INVALID_PHONE_NUMBER',
+  INVALID_ADDRESS: 'USER_INVALID_ADDRESS',
+  INVALID_GENDER: 'USER_INVALID_GENDER',
+  INVALID_AVATAR: 'USER_INVALID_AVATAR',
+  STATE_CONFLICT: 'USER_STATE_CONFLICT', // e.g., trying to activate an already active user, use in User.validate()
 }
 
 export type UserErrorCode = typeof UserErrorCode[keyof typeof UserErrorCode];
