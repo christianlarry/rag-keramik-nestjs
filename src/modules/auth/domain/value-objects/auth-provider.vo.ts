@@ -8,17 +8,21 @@ export class AuthProvider {
   private constructor(provider: AuthProviderEnum, providerId: string | null) {
     this.provider = provider;
     this.providerId = providerId;
+
+    this.validate();
   }
 
-  public static create(provider: AuthProviderEnum, providerId: string | null): AuthProvider {
-    if (!Object.values(AuthProviderEnum).includes(provider)) {
+  private validate(): void {
+    if (!Object.values(AuthProviderEnum).includes(this.provider)) {
       throw new InvalidProviderError();
     }
 
-    if (provider === AuthProviderEnum.LOCAL && providerId !== null) {
+    if (this.provider === AuthProviderEnum.LOCAL && this.providerId !== null) {
       throw new InvalidProviderError("Local provider should not have a provider ID.");
     }
+  }
 
+  public static create(provider: AuthProviderEnum, providerId: string | null): AuthProvider {
     return new AuthProvider(provider, providerId);
   }
 

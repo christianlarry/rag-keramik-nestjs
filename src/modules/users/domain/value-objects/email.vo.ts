@@ -5,14 +5,17 @@ export class Email {
 
   private constructor(email: string) {
     this.value = email;
+    this.validate();
+  }
+
+  private validate(): void {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.value)) {
+      throw new InvalidEmailError(this.value);
+    }
   }
 
   public static create(email: string): Email {
-    // Basic email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new InvalidEmailError(email);
-    }
     return new Email(email);
   }
 

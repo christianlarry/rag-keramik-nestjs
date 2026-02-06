@@ -5,17 +5,27 @@ export class UserId {
 
   private constructor(id: string) {
     this.value = id;
+    this.validate();
+
   }
 
-  public static create(id: string): UserId {
-    // Validate that user ID is a non-empty string & is a UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  private validate(): void {
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 
-    if (!uuidRegex.test(id)) {
-      throw new InvalidUserIdError(id);
+    if (!uuidRegex.test(this.value)) {
+      throw new InvalidUserIdError(this.value);
     }
+  }
 
+  // Create a UserId from a string, validating its format
+  public static fromString(id: string): UserId {
     return new UserId(id);
+  }
+
+  // Generate a new UserId
+  public static generate(): UserId {
+    // Generate a new UUID (v4)
+    return new UserId(crypto.randomUUID());
   }
 
   public getValue(): string {

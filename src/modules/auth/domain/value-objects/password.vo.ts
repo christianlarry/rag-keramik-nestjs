@@ -1,4 +1,4 @@
-import { PasswordTooWeakError } from "../../../users/domain/errors";
+import { PasswordTooWeakError } from "../errors";
 import { PasswordHasher } from "../services/password-hasher.interface";
 
 export class Password {
@@ -6,9 +6,21 @@ export class Password {
 
   private constructor(hashed: string) {
     this.value = hashed;
+
+    this.validate();
+  }
+
+  private validate(): void {
+    // Additional validation can be added here if needed, Like: checking for hash format. So you make one
+    if (!this.value || this.value.length === 0) {
+      throw new PasswordTooWeakError();
+    }
   }
 
   public static async create(raw: string, hasher: PasswordHasher): Promise<Password> {
+
+    // Raw password validations
+
     if (raw.length < 8) {
       throw new PasswordTooWeakError("PASSWORD_TOO_SHORT");
     }

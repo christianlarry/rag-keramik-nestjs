@@ -6,13 +6,17 @@ export class Role {
 
   private constructor(role: UserRole) {
     this.value = role;
+
+    this.validate();
+  }
+
+  private validate(): void {
+    if (!Object.values(UserRole).includes(this.value)) {
+      throw new InvalidRoleError(this.value);
+    }
   }
 
   public static create(role: UserRole): Role {
-    if (!Object.values(UserRole).includes(role)) {
-      throw new InvalidRoleError(role);
-    }
-
     return new Role(role);
   }
 
