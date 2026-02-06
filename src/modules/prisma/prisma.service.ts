@@ -3,11 +3,14 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { AllConfigType } from "src/config/config.type";
 import { PrismaClient } from "src/generated/prisma/client";
-import { PrismaClientKnownRequestError } from "src/generated/prisma/internal/prismaNamespace";
+import { PrismaClientKnownRequestError, TransactionClient } from "src/generated/prisma/internal/prismaNamespace";
 import { PrismaErrorCode } from "./errors/prisma-error-code.enum";
 
 @Injectable()
 export class PrismaService extends PrismaClient {
+
+  private _transactionClient: TransactionClient | null = null;
+
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
   ) {
@@ -16,6 +19,14 @@ export class PrismaService extends PrismaClient {
     const adapter = new PrismaPg({ connectionString: DATABASE_URL });
 
     super({ adapter });
+  }
+
+  get client(): PrismaClient | TransactionClient {
+    return this._transactionClient ?? this;
+  }
+
+  setTransactionClient(txPrisma: TransactionClient) {
+    this._transactionClient = txPrisma;
   }
 
   isPrismaUniqueError(err: unknown, fieldName?: string): boolean {

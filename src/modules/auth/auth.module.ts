@@ -11,6 +11,8 @@ import { AuditModule } from "../audit/audit.module";
 import { AUTH_USER_REPOSITORY_TOKEN } from "./domain/repositories/auth-user-repository.interface";
 import { PrismaAuthUserRepository } from "./infrastructure/repositories/prisma-auth-user.repository";
 import { RegisterUseCase } from "./application/use-cases/register.usecase";
+import { PASSWORD_HASHER_TOKEN } from "./domain/services/password-hasher.interface";
+import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.hasher";
 
 @Module({
   imports: [
@@ -29,6 +31,10 @@ import { RegisterUseCase } from "./application/use-cases/register.usecase";
     {
       provide: AUTH_USER_REPOSITORY_TOKEN,
       useClass: PrismaAuthUserRepository
+    },
+    {
+      provide: PASSWORD_HASHER_TOKEN,
+      useClass: BcryptPasswordHasher
     },
 
     // Use Cases can be added here
