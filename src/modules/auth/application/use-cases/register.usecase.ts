@@ -10,6 +10,7 @@ import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-o
 import { AuditService } from "src/modules/audit/audit.service";
 import { MailService } from "src/modules/mail/mail.service";
 import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
+import { TokenService } from "src/modules/token/token.service";
 
 interface RegisterCommand {
   // Auth Info
@@ -31,7 +32,8 @@ export class RegisterUseCase {
     private readonly uow: UnitOfWork,
 
     private readonly audit: AuditService,
-    private readonly mail: MailService
+    private readonly mail: MailService,
+    private readonly token: TokenService
   ) { }
 
   /**
@@ -75,6 +77,12 @@ export class RegisterUseCase {
       await this.logger.log(`New user registered with email: ${command.email}`);
     })
 
-    // TODO : Send Verification Email
+    // Send verification email
+    const token = await this.token.generateEmailVerificationToken(authUser.id.getValue(), authUser.email.getValue());
+    await this.mail.sendVerificationEmail({
+      name: authUser.email.getValue(), // No name info at registration
+      to: authUser.email.getValue(),
+      token: token,
+    });
   }
 }
