@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/c
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { IRequestUser } from '../../../common/decorator/interfaces/request-user.interface';
+import { IRequestUser } from '../../../../common/decorator/interfaces/request-user.interface';
 import { AllConfigType } from 'src/config/config.type';
 import { UsersService } from 'src/modules/users/users.service';
 import { UserStatus } from 'src/generated/prisma/enums';

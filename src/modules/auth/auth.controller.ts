@@ -34,16 +34,9 @@ export class AuthController {
   async register(
     @Body() registerDto: AuthRegisterDto
   ): Promise<AuthRegisterResponseDto> {
-    // return this.authService.register(registerDto)
     await this.registerUseCase.execute({
-      firstName: registerDto.firstName,
-      lastName: registerDto.lastName,
       email: registerDto.email,
       password: registerDto.password,
-      addresses: [],
-      phone: registerDto.phoneNumber ?? null,
-      dateOfBirth: registerDto.dateOfBirth ?? null,
-      gender: registerDto.gender
     });
 
     return new AuthRegisterResponseDto({});
