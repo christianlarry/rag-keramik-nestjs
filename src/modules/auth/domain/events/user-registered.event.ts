@@ -16,6 +16,6 @@ export class UserRegisteredEvent extends DomainEvent<UserRegisteredEventPayload>
   }
 
   public static get EventName(): string {
-    return 'UserRegisteredEvent';
+    return 'user.registered';
   }
 }

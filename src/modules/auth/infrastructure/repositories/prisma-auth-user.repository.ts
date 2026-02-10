@@ -7,6 +7,7 @@ import { CacheService } from "src/modules/cache/cache.service";
 import { UserAuthCache } from "../cache/user-auth.cache";
 import { PrismaClient } from "src/generated/prisma/client";
 import { TransactionClient } from "src/generated/prisma/internal/prismaNamespace";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 @Injectable()
 export class PrismaAuthUserRepository implements AuthUserRepository {
@@ -16,7 +17,8 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cache: CacheService
+    private readonly cache: CacheService,
+    private readonly eventEmitter: EventEmitter2
   ) {
     this.client = this.prisma.getClient();
   }
@@ -92,8 +94,8 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
     return count > 0;
   }
 
-  async save(user: AuthUser): Promise<void> {
-    const persistenceUser = PrismaAuthUserMapper.toPersistence(user);
+  async save(authUser: AuthUser): Promise<void> {
+    const persistenceUser = PrismaAuthUserMapper.toPersistence(authUser);
 
     await this.client.user.upsert({
       where: { id: persistenceUser.id },
@@ -106,5 +108,11 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
       this.cache.del(UserAuthCache.getUserByIdKey(persistenceUser.id)),
       this.cache.del(UserAuthCache.getUserByEmailKey(persistenceUser.email))
     ]);
+
+    // Emit user saved events
+    const events = authUser.pullDomainEvents();
+    for (const event of events) {
+      await this.eventEmitter.emitAsync(event.name, event);
+    }
   }
 }

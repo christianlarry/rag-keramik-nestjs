@@ -44,11 +44,11 @@ export class AuthUser extends AggregateRoot {
       }
     );
 
-    // Emit UserRegisteredEvent
+    // 
     authUser.addDomainEvent(
       new UserRegisteredEvent({
-        userId: authUser.id.toString(),
-        email: authUser.email.toString()
+        userId: authUser._id.getValue(),
+        email: authUser.email.getValue()
       })
     )
 

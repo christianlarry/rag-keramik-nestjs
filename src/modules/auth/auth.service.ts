@@ -593,7 +593,6 @@ export class AuthService {
     // Send Verification Email
     await this.mailService.sendVerificationEmail({
       to: email,
-      name,
       token
     });
   }

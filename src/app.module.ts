@@ -29,6 +29,7 @@ import { Redis } from 'ioredis';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { CacheModule } from './modules/cache/cache.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -81,6 +82,15 @@ import { AuditModule } from './modules/audit/audit.module';
           return configService.get('app.nodeEnv', { infer: true })! === 'development';
         },
       }),
+    }),
+    EventEmitterModule.forRoot({
+      wildcard: false,
+      delimiter: '.',
+      newListener: false,
+      removeListener: false,
+      maxListeners: 10,
+      verboseMemoryLeak: false,
+      ignoreErrors: false,
     }),
     TokenModule,
     PrismaModule,
