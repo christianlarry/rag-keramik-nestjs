@@ -8,3 +8,4 @@ export * from "./email-already-in-use.error";
 export * from "./auth-user-not-found.error";
 export * from "./email-not-verified.error";
 export * from "./cannot-verify-email.error";
+export * from "./cannot-unverify-email.error"

@@ -7,6 +7,7 @@ export const AuthErrorCode = {
   AUTH_USER_NOT_FOUND: 'AUTH_USER_NOT_FOUND',
   EMAIL_NOT_VERIFIED: 'AUTH_EMAIL_NOT_VERIFIED',
   CANNOT_VERIFY_EMAIL: 'AUTH_CANNOT_VERIFY_EMAIL',
+  CANNOT_UNVERIFY_EMAIL: 'AUTH_CANNOT_UNVERIFY_EMAIL',
 } as const;
 
 export type AuthErrorCode = typeof AuthErrorCode[keyof typeof AuthErrorCode];

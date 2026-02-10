@@ -5,7 +5,7 @@ import { Role } from "src/modules/users/domain/value-objects/role.vo";
 import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../value-objects/auth-provider.vo";
 import { InvalidProviderError } from "../errors/invalid-provider.error";
-import { CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
+import { CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
 import { AggregateRoot } from "src/core/domain/aggregates/aggregate-root.base";
 import { UserRegisteredEvent } from "../events/user-registered.event";
 
@@ -34,7 +34,7 @@ export class AuthUser extends AggregateRoot {
         emailVerifiedAt: null,
         password: params.password,
         role: params.role || Role.createCustomer(),
-        status: Status.create('active'),
+        status: Status.createInactive(),
         provider: AuthProvider.createLocal(),
         lastLoginAt: null,
         refreshTokens: [],
@@ -179,9 +179,23 @@ export class AuthUser extends AggregateRoot {
 
   public canVerifyEmail(): boolean {
     return (
-      this.props.status.isActive() &&
+      !this.props.status.isActive() &&
       !this.props.emailVerified &&
       this.props.provider.isLocal()
+    );
+  }
+
+  public canUnverifyEmail(): boolean {
+    return this.props.emailVerified;
+  }
+
+  public canResetPassword(): boolean {
+    return (
+      this.props.status.isActive() &&
+      this.props.provider.isLocal() &&
+      this.props.password !== null &&
+      this.props.emailVerified &&
+      this.props.emailVerifiedAt !== null
     );
   }
 
@@ -204,6 +218,18 @@ export class AuthUser extends AggregateRoot {
     this.props.emailVerified = true;
     this.props.emailVerifiedAt = new Date();
     this.props.status = Status.createActive();
+
+    this.props.updatedAt = new Date();
+  }
+
+  public unverifyEmail(): void {
+    if (!this.canUnverifyEmail()) {
+      throw new CannotUnverifyEmailError('Email is already unverified');
+    }
+
+    this.props.emailVerified = false;
+    this.props.emailVerifiedAt = null;
+    this.props.status = Status.createInactive();
 
     this.props.updatedAt = new Date();
   }
