@@ -107,9 +107,6 @@ export class AuthService {
 
     return new AuthRegisterResponseDto({
       id: createdUser.id,
-      email: createdUser.email,
-      firstName: createdUser.firstName!,
-      lastName: createdUser.lastName!,
       message: 'User registered successfully. Please check your email to verify your account.',
     });
   }

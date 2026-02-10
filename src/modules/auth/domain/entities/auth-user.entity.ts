@@ -5,7 +5,7 @@ import { Role } from "src/modules/users/domain/value-objects/role.vo";
 import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../value-objects/auth-provider.vo";
 import { InvalidProviderError } from "../errors/invalid-provider.error";
-import { InvalidAuthStateError } from "../errors";
+import { CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
 import { AggregateRoot } from "src/core/domain/aggregates/aggregate-root.base";
 import { UserRegisteredEvent } from "../events/user-registered.event";
 
@@ -177,6 +177,14 @@ export class AuthUser extends AggregateRoot {
     );
   }
 
+  public canVerifyEmail(): boolean {
+    return (
+      this.props.status.isActive() &&
+      !this.props.emailVerified &&
+      this.props.provider.isLocal()
+    );
+  }
+
   public isUsingOAuthProvider(): boolean {
     return this.props.provider.isOAuth();
   }
@@ -187,58 +195,58 @@ export class AuthUser extends AggregateRoot {
 
   // ===== Command methods ===== //
 
+  // == Email Verification Management == //
+  public verifyEmail(): void {
+    if (!this.canVerifyEmail()) {
+      throw new CannotVerifyEmailError('User cannot verify email in current state');
+    }
+
+    this.props.emailVerified = true;
+    this.props.emailVerifiedAt = new Date();
+
+    this.props.updatedAt = new Date();
+  }
+
+  // == Refresh Token Management == //
   public addRefreshToken(token: string): void {
     if (!this.props.status.isActive()) {
       throw new InvalidAuthStateError('Cannot add refresh token to inactive user');
     }
     this.props.refreshTokens.push(token);
-    this.validate();
     this.props.updatedAt = new Date();
   }
 
   public removeRefreshToken(token: string): void {
     this.props.refreshTokens = this.props.refreshTokens.filter(t => t !== token);
-    this.validate();
     this.props.updatedAt = new Date();
   }
 
   public clearRefreshTokens(): void {
     this.props.refreshTokens = [];
-    this.validate();
     this.props.updatedAt = new Date();
   }
 
-  public markEmailAsVerified(): void {
-    this.props.emailVerified = true;
-    this.props.emailVerifiedAt = new Date();
-
-    this.validate();
-    this.props.updatedAt = new Date();
-  }
-
+  // == Login Management == //
   public recordLogin(): void {
     this.props.lastLoginAt = new Date();
-    this.validate();
     this.props.updatedAt = new Date();
   }
 
+  // == Status Management == //
   public deactivate(): void {
     this.props.status = Status.create('inactive');
-    this.validate();
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
   }
 
   public activate(): void {
     this.props.status = Status.create('active');
-    this.validate();
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
   }
 
   public suspend(): void {
     this.props.status = Status.create('suspended');
-    this.validate();
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
   }
@@ -248,17 +256,16 @@ export class AuthUser extends AggregateRoot {
     this.clearRefreshTokens();
     this.props.deletedAt = new Date();
 
-    this.validate();
     this.props.updatedAt = new Date();
-
   }
 
+  // == Password Management == //
   public changePassword(newPassword: Password): void {
     if (this.props.provider.isLocal() === false) {
       throw new InvalidAuthStateError('Cannot set password for non-local providers');
     }
     this.props.password = newPassword;
-    this.validate();
+
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
   }

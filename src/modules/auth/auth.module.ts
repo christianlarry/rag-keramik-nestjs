@@ -15,6 +15,7 @@ import { PASSWORD_HASHER_TOKEN } from "./domain/services/password-hasher.interfa
 import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.hasher";
 import { UNIT_OF_WORK_TOKEN } from "src/core/application/unit-of-work.interface";
 import { PrismaUnitOfWork } from "../prisma/prisma-unit-of-work";
+import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { PrismaUnitOfWork } from "../prisma/prisma-unit-of-work";
 
     // Use Cases can be added here
     RegisterUseCase,
+    ResendEmailVerificationUseCase
   ]
 })
 export class AuthModule { }

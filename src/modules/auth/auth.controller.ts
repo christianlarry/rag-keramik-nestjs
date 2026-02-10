@@ -19,13 +19,17 @@ import { AuthLoginDto } from "./dto/auth-login.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { User } from "src/common/decorator/user.decorator";
 import { RegisterUseCase } from "./application/use-cases/register.usecase";
+import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly registerUseCase: RegisterUseCase
+
+    // Use Cases
+    private readonly registerUseCase: RegisterUseCase,
+    private readonly resendEmailVerificationUseCase: ResendEmailVerificationUseCase,
   ) { }
 
   @Post('register')
@@ -34,12 +38,15 @@ export class AuthController {
   async register(
     @Body() registerDto: AuthRegisterDto
   ): Promise<AuthRegisterResponseDto> {
-    await this.registerUseCase.execute({
+    const result = await this.registerUseCase.execute({
       email: registerDto.email,
       password: registerDto.password,
     });
 
-    return new AuthRegisterResponseDto({});
+    return new AuthRegisterResponseDto({
+      message: 'Registration successful. Please check your email to verify your account.',
+      id: result.userId,
+    });
   }
 
   @Post('verify-email')
@@ -58,7 +65,13 @@ export class AuthController {
   async resendVerification(
     @Body() resendVerificationDto: ResendVerificationDto
   ): Promise<ResendVerificationResponseDto> {
-    return this.authService.resendVerification(resendVerificationDto.email);
+    await this.resendEmailVerificationUseCase.execute({
+      email: resendVerificationDto.email,
+    });
+
+    return new ResendVerificationResponseDto({
+      message: 'Verification email resent. Please check your email.'
+    });
   }
 
   @Post('forgot-password')

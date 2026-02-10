@@ -23,6 +23,10 @@ interface PostRegistrationTasksCommand {
   email: string;
 }
 
+interface RegisterResult {
+  userId: string;
+}
+
 @Injectable()
 export class RegisterUseCase {
 
@@ -46,7 +50,7 @@ export class RegisterUseCase {
    * @param command The registration command
    * @throws EmailAlreadyInUseError if the email is already registered
    */
-  async execute(command: RegisterCommand): Promise<void> {
+  async execute(command: RegisterCommand): Promise<RegisterResult> {
     // Check for email uniqueness
     const exists = await this.authUserRepository.isEmailExisting(command.email);
     if (exists) throw new EmailAlreadyInUseError(command.email);
@@ -63,7 +67,7 @@ export class RegisterUseCase {
       role: role
     })
 
-    // Save user
+    // Transactional operations
     await this.uow.withTransaction(async () => {
       // Save Auth User
       await this.authUserRepository.save(authUser);
@@ -83,10 +87,14 @@ export class RegisterUseCase {
       await this.logger.log(`New user registered with email: ${command.email}`);
     })
 
+    // Post-registration tasks (e.g., sending verification email)
     await this.executePostRegistrationTasks({
       userId: authUser.id.getValue(),
       email: authUser.email.getValue(),
-    })
+    });
+
+    // Return result
+    return { userId: authUser.id.getValue() };
   }
 
   async executePostRegistrationTasks(command: PostRegistrationTasksCommand): Promise<void> {
