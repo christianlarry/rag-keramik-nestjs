@@ -20,6 +20,22 @@ export class Status {
     return new Status(value as StatusEnum);
   }
 
+  public static createActive(): Status {
+    return new Status(StatusEnum.ACTIVE);
+  }
+
+  public static createInactive(): Status {
+    return new Status(StatusEnum.INACTIVE);
+  }
+
+  public static createSuspended(): Status {
+    return new Status(StatusEnum.SUSPENDED);
+  }
+
+  public static createDeleted(): Status {
+    return new Status(StatusEnum.DELETED);
+  }
+
   public getValue(): StatusEnum {
     return this.value;
   }

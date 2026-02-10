@@ -47,7 +47,6 @@ export interface IPasswordChangedEmailData {
  */
 export interface IWelcomeEmailData {
   to: string;
-  name: string;
 }
 
 /**

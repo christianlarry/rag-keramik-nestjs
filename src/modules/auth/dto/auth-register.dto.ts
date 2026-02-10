@@ -1,23 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
+import { Transform } from "class-transformer";
 import {
   IsEmail,
-  IsEnum,
   IsNotEmpty,
-  IsString,
-  IsStrongPassword,
-  MinLength,
-  ValidateNested,
-  IsOptional,
-  IsNumber,
-  IsLatitude,
-  IsLongitude,
-  IsBoolean,
-  IsDate,
-  IsPhoneNumber
+  IsStrongPassword
 } from "class-validator";
-import { Gender, AddressLabel } from "src/generated/prisma/enums";
 
+/*
 export class RegisterAddressDto {
   @ApiProperty({ example: 'Home', description: 'Label for the address', enum: AddressLabel })
   @IsNotEmpty()
@@ -79,8 +68,22 @@ export class RegisterAddressDto {
   @IsBoolean()
   isDefault?: boolean;
 }
+*/
 
 export class AuthRegisterDto {
+
+  @ApiProperty({ example: 'john.doe@example.com', description: 'Email address of the user' })
+  @Transform((val) => val.value?.toLowerCase()?.trim()) // Normalize email
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'StrongP@ssw0rd123!', description: 'Password for the user account' })
+  @IsStrongPassword()
+  @IsNotEmpty()
+  password: string;
+
+  /*
   @ApiProperty({ example: 'John', description: 'First name of the user' })
   @IsString()
   @MinLength(2)
@@ -101,17 +104,6 @@ export class AuthRegisterDto {
   })
   gender: Gender;
 
-  @ApiProperty({ example: 'john.doe@example.com', description: 'Email address of the user' })
-  @Transform((val) => val.value?.toLowerCase()?.trim()) // Normalize email
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
-  @ApiProperty({ example: 'StrongP@ssw0rd123!', description: 'Password for the user account' })
-  @IsStrongPassword()
-  @IsNotEmpty()
-  password: string;
-
   @ApiProperty({ type: RegisterAddressDto, required: false, description: 'User address' })
   @IsOptional()
   @ValidateNested()
@@ -127,4 +119,5 @@ export class AuthRegisterDto {
   @IsDate()
   @Type(() => Date)
   dateOfBirth?: Date;
+  */
 }

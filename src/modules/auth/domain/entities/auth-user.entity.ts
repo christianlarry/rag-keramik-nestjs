@@ -203,6 +203,7 @@ export class AuthUser extends AggregateRoot {
 
     this.props.emailVerified = true;
     this.props.emailVerifiedAt = new Date();
+    this.props.status = Status.createActive();
 
     this.props.updatedAt = new Date();
   }

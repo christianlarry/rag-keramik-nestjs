@@ -66,20 +66,14 @@ export class AuthService {
     // Create User Record
     const createdUser = await this.prismaService.$transaction(async (tx) => {
       const newUser = await this.usersService.create({
-        firstName: registerDto.firstName,
-        lastName: registerDto.lastName,
-        gender: registerDto.gender,
         password: hashedPassword,
         role: Role.CUSTOMER,
         email: registerDto.email,
         emailVerified: false,
-        phoneNumber: registerDto.phoneNumber,
         phoneVerified: false,
-        dateOfBirth: registerDto.dateOfBirth,
         status: UserStatus.INACTIVE,
         provider: AuthProvider.LOCAL,
-        // Additional Profile Info
-        address: registerDto.address
+        gender: 'FEMALE',
       }, tx)
 
       // Audit Log
@@ -177,7 +171,6 @@ export class AuthService {
       // Send Welcome Email (Optional)
       await this.mailService.sendWelcomeEmail({
         to: updatedUser.email,
-        name: `${updatedUser.firstName} ${updatedUser.lastName}`
       });
     });
 

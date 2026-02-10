@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { JwtService, JwtSignOptions } from "@nestjs/jwt";
+import { JsonWebTokenError, JwtService, JwtSignOptions, TokenExpiredError as JwtTokenExpiredError } from "@nestjs/jwt";
 import { AllConfigType } from "src/config/config.type";
 import { TokenType } from "./enums/token-type.enum";
 import { IEmailVerificationPayload } from "./interfaces/email-verification-payload.interface";
@@ -8,6 +8,7 @@ import { IPasswordResetPayload } from "./interfaces/password-reset-payload.inter
 import { Role } from "src/generated/prisma/enums";
 import { IAccessPayload } from "./interfaces/access-payload.interface";
 import { IRefreshPayload } from "./interfaces/refresh-payload.interface";
+import { TokenExpiredError, TokenInvalidError } from "./errors";
 
 @Injectable()
 export class TokenService {
@@ -99,11 +100,22 @@ export class TokenService {
     type: TokenType,
     dynamicSecretSuffix?: string,
   ): Promise<any> {
-    const config = this.getTokenConfig(type);
+    try {
+      const config = this.getTokenConfig(type);
 
-    return this.jwtService.verifyAsync(token, {
-      secret: dynamicSecretSuffix ? `${config.secret}${dynamicSecretSuffix}` : config.secret
-    });
+      return this.jwtService.verifyAsync(token, {
+        secret: dynamicSecretSuffix ? `${config.secret}${dynamicSecretSuffix}` : config.secret
+      });
+    } catch (err) {
+      if (err instanceof JwtTokenExpiredError) {
+        throw new TokenExpiredError('Token has expired');
+      }
+      if (err instanceof JsonWebTokenError) {
+        throw new TokenInvalidError('Token is invalid');
+      }
+
+      throw err; // rethrow unexpected errors
+    }
   }
 
   /**
