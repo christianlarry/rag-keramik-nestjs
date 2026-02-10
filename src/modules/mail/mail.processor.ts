@@ -120,7 +120,6 @@ export class MailProcessor extends WorkerHost {
       subject: 'Verify your Keramik Store account',
       templatePath,
       context: {
-        name: data.name,
         verificationUrl,
         expiresIn: data.expiresIn || `${this.configService.get('auth.verificationTokenExpirationHours', { infer: true })!} hours`,
         year: new Date().getFullYear(),

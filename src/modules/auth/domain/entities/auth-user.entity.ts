@@ -6,8 +6,10 @@ import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../value-objects/auth-provider.vo";
 import { InvalidProviderError } from "../errors/invalid-provider.error";
 import { InvalidAuthStateError } from "../errors";
+import { AggregateRoot } from "src/core/domain/aggregates/aggregate-root.base";
+import { UserRegisteredEvent } from "../events/user-registered.event";
 
-export class AuthUser {
+export class AuthUser extends AggregateRoot {
 
   private readonly _id: UserId;
   private props: AuthUserProps;
@@ -16,6 +18,8 @@ export class AuthUser {
     id: UserId,
     props: AuthUserProps
   ) {
+    super();
+
     this._id = id;
     this.props = props;
 
@@ -23,7 +27,7 @@ export class AuthUser {
   }
 
   public static register(params: RegisterParams): AuthUser {
-    return new AuthUser(UserId.generate(),
+    const authUser = new AuthUser(UserId.generate(),
       {
         email: params.email,
         emailVerified: false,
@@ -39,6 +43,16 @@ export class AuthUser {
         deletedAt: null
       }
     );
+
+    // Emit UserRegisteredEvent
+    authUser.addDomainEvent(
+      new UserRegisteredEvent({
+        userId: authUser.id.toString(),
+        email: authUser.email.toString()
+      })
+    )
+
+    return authUser;
   }
 
   public static fromOAuth(params: OAuthParams): AuthUser {

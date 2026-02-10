@@ -15,7 +15,6 @@ export interface IMailJobData {
  */
 export interface IVerificationEmailData {
   to: string;
-  name: string;
   token: string;
   verificationUrl?: string; // Generated automatically if not provided
   expiresIn?: string; // Default: "24 hours"

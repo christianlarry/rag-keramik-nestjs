@@ -80,7 +80,6 @@ export class RegisterUseCase {
     // Send verification email
     const token = await this.token.generateEmailVerificationToken(authUser.id.getValue(), authUser.email.getValue());
     await this.mail.sendVerificationEmail({
-      name: authUser.email.getValue(), // No name info at registration
       to: authUser.email.getValue(),
       token: token,
     });
