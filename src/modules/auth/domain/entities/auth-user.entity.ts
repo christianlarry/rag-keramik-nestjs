@@ -198,7 +198,7 @@ export class AuthUser extends AggregateRoot {
   // == Email Verification Management == //
   public verifyEmail(): void {
     if (!this.canVerifyEmail()) {
-      throw new CannotVerifyEmailError('User cannot verify email in current state');
+      throw new CannotVerifyEmailError('User cannot verify email. Either already verified, not active, or using non-local provider');
     }
 
     this.props.emailVerified = true;

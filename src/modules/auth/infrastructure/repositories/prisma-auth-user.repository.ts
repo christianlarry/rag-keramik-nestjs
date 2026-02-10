@@ -24,7 +24,7 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
   }
 
   async findById(userId: string): Promise<AuthUser | null> {
-    return this.cache.wrap(
+    const cachedUser = await this.cache.wrap(
       UserAuthCache.getUserByIdKey(userId),
       async () => {
         const user = await this.client.user.findUnique({
@@ -48,14 +48,16 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
           }
         });
 
-        return user ? PrismaAuthUserMapper.toDomain(user) : null;
+        return user;
       },
       UserAuthCache.USER_CACHE_TTL
     )
+
+    return cachedUser ? PrismaAuthUserMapper.toDomain(cachedUser) : null;
   }
 
   async findByEmail(email: string): Promise<AuthUser | null> {
-    return this.cache.wrap(
+    const cachedUser = await this.cache.wrap(
       UserAuthCache.getUserByEmailKey(email),
       async () => {
 
@@ -80,11 +82,13 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
           }
         });
 
-        return user ? PrismaAuthUserMapper.toDomain(user) : null;
+        return user;
 
       },
       UserAuthCache.USER_CACHE_TTL
     )
+
+    return cachedUser ? PrismaAuthUserMapper.toDomain(cachedUser) : null;
   }
 
   async isEmailExisting(email: string): Promise<boolean> {

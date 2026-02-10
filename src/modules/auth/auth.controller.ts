@@ -20,6 +20,7 @@ import { ChangePasswordDto } from "./dto/change-password.dto";
 import { User } from "src/common/decorator/user.decorator";
 import { RegisterUseCase } from "./application/use-cases/register.usecase";
 import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
+import { VerifyEmailUseCase } from "./application/use-cases/verify-email.usecase";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -30,6 +31,7 @@ export class AuthController {
     // Use Cases
     private readonly registerUseCase: RegisterUseCase,
     private readonly resendEmailVerificationUseCase: ResendEmailVerificationUseCase,
+    private readonly verifyEmailUseCase: VerifyEmailUseCase,
   ) { }
 
   @Post('register')
@@ -55,7 +57,13 @@ export class AuthController {
   async verifyEmail(
     @Body() verifyEmailDto: VerifyEmailDto
   ): Promise<VerifyEmailResponseDto> {
-    return this.authService.verifyEmail(verifyEmailDto.token);
+    await this.verifyEmailUseCase.execute({
+      token: verifyEmailDto.token,
+    });
+
+    return new VerifyEmailResponseDto({
+      message: 'Email verified successfully. Your account is now active.'
+    });
   }
 
   @Post('resend-verification')
