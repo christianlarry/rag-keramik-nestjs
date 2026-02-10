@@ -15,7 +15,6 @@ import { PASSWORD_HASHER_TOKEN } from "./domain/services/password-hasher.interfa
 import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.hasher";
 import { UNIT_OF_WORK_TOKEN } from "src/core/application/unit-of-work.interface";
 import { PrismaUnitOfWork } from "../prisma/prisma-unit-of-work";
-import { UserRegisteredListener } from "./application/listeners/user-registered.listener";
 
 @Module({
   imports: [
@@ -46,9 +45,6 @@ import { UserRegisteredListener } from "./application/listeners/user-registered.
 
     // Use Cases can be added here
     RegisterUseCase,
-
-    // Listeners can be added here
-    UserRegisteredListener,
   ]
 })
 export class AuthModule { }

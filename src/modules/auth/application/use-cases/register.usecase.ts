@@ -18,6 +18,11 @@ interface RegisterCommand {
   password: string;
 }
 
+interface PostRegistrationTasksCommand {
+  userId: string;
+  email: string;
+}
+
 @Injectable()
 export class RegisterUseCase {
 
@@ -33,7 +38,7 @@ export class RegisterUseCase {
 
     private readonly audit: AuditService,
     private readonly mail: MailService,
-    private readonly token: TokenService
+    private readonly token: TokenService,
   ) { }
 
   /**
@@ -74,13 +79,21 @@ export class RegisterUseCase {
         }
       );
 
+      // Logger
       await this.logger.log(`New user registered with email: ${command.email}`);
     })
 
+    await this.executePostRegistrationTasks({
+      userId: authUser.id.getValue(),
+      email: authUser.email.getValue(),
+    })
+  }
+
+  async executePostRegistrationTasks(command: PostRegistrationTasksCommand): Promise<void> {
     // Send verification email
-    const token = await this.token.generateEmailVerificationToken(authUser.id.getValue(), authUser.email.getValue());
+    const token = await this.token.generateEmailVerificationToken(command.userId, command.email);
     await this.mail.sendVerificationEmail({
-      to: authUser.email.getValue(),
+      to: command.email,
       token: token,
     });
   }
