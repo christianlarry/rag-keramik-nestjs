@@ -1363,7 +1363,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    - Delete all refresh tokens for user
    - Or mark as revoked in database
 
-3. **Blacklist access token**
+3. **Blacklist access token (If the access token is in long time)**
    - Add token to Redis blacklist
    - TTL = token remaining lifetime
    - Check blacklist on all authenticated requests

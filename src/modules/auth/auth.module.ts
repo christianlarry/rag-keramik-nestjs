@@ -25,6 +25,7 @@ import { TokenGeneratorModule } from "src/core/infrastructure/services/token-gen
 import { AccessTokenGenerator } from "./infrastructure/generator/access-token.generator";
 import { RefreshTokenGenerator } from "./infrastructure/generator/refresh-token.generator";
 import { LoginWithEmailUseCase } from "./application/use-cases/login-with-email.usecase";
+import { BlacklistedAccessTokenRepository } from "./infrastructure/repositories/blacklisted-access-token.repository";
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { LoginWithEmailUseCase } from "./application/use-cases/login-with-email.
     },
     PasswordResetTokenRepository,
     VerificationTokenRepository,
+    BlacklistedAccessTokenRepository,
 
     AccessTokenGenerator,
     RefreshTokenGenerator,

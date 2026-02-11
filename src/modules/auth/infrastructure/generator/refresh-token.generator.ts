@@ -2,13 +2,14 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { AllConfigType } from "src/config/config.type";
+import { v4 as uuidv4 } from 'uuid'
 
-interface RefreshTokenPayload {
+export interface RefreshTokenPayload {
   sub: string;
   type: string;
+  jti: string;
   iat?: number;
   exp?: number;
-  jti?: string;
 }
 
 interface GenerateRefreshTokenParams {
@@ -35,6 +36,7 @@ export class RefreshTokenGenerator {
     const payload: RefreshTokenPayload = {
       sub: params.userId,
       type: RefreshTokenGenerator.TokenType,
+      jti: uuidv4(),
     };
 
     return this.jwtService.signAsync(payload, {

@@ -6,8 +6,8 @@ import { IRequestUser } from '../../../../common/decorator/interfaces/request-us
 import { AllConfigType } from 'src/config/config.type';
 import { UsersService } from 'src/modules/users/users.service';
 import { UserStatus } from 'src/generated/prisma/enums';
-import { IAccessPayload } from 'src/modules/token/interfaces/access-payload.interface';
-import { TokenType } from 'src/modules/token/enums/token-type.enum';
+import { BlacklistedAccessTokenRepository } from '../repositories/blacklisted-access-token.repository';
+import { AccessTokenGenerator, AccessTokenPayload } from '../generator/access-token.generator';
 
 /**
  * JWT Authentication Strategy
@@ -36,6 +36,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
     private readonly usersService: UsersService,
+    private readonly blacklistedAccessTokenRepository: BlacklistedAccessTokenRepository
   ) {
     super({
       // Extract JWT dari Authorization header dengan format: "Bearer <token>"
@@ -60,10 +61,16 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
    * @returns RequestUser object yang akan di-inject ke request.user
    * @throws UnauthorizedException jika token type bukan 'access'
    */
-  async validate(payload: IAccessPayload): Promise<IRequestUser> {
+  async validate(payload: AccessTokenPayload): Promise<IRequestUser> {
+    // Check token blacklisting
+    const isBlacklisted = await this.blacklistedAccessTokenRepository.get(payload.jti);
+    if (isBlacklisted) {
+      throw new UnauthorizedException('Token has been revoked.');
+    }
+
     // Validasi token type - hanya terima access token
     // Refresh token tidak boleh digunakan untuk access protected routes
-    if (payload.type !== TokenType.ACCESS) {
+    if (payload.type !== AccessTokenGenerator.TokenType) {
       throw new UnauthorizedException('Invalid token type. Access token required.');
     }
 

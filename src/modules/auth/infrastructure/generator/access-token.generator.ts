@@ -2,15 +2,16 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { AllConfigType } from "src/config/config.type";
+import { v4 as uuidv4 } from 'uuid'
 
-interface AccessTokenPayload {
+export interface AccessTokenPayload {
   sub: string;
+  jti: string;
   email: string;
   role: string;
   type: string;
   iat?: number;
   exp?: number;
-  jti?: string;
 }
 
 interface GenerateAccessTokenParams {
@@ -41,6 +42,7 @@ export class AccessTokenGenerator {
       email: params.email,
       role: params.role,
       type: AccessTokenGenerator.TokenType,
+      jti: uuidv4(),
     };
 
     return this.jwtService.signAsync(payload, {
