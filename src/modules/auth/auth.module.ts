@@ -18,7 +18,9 @@ import { PrismaUnitOfWork } from "../prisma/prisma-unit-of-work";
 import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
 import { VerifyEmailUseCase } from "./application/use-cases/verify-email.usecase";
 import { ResetPasswordUseCase } from "./application/use-cases/reset-password.usecase";
-import { PasswordResetRepository } from "./infrastructure/repositories/password-reset.repository";
+import { PasswordResetTokenRepository } from "./infrastructure/repositories/password-reset-token.repository";
+import { ForgotPasswordUseCase } from "./application/use-cases/forgot-password.usecase";
+import { VerificationTokenRepository } from "./infrastructure/repositories/email-verification-token.repository";
 
 @Module({
   imports: [
@@ -46,12 +48,14 @@ import { PasswordResetRepository } from "./infrastructure/repositories/password-
       provide: UNIT_OF_WORK_TOKEN,
       useClass: PrismaUnitOfWork
     },
-    PasswordResetRepository,
+    PasswordResetTokenRepository,
+    VerificationTokenRepository,
 
     // Use Cases can be added here
     RegisterUseCase,
     ResendEmailVerificationUseCase,
     VerifyEmailUseCase,
+    ForgotPasswordUseCase,
     ResetPasswordUseCase,
   ]
 })

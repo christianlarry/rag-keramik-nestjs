@@ -7,7 +7,7 @@ import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-o
 import { AuditService } from "src/modules/audit/audit.service";
 import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
 import { MailService } from "src/modules/mail/mail.service";
-import { PasswordResetRepository } from "../../infrastructure/repositories/password-reset.repository";
+import { PasswordResetTokenRepository } from "../../infrastructure/repositories/password-reset-token.repository";
 
 interface ResetPasswordCommand {
   token: string;
@@ -26,7 +26,7 @@ export class ResetPasswordUseCase {
     private readonly passwordHasher: PasswordHasher,
     @Inject(UNIT_OF_WORK_TOKEN)
     private readonly uow: UnitOfWork,
-    private readonly passwordResetRepository: PasswordResetRepository,
+    private readonly passwordResetTokenRepository: PasswordResetTokenRepository,
 
     private readonly audit: AuditService,
     private readonly mail: MailService,
@@ -35,7 +35,7 @@ export class ResetPasswordUseCase {
 
   async execute(command: ResetPasswordCommand): Promise<void> {
     // Check token against cache to ensure it's valid and not used/revoked
-    const cachedUserId = await this.passwordResetRepository.get<string>(command.token);
+    const cachedUserId = await this.passwordResetTokenRepository.get<string>(command.token);
     if (!cachedUserId) {
       this.logger.warn(`Expired or invalid password reset token used for user ID ${cachedUserId} from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
       throw new TokenInvalidError('Invalid or Expired Reset Password Token');
@@ -45,7 +45,7 @@ export class ResetPasswordUseCase {
     const authUser = await this.authUserRepository.findById(cachedUserId);
     if (!authUser) {
       this.logger.warn(`Password reset attempt for non-existent user ID ${cachedUserId} from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
-      throw new TokenInvalidError(`Invalid Reset Password Token`); // Do not reveal user existence
+      throw new TokenInvalidError('Invalid or Expired Reset Password Token'); // Do not reveal user existence
     }
 
     // Create new Password VO
@@ -67,7 +67,7 @@ export class ResetPasswordUseCase {
     })
 
     // Remove the token from cache to prevent reuse
-    await this.passwordResetRepository.invalidate(command.token);
+    await this.passwordResetTokenRepository.invalidate(command.token);
 
     this.logger.log(`Password reset successfully for user ID ${authUser.id.getValue()} from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
 

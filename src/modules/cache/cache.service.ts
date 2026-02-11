@@ -194,8 +194,10 @@ export class CacheService {
     this.logger.debug(`Cache miss: ${key}`);
     const result = await fn();
 
-    // Store in cache
-    await this.set(key, result, ttl);
+    // Store in cache, if not null or undefined
+    if (result !== undefined && result !== null) {
+      await this.set(key, result, ttl);
+    }
 
     return result;
   }

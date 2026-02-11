@@ -246,8 +246,8 @@ export class UsersService {
       const newUser = client.user.create({
         data: {
           email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
           gender: data.gender,
           password: data.password,
           emailVerified: data.emailVerified ?? false,
@@ -338,6 +338,7 @@ export class UsersService {
       create: {
         email: data.email,
         firstName: data.name,
+        lastName: '',
         provider: data.provider,
         providerId: data.providerId,
         role: Role.CUSTOMER,

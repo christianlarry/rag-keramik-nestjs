@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { MailService } from "src/modules/mail/mail.service";
-import { PasswordResetRepository } from "../../infrastructure/repositories/password-reset.repository";
+import { PasswordResetTokenRepository } from "../../infrastructure/repositories/password-reset-token.repository";
 
 import crypto from 'crypto';
 
@@ -17,7 +17,7 @@ export class ForgotPasswordUseCase {
   constructor(
     @Inject(AUTH_USER_REPOSITORY_TOKEN)
     private readonly authUserRepository: AuthUserRepository,
-    private readonly passwordResetRepository: PasswordResetRepository,
+    private readonly passwordResetTokenRepository: PasswordResetTokenRepository,
 
     private readonly mail: MailService,
   ) { }
@@ -31,7 +31,7 @@ export class ForgotPasswordUseCase {
       const resetPasswordToken = await this.generateResetToken();
 
       // Save token to redis or similar with expiration for validation during reset
-      await this.passwordResetRepository.save(resetPasswordToken, authUser.id.getValue());
+      await this.passwordResetTokenRepository.save(resetPasswordToken, authUser.id.getValue());
 
       // Send reset password email
       await this.mail.sendResetPasswordEmail({

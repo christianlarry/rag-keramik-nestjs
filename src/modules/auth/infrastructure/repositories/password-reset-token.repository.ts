@@ -4,7 +4,7 @@ import { AllConfigType } from "src/config/config.type";
 import { CacheService } from "src/modules/cache/cache.service";
 
 @Injectable()
-export class PasswordResetRepository {
+export class PasswordResetTokenRepository {
 
   private readonly CACHE_KEY_PREFIX = 'password-reset-token:';
   private readonly tokenExpirationSeconds: number;

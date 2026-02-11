@@ -21,6 +21,10 @@ import { User } from "src/common/decorator/user.decorator";
 import { RegisterUseCase } from "./application/use-cases/register.usecase";
 import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
 import { VerifyEmailUseCase } from "./application/use-cases/verify-email.usecase";
+import { ForgotPasswordUseCase } from "./application/use-cases/forgot-password.usecase";
+import { ResetPasswordUseCase } from "./application/use-cases/reset-password.usecase";
+import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-response.dto";
+import { ResetPasswordResponseDto } from "./dto/response/reset-password-response.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -32,6 +36,8 @@ export class AuthController {
     private readonly registerUseCase: RegisterUseCase,
     private readonly resendEmailVerificationUseCase: ResendEmailVerificationUseCase,
     private readonly verifyEmailUseCase: VerifyEmailUseCase,
+    private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) { }
 
   @Post('register')
@@ -89,8 +95,14 @@ export class AuthController {
   @Throttle({ default: { limit: LIMIT.VERY_STRICT, ttl: TTL.ONE_HOUR } }) // 3 requests per hour
   async forgotPassword(
     @Body() forgotPasswordDto: ForgotPasswordDto
-  ) {
-    return this.authService.forgotPassword(forgotPasswordDto.email);
+  ): Promise<ForgotPasswordResponseDto> {
+    await this.forgotPasswordUseCase.execute({
+      email: forgotPasswordDto.email,
+    });
+
+    return new ForgotPasswordResponseDto({
+      message: 'If an account with that email exists, a password reset link has been sent.'
+    });
   }
 
   @Post('reset-password')
@@ -99,13 +111,17 @@ export class AuthController {
   async resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
     @Req() req: Request
-  ) {
-    return this.authService.resetPassword(
-      resetPasswordDto.token,
-      resetPasswordDto.newPassword,
-      req.ip,
-      req.headers["user-agent"] as string | undefined
-    );
+  ): Promise<ResetPasswordResponseDto> {
+    await this.resetPasswordUseCase.execute({
+      token: resetPasswordDto.token,
+      newPassword: resetPasswordDto.newPassword,
+      ipAddress: req.ip ?? '',
+      userAgent: req.headers["user-agent"] as string ?? '',
+    });
+
+    return new ResetPasswordResponseDto({
+      message: 'Password has been reset successfully.'
+    });
   }
 
   @Post('change-password')
