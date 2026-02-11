@@ -10,6 +10,37 @@ import { AggregateRoot } from "src/core/domain/aggregates/aggregate-root.base";
 import { UserRegisteredEvent } from "../events/user-registered.event";
 import { CannotResetPasswordError } from "../errors/cannot-reset-password.error";
 import { CannotChangePasswordError } from "../errors/cannot-change-password.error";
+import { Name } from "src/modules/users/domain/value-objects/name.vo";
+
+interface AuthUserProps {
+  name: Name;
+  email: Email;
+  emailVerified: boolean;
+  emailVerifiedAt: Date | null;
+  password: Password | null;
+  role: Role;
+  status: Status;
+  provider: AuthProvider;
+  lastLoginAt: Date | null;
+  refreshTokens: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+}
+
+interface RegisterParams {
+  name: Name;
+  email: Email;
+  password: Password;
+  role?: Role;
+}
+
+interface OAuthParams {
+  name: Name;
+  email: Email;
+  provider: AuthProvider;
+  role?: Role;
+}
 
 export class AuthUser extends AggregateRoot {
 
@@ -31,6 +62,7 @@ export class AuthUser extends AggregateRoot {
   public static register(params: RegisterParams): AuthUser {
     const authUser = new AuthUser(UserId.generate(),
       {
+        name: params.name,
         email: params.email,
         emailVerified: false,
         emailVerifiedAt: null,
@@ -65,6 +97,7 @@ export class AuthUser extends AggregateRoot {
 
     return new AuthUser(UserId.generate(),
       {
+        name: params.name,
         email: params.email,
         emailVerified: true,
         emailVerifiedAt: new Date(),
@@ -318,6 +351,7 @@ export class AuthUser extends AggregateRoot {
 
   // ===== Getters ===== //
   public get id(): UserId { return this._id; }
+  public get name(): Name { return this.props.name; }
   public get email(): Email { return this.props.email; }
   public get emailVerified(): boolean { return this.props.emailVerified; }
   public get emailVerifiedAt(): Date | null { return this.props.emailVerifiedAt; }
@@ -332,29 +366,3 @@ export class AuthUser extends AggregateRoot {
   public get deletedAt(): Date | null { return this.props.deletedAt; }
 }
 
-interface AuthUserProps {
-  email: Email;
-  emailVerified: boolean;
-  emailVerifiedAt: Date | null;
-  password: Password | null;
-  role: Role;
-  status: Status;
-  provider: AuthProvider;
-  lastLoginAt: Date | null;
-  refreshTokens: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-}
-
-interface RegisterParams {
-  email: Email;
-  password: Password;
-  role?: Role;
-}
-
-interface OAuthParams {
-  email: Email;
-  provider: AuthProvider;
-  role?: Role;
-}

@@ -31,6 +31,8 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
           where: { id: userId },
           select: {
             id: true,
+            firstName: true,
+            lastName: true,
             email: true,
             emailVerified: true,
             emailVerifiedAt: true,
@@ -65,6 +67,8 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
           where: { email: email },
           select: {
             id: true,
+            firstName: true,
+            lastName: true,
             email: true,
             emailVerified: true,
             emailVerifiedAt: true,

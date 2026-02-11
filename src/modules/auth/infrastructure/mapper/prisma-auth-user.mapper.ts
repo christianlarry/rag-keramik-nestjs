@@ -6,9 +6,12 @@ import { Role } from "src/modules/users/domain/value-objects/role.vo";
 import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../../domain/value-objects/auth-provider.vo";
 import { createEnumMapper } from "src/core/infrastructure/mapper/create-enum-mapper";
+import { Name } from "src/modules/users/domain/value-objects/name.vo";
 
 interface RawAuthUser {
   id: string;
+  firstName: string;
+  lastName: string;
   email: string;
   emailVerified: boolean;
   emailVerifiedAt: Date | null;
@@ -27,6 +30,7 @@ interface RawAuthUser {
 export class PrismaAuthUserMapper {
   static toDomain(raw: RawAuthUser): AuthUser {
 
+    const name = Name.create(raw.firstName, raw.lastName);
     const email = Email.create(raw.email)
     const password = raw.password ? Password.fromHash(raw.password) : null;
     const role = Role.create(roleMapper.toEntity(raw.role));
@@ -34,6 +38,7 @@ export class PrismaAuthUserMapper {
     const provider = AuthProvider.create(providerMapper.toEntity(raw.provider), raw.providerId);
 
     return AuthUser.reconstruct(raw.id, {
+      name: name,
       email: email,
       emailVerified: raw.emailVerified,
       emailVerifiedAt: raw.emailVerifiedAt,
@@ -51,6 +56,8 @@ export class PrismaAuthUserMapper {
 
   static toPersistence(user: AuthUser): RawAuthUser {
     return {
+      firstName: user.name.getFirstName(),
+      lastName: user.name.getLastName(),
       id: user.id.getValue(),
       email: user.email.getValue(),
       emailVerified: user.emailVerified,

@@ -3,7 +3,9 @@ import { Transform } from "class-transformer";
 import {
   IsEmail,
   IsNotEmpty,
-  IsStrongPassword
+  IsString,
+  IsStrongPassword,
+  MinLength
 } from "class-validator";
 
 /*
@@ -79,11 +81,11 @@ export class AuthRegisterDto {
   email: string;
 
   @ApiProperty({ example: 'StrongP@ssw0rd123!', description: 'Password for the user account' })
+  @IsString()
   @IsStrongPassword()
   @IsNotEmpty()
   password: string;
 
-  /*
   @ApiProperty({ example: 'John', description: 'First name of the user' })
   @IsString()
   @MinLength(2)
@@ -96,6 +98,7 @@ export class AuthRegisterDto {
   @IsNotEmpty()
   lastName: string;
 
+  /*
   @ApiProperty({ example: 'male', description: 'Gender of the user', enum: Gender })
   @IsNotEmpty()
   @Transform((val) => val.value?.toUpperCase()?.trim())

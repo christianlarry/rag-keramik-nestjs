@@ -11,9 +11,12 @@ import { AuditService } from "src/modules/audit/audit.service";
 import { MailService } from "src/modules/mail/mail.service";
 import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
 import { TokenService } from "src/modules/token/token.service";
+import { Name } from "src/modules/users/domain/value-objects/name.vo";
 
 interface RegisterCommand {
   // Auth Info
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
 }
@@ -56,12 +59,14 @@ export class RegisterUseCase {
     if (exists) throw new EmailAlreadyInUseError(command.email);
 
     // Create value objects
+    const name: Name = Name.create(command.firstName, command.lastName);
     const hashedPassword: Password = await Password.create(command.password, this.passwordHasher);
     const email: Email = Email.create(command.email);
     const role: Role = Role.createCustomer();
 
     // Create user entity
     const authUser: AuthUser = AuthUser.register({
+      name: name,
       email: email,
       password: hashedPassword,
       role: role
