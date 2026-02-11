@@ -238,6 +238,17 @@ export class AuthUser extends AggregateRoot {
     return this.canResetPassword();
   }
 
+  public canForgetPassword(): boolean {
+    return this.canResetPassword();
+  }
+
+  public ensureNewPasswordIsDifferent(newPassword: Password): boolean {
+    if (this.props.password === null) {
+      return true;
+    }
+    return !this.props.password.equals(newPassword);
+  }
+
   public isUsingOAuthProvider(): boolean {
     return this.props.provider.isOAuth();
   }
@@ -332,6 +343,10 @@ export class AuthUser extends AggregateRoot {
       throw new CannotChangePasswordError('User cannot change password. Ensure user is active, using local provider, has a password set, and email is verified.');
     }
 
+    if (!this.ensureNewPasswordIsDifferent(newPassword)) {
+      throw new CannotChangePasswordError('New password must be different from the current password.');
+    }
+
     this.props.password = newPassword;
 
     this.props.updatedAt = new Date();
@@ -341,6 +356,10 @@ export class AuthUser extends AggregateRoot {
   public resetPassword(newPassword: Password): void {
     if (!this.canResetPassword()) {
       throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
+    }
+
+    if (!this.ensureNewPasswordIsDifferent(newPassword)) {
+      throw new CannotResetPasswordError('New password must be different from the current password.');
     }
 
     this.props.password = newPassword;

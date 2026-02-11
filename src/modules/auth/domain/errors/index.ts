@@ -9,3 +9,6 @@ export * from "./auth-user-not-found.error";
 export * from "./email-not-verified.error";
 export * from "./cannot-verify-email.error";
 export * from "./cannot-unverify-email.error"
+export * from "./cannot-reset-password.error";
+export * from "./cannot-change-password.error";
+export * from "./cannot-forgot-password.error";

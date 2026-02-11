@@ -55,13 +55,13 @@ export class TokenService {
   /**
    * Generate password reset token with dynamic secret
    */
-  async generatePasswordResetToken(userId: string, password: string): Promise<string> {
+  async generatePasswordResetToken(userId: string): Promise<string> {
     const payload: IPasswordResetPayload = {
       sub: userId,
       type: TokenType.PASSWORD_RESET,
     }
 
-    return this.generateToken<IPasswordResetPayload>(payload, TokenType.PASSWORD_RESET, password);
+    return this.generateToken<IPasswordResetPayload>(payload, TokenType.PASSWORD_RESET);
   }
 
   /**

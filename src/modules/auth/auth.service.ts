@@ -171,6 +171,7 @@ export class AuthService {
       // Send Welcome Email (Optional)
       await this.mailService.sendWelcomeEmail({
         to: updatedUser.email,
+        name: `${updatedUser.firstName} ${updatedUser.lastName}`,
       });
     });
 
@@ -197,7 +198,7 @@ export class AuthService {
       }
 
       // Generate password reset token with Dynamic Secret (using user's current hashed password)
-      const passwordResetToken = await this.tokenService.generatePasswordResetToken(user.id, user.password);
+      const passwordResetToken = await this.tokenService.generatePasswordResetToken(user.id);
 
       //Send password reset email
       await this.mailService.sendResetPasswordEmail({
@@ -583,6 +584,7 @@ export class AuthService {
     // Send Verification Email
     await this.mailService.sendVerificationEmail({
       to: email,
+      name: name,
       token
     });
   }

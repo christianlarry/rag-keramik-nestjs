@@ -17,6 +17,8 @@ import { UNIT_OF_WORK_TOKEN } from "src/core/application/unit-of-work.interface"
 import { PrismaUnitOfWork } from "../prisma/prisma-unit-of-work";
 import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
 import { VerifyEmailUseCase } from "./application/use-cases/verify-email.usecase";
+import { ResetPasswordUseCase } from "./application/use-cases/reset-password.usecase";
+import { PasswordResetRepository } from "./infrastructure/repositories/password-reset.repository";
 
 @Module({
   imports: [
@@ -44,11 +46,13 @@ import { VerifyEmailUseCase } from "./application/use-cases/verify-email.usecase
       provide: UNIT_OF_WORK_TOKEN,
       useClass: PrismaUnitOfWork
     },
+    PasswordResetRepository,
 
     // Use Cases can be added here
     RegisterUseCase,
     ResendEmailVerificationUseCase,
-    VerifyEmailUseCase
+    VerifyEmailUseCase,
+    ResetPasswordUseCase,
   ]
 })
 export class AuthModule { }
