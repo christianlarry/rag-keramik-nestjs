@@ -39,6 +39,10 @@ export class ResetPasswordUseCase {
   ) { }
 
   async execute(command: ResetPasswordCommand): Promise<void> {
+
+    // Validate New Password - Ensure it before any processing
+    Password.validateRaw(command.newPassword);
+
     // Hash token becauase stored token is hashed
     const hashedToken = this.tokenGenerator.hashToken(command.token);
 
@@ -56,15 +60,19 @@ export class ResetPasswordUseCase {
       throw new TokenInvalidError('Invalid or Expired Reset Password Token'); // Do not reveal user existence
     }
 
-    // Create new Password VO
-    const newPassword = await Password.create(command.newPassword, this.passwordHasher);
+    // Ensure user can reset password
+    authUser.ensureCanResetPassword();
 
     // Validate that the new password is different from the old one
-    const isSamePassword = await this.passwordHasher.compare(command.newPassword, authUser.password?.getValue() ?? '');
+    const isSamePassword = await this.passwordHasher.compare(command.newPassword, authUser.password!.getValue());
     if (isSamePassword) {
       this.logger.warn(`User ID ${authUser.id.getValue()} attempted to reset to the same password from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
       throw new CannotResetPasswordError('New password must be different from the old password');
     }
+
+    // Create new Password VO
+    const hashedNewPassword = await this.passwordHasher.hash(command.newPassword);
+    const newPassword = await Password.fromHash(hashedNewPassword);
 
     // Reset the user's password
     authUser.resetPassword(newPassword);
@@ -82,7 +90,7 @@ export class ResetPasswordUseCase {
     })
 
     // Remove the token from cache to prevent reuse
-    await this.passwordResetTokenRepository.invalidate(command.token);
+    await this.passwordResetTokenRepository.invalidate(hashedToken);
 
     this.logger.log(`Password reset successfully for user ID ${authUser.id.getValue()} from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
 

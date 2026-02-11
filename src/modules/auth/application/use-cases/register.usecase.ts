@@ -63,9 +63,13 @@ export class RegisterUseCase {
     const exists = await this.authUserRepository.isEmailExisting(command.email);
     if (exists) throw new EmailAlreadyInUseError(command.email);
 
+    // Validate and hash password
+    Password.validateRaw(command.password);
+    const hashedPassword = await this.passwordHasher.hash(command.password);
+
     // Create value objects
     const name: Name = Name.create(command.firstName, command.lastName);
-    const hashedPassword: Password = await Password.create(command.password, this.passwordHasher);
+    const password: Password = await Password.fromHash(hashedPassword);
     const email: Email = Email.create(command.email);
     const role: Role = Role.createCustomer();
 
@@ -73,7 +77,7 @@ export class RegisterUseCase {
     const authUser: AuthUser = AuthUser.register({
       name: name,
       email: email,
-      password: hashedPassword,
+      password: password,
       role: role
     })
 

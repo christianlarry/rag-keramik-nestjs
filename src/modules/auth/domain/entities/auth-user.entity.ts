@@ -250,6 +250,25 @@ export class AuthUser extends AggregateRoot {
     return this.props.provider.isLocal();
   }
 
+  public isInactiveForOneWeek(): boolean {
+    if (!this.props.lastLoginAt) {
+      return true;
+    }
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    return this.props.lastLoginAt < oneWeekAgo;
+  }
+
+  public isInactiveForOneMonth(): boolean {
+    if (!this.props.lastLoginAt) {
+      return true;
+    }
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    return this.props.lastLoginAt < oneMonthAgo;
+  }
+
+
   // ===== Command methods ===== //
 
   // == Email Verification Management == //
@@ -310,15 +329,13 @@ export class AuthUser extends AggregateRoot {
   }
 
   // == Login Management == //
-  public authenticate(): void {
+  public ensureCanLogin(): void {
     if (!this.canLogin()) {
       throw new CannotLoginError('User cannot login. Ensure user is active, using valid provider, and email is verified.');
     }
-
-    this.recordLogin();
   }
 
-  public recordLogin(): void {
+  public recordSuccessfulLogin(): void {
     this.props.lastLoginAt = new Date();
     this.props.updatedAt = new Date();
   }
@@ -362,6 +379,12 @@ export class AuthUser extends AggregateRoot {
     this.clearRefreshTokens();
   }
 
+  public ensureCanChangePassword(): void {
+    if (!this.canChangePassword()) {
+      throw new CannotChangePasswordError('User cannot change password. Ensure user is active, using local provider, has a password set, and email is verified.');
+    }
+  }
+
   public resetPassword(newPassword: Password): void {
     if (!this.canResetPassword()) {
       throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
@@ -371,6 +394,12 @@ export class AuthUser extends AggregateRoot {
 
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+  }
+
+  public ensureCanResetPassword(): void {
+    if (!this.canResetPassword()) {
+      throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
+    }
   }
 
   // ===== Getters ===== //

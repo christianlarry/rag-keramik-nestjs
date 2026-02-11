@@ -44,15 +44,15 @@ export class LoginWithEmailUseCase {
   ) { }
 
   async execute(command: LoginWithEmailCommand): Promise<LoginWithEmailResult> {
-    // Find user by email
+    // Find user by email & validate email exists
     const authUser = await this.authUserRepository.findByEmail(command.email);
+    if (!authUser) throw new InvalidCredentialsError();
 
-    // Validate credentials
-    const isPasswordValid = authUser ? await this.passwordHasher.compare(command.password, authUser.password?.getValue() ?? '') : false;
-    if (!authUser || !isPasswordValid) throw new InvalidCredentialsError();
+    authUser.ensureCanLogin();
 
-    // Authenticate user
-    authUser.authenticate()
+    // Validate password
+    const isPasswordValid = await this.passwordHasher.compare(command.password, authUser.password!.getValue());
+    if (!isPasswordValid) throw new InvalidCredentialsError();
 
     // Token: Generate JWT and Refresh Token (handled elsewhere)
     const accessToken = await this.accessTokenGenerator.generate({
@@ -66,6 +66,7 @@ export class LoginWithEmailUseCase {
 
     // Save refresh token to user
     authUser.addRefreshToken(refreshToken);
+    authUser.recordSuccessfulLogin();
 
     await this.uow.withTransaction(async () => {
       // Persist user changes
