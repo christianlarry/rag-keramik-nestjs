@@ -95,17 +95,17 @@ export class TokenService {
    * Verify token based on type
    * @returns Decoded token payload
    */
-  async verifyToken(
+  async verifyToken<T>(
     token: string,
     type: TokenType,
     dynamicSecretSuffix?: string,
-  ): Promise<any> {
+  ): Promise<T> {
     try {
       const config = this.getTokenConfig(type);
 
       return this.jwtService.verifyAsync(token, {
         secret: dynamicSecretSuffix ? `${config.secret}${dynamicSecretSuffix}` : config.secret
-      });
+      }) as T;
     } catch (err) {
       if (err instanceof JwtTokenExpiredError) {
         throw new TokenExpiredError('Token has expired');

@@ -8,6 +8,8 @@ import { InvalidProviderError } from "../errors/invalid-provider.error";
 import { CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
 import { AggregateRoot } from "src/core/domain/aggregates/aggregate-root.base";
 import { UserRegisteredEvent } from "../events/user-registered.event";
+import { CannotResetPasswordError } from "../errors/cannot-reset-password.error";
+import { CannotChangePasswordError } from "../errors/cannot-change-password.error";
 
 export class AuthUser extends AggregateRoot {
 
@@ -199,6 +201,10 @@ export class AuthUser extends AggregateRoot {
     );
   }
 
+  public canChangePassword(): boolean {
+    return this.canResetPassword();
+  }
+
   public isUsingOAuthProvider(): boolean {
     return this.props.provider.isOAuth();
   }
@@ -288,9 +294,22 @@ export class AuthUser extends AggregateRoot {
 
   // == Password Management == //
   public changePassword(newPassword: Password): void {
-    if (this.props.provider.isLocal() === false) {
-      throw new InvalidAuthStateError('Cannot set password for non-local providers');
+
+    if (!this.canChangePassword()) {
+      throw new CannotChangePasswordError('User cannot change password. Ensure user is active, using local provider, has a password set, and email is verified.');
     }
+
+    this.props.password = newPassword;
+
+    this.props.updatedAt = new Date();
+    this.clearRefreshTokens();
+  }
+
+  public resetPassword(newPassword: Password): void {
+    if (!this.canResetPassword()) {
+      throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
+    }
+
     this.props.password = newPassword;
 
     this.props.updatedAt = new Date();
