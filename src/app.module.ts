@@ -19,7 +19,6 @@ import { BullModule } from '@nestjs/bullmq';
 import { AllConfigType } from './config/config.type';
 import { AuthModule } from './modules/auth/auth.module';
 import redisConfig from './modules/redis/config/redis.config';
-import authConfig from './modules/auth/config/auth.config';
 import { TokenModule } from './modules/token/token.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -31,6 +30,8 @@ import { CacheModule } from './modules/cache/cache.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TokenGeneratorModule } from './core/infrastructure/services/token-generator/token-generator.module';
+import { JwtModule } from '@nestjs/jwt';
+import authConfig from './modules/auth/infrastructure/config/auth.config';
 
 @Module({
   imports: [
@@ -92,6 +93,9 @@ import { TokenGeneratorModule } from './core/infrastructure/services/token-gener
       maxListeners: 10,
       verboseMemoryLeak: false,
       ignoreErrors: false,
+    }),
+    JwtModule.register({
+      global: true,
     }),
     TokenModule,
     PrismaModule,

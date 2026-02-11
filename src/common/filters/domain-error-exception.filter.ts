@@ -5,8 +5,8 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { DomainError } from '../errors/domain.error';
 import { Request, Response } from 'express';
+import { DomainError } from 'src/core/domain/domain-error.base';
 
 /**
  * Exception filter that catches all DomainError exceptions

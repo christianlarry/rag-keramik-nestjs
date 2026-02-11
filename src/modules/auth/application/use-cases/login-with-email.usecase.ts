@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { PASSWORD_HASHER_TOKEN, type PasswordHasher } from "../../domain/services/password-hasher.interface";
 import { InvalidCredentialsError } from "../../domain/errors";
@@ -25,6 +25,8 @@ interface LoginWithEmailResult {
 
 @Injectable()
 export class LoginWithEmailUseCase {
+
+  private readonly logger = new Logger(LoginWithEmailUseCase.name);
 
   constructor(
     @Inject(AUTH_USER_REPOSITORY_TOKEN)

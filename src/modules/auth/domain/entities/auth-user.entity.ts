@@ -279,10 +279,23 @@ export class AuthUser extends AggregateRoot {
 
   // == Refresh Token Management == //
   public addRefreshToken(token: string): void {
+    // Avoid adding duplicate tokens
+    if (this.props.refreshTokens.includes(token)) {
+      return;
+    }
+
+    // Ensure user is active before adding refresh token
     if (!this.props.status.isActive()) {
       throw new InvalidAuthStateError('Cannot add refresh token to inactive user');
     }
+
     this.props.refreshTokens.push(token);
+
+    // Max 5 refresh tokens
+    if (this.props.refreshTokens.length > 5) {
+      this.props.refreshTokens.shift(); // Remove oldest token
+    }
+
     this.props.updatedAt = new Date();
   }
 
