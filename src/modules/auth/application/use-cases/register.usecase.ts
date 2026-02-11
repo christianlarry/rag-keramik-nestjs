@@ -10,8 +10,9 @@ import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-o
 import { AuditService } from "src/modules/audit/audit.service";
 import { MailService } from "src/modules/mail/mail.service";
 import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
-import { TokenService } from "src/modules/token/token.service";
 import { Name } from "src/modules/users/domain/value-objects/name.vo";
+import { VerificationTokenRepository } from "../../infrastructure/repositories/email-verification-token.repository";
+import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";
 
 interface RegisterCommand {
   // Auth Info
@@ -39,14 +40,17 @@ export class RegisterUseCase {
   constructor(
     @Inject(AUTH_USER_REPOSITORY_TOKEN)
     private readonly authUserRepository: AuthUserRepository,
+    private readonly verificationTokenRepository: VerificationTokenRepository,
+
     @Inject(PASSWORD_HASHER_TOKEN)
     private readonly passwordHasher: PasswordHasher,
     @Inject(UNIT_OF_WORK_TOKEN)
     private readonly uow: UnitOfWork,
+    @Inject(TOKEN_GENERATOR_TOKEN)
+    private readonly tokenGenerator: TokenGenerator,
 
     private readonly audit: AuditService,
     private readonly mail: MailService,
-    private readonly token: TokenService,
   ) { }
 
   /**
@@ -105,12 +109,16 @@ export class RegisterUseCase {
   }
 
   async executePostRegistrationTasks(command: PostRegistrationTasksCommand): Promise<void> {
+    const token = this.tokenGenerator.generateWithHash();
+
+    // Save verification token to repository
+    await this.verificationTokenRepository.save(token.hashed, command.userId)
+
     // Send verification email
-    const token = await this.token.generateEmailVerificationToken(command.userId, command.email);
     await this.mail.sendVerificationEmail({
       name: command.name,
       to: command.email,
-      token: token,
+      token: token.raw,
     });
   }
 }
