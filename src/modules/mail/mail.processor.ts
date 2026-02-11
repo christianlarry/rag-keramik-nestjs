@@ -120,6 +120,7 @@ export class MailProcessor extends WorkerHost {
       subject: 'Verify your Keramik Store account',
       templatePath,
       context: {
+        name: data.name,
         verificationUrl,
         expiresIn: data.expiresIn || `${this.configService.get('auth.verificationTokenExpirationHours', { infer: true })!} hours`,
         year: new Date().getFullYear(),
@@ -206,6 +207,7 @@ export class MailProcessor extends WorkerHost {
         year: new Date().getFullYear(),
         frontendUrl: this.configService.get('app.frontendDomain', { infer: true }) || 'https://keramikstore.com',
         email: data.to,
+        name: data.name,
       },
     });
   }

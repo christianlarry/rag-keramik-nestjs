@@ -15,6 +15,7 @@ export interface IMailJobData {
  */
 export interface IVerificationEmailData {
   to: string;
+  name: string;
   token: string;
   verificationUrl?: string; // Generated automatically if not provided
   expiresIn?: string; // Default: "24 hours"
@@ -47,6 +48,7 @@ export interface IPasswordChangedEmailData {
  */
 export interface IWelcomeEmailData {
   to: string;
+  name: string;
 }
 
 /**

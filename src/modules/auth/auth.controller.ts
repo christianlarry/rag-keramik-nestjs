@@ -41,6 +41,8 @@ export class AuthController {
     @Body() registerDto: AuthRegisterDto
   ): Promise<AuthRegisterResponseDto> {
     const result = await this.registerUseCase.execute({
+      firstName: registerDto.firstName,
+      lastName: registerDto.lastName,
       email: registerDto.email,
       password: registerDto.password,
     });

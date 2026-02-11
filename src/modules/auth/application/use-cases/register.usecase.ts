@@ -23,6 +23,7 @@ interface RegisterCommand {
 
 interface PostRegistrationTasksCommand {
   userId: string;
+  name: string;
   email: string;
 }
 
@@ -95,6 +96,7 @@ export class RegisterUseCase {
     // Post-registration tasks (e.g., sending verification email)
     await this.executePostRegistrationTasks({
       userId: authUser.id.getValue(),
+      name: authUser.name.getFullName(),
       email: authUser.email.getValue(),
     });
 
@@ -106,6 +108,7 @@ export class RegisterUseCase {
     // Send verification email
     const token = await this.token.generateEmailVerificationToken(command.userId, command.email);
     await this.mail.sendVerificationEmail({
+      name: command.name,
       to: command.email,
       token: token,
     });

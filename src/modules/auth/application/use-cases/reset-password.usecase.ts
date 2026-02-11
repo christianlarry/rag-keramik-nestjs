@@ -77,7 +77,7 @@ export class ResetPasswordUseCase {
     await this.mail.sendPasswordChangedEmail({
       to: authUser.email.getValue(),
       changedAt: new Date(),
-      name: authUser.name ? authUser.name.getValue() : undefined,
+      name: authUser.name.getFullName(),
       ipAddress: command.ipAddress,
       userAgent: command.userAgent,
     })

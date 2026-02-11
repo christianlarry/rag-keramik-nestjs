@@ -16,6 +16,7 @@ interface VerifyEmailCommand {
 
 interface PastVerifyEmailTasksCommand {
   email: string;
+  name: string;
 }
 
 @Injectable()
@@ -67,12 +68,14 @@ export class VerifyEmailUseCase {
 
     await this.executePostVerifyEmailTasks({
       email: authUser.email.getValue(),
+      name: authUser.name.getFullName(),
     })
   }
 
   async executePostVerifyEmailTasks(command: PastVerifyEmailTasksCommand): Promise<void> {
     await this.mail.sendWelcomeEmail({
       to: command.email,
+      name: command.name
     })
   }
 }

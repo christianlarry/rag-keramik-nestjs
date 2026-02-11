@@ -41,6 +41,7 @@ export class ResendEmailVerificationUseCase {
     const token = await this.token.generateEmailVerificationToken(authUser.id.getValue(), authUser.email.getValue());
     await this.mail.sendVerificationEmail({
       to: authUser.email.getValue(),
+      name: authUser.name.getFullName(),
       token: token,
     })
   }
