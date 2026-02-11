@@ -22,6 +22,8 @@ import { PasswordResetTokenRepository } from "./infrastructure/repositories/pass
 import { ForgotPasswordUseCase } from "./application/use-cases/forgot-password.usecase";
 import { VerificationTokenRepository } from "./infrastructure/repositories/email-verification-token.repository";
 import { TokenGeneratorModule } from "src/core/infrastructure/services/token-generator/token-generator.module";
+import { AccessTokenGenerator } from "./infrastructure/generator/access-token.generator";
+import { RefreshTokenGenerator } from "./infrastructure/generator/refresh-token.generator";
 
 @Module({
   imports: [
@@ -52,6 +54,9 @@ import { TokenGeneratorModule } from "src/core/infrastructure/services/token-gen
     },
     PasswordResetTokenRepository,
     VerificationTokenRepository,
+
+    AccessTokenGenerator,
+    RefreshTokenGenerator,
 
     // Use Cases can be added here
     RegisterUseCase,

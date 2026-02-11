@@ -9,6 +9,7 @@ import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
 import { MailService } from "src/modules/mail/mail.service";
 import { PasswordResetTokenRepository } from "../../infrastructure/repositories/password-reset-token.repository";
 import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";
+import { CannotResetPasswordError } from "../../domain/errors";
 
 interface ResetPasswordCommand {
   token: string;
@@ -57,6 +58,13 @@ export class ResetPasswordUseCase {
 
     // Create new Password VO
     const newPassword = await Password.create(command.newPassword, this.passwordHasher);
+
+    // Validate that the new password is different from the old one
+    const isSamePassword = await this.passwordHasher.compare(command.newPassword, authUser.password?.getValue() ?? '');
+    if (isSamePassword) {
+      this.logger.warn(`User ID ${authUser.id.getValue()} attempted to reset to the same password from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
+      throw new CannotResetPasswordError('New password must be different from the old password');
+    }
 
     // Reset the user's password
     authUser.resetPassword(newPassword);

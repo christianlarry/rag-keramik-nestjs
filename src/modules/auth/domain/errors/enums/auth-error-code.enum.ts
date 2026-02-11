@@ -11,6 +11,7 @@ export const AuthErrorCode = {
   CANNOT_RESET_PASSWORD: 'AUTH_CANNOT_RESET_PASSWORD',
   CANNOT_CHANGE_PASSWORD: 'AUTH_CANNOT_CHANGE_PASSWORD',
   CANNOT_FORGOT_PASSWORD: 'AUTH_CANNOT_FORGOT_PASSWORD',
+  CANNOT_LOGIN: 'AUTH_CANNOT_LOGIN',
 } as const;
 
 export type AuthErrorCode = typeof AuthErrorCode[keyof typeof AuthErrorCode];

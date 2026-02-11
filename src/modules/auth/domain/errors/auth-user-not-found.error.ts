@@ -1,4 +1,5 @@
-import { DomainError } from "src/common/errors/domain.error";
+
+import { DomainError } from "src/core/domain/domain-error.base";
 import { AuthErrorCode } from "./enums/auth-error-code.enum";
 
 export class AuthUserNotFoundError extends DomainError {

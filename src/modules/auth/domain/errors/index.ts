@@ -12,3 +12,4 @@ export * from "./cannot-unverify-email.error"
 export * from "./cannot-reset-password.error";
 export * from "./cannot-change-password.error";
 export * from "./cannot-forgot-password.error";
+export * from "./cannot-login.error";

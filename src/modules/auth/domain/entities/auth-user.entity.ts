@@ -5,7 +5,7 @@ import { Role } from "src/modules/users/domain/value-objects/role.vo";
 import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../value-objects/auth-provider.vo";
 import { InvalidProviderError } from "../errors/invalid-provider.error";
-import { CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
+import { CannotLoginError, CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
 import { UserRegisteredEvent } from "../events/user-registered.event";
 import { CannotResetPasswordError } from "../errors/cannot-reset-password.error";
 import { CannotChangePasswordError } from "../errors/cannot-change-password.error";
@@ -242,13 +242,6 @@ export class AuthUser extends AggregateRoot {
     return this.canResetPassword();
   }
 
-  public ensureNewPasswordIsDifferent(newPassword: Password): boolean {
-    if (this.props.password === null) {
-      return true;
-    }
-    return !this.props.password.equals(newPassword);
-  }
-
   public isUsingOAuthProvider(): boolean {
     return this.props.provider.isOAuth();
   }
@@ -304,6 +297,14 @@ export class AuthUser extends AggregateRoot {
   }
 
   // == Login Management == //
+  public authenticate(): void {
+    if (!this.canLogin()) {
+      throw new CannotLoginError('User cannot login. Ensure user is active, using valid provider, and email is verified.');
+    }
+
+    this.recordLogin();
+  }
+
   public recordLogin(): void {
     this.props.lastLoginAt = new Date();
     this.props.updatedAt = new Date();
@@ -338,13 +339,8 @@ export class AuthUser extends AggregateRoot {
 
   // == Password Management == //
   public changePassword(newPassword: Password): void {
-
     if (!this.canChangePassword()) {
       throw new CannotChangePasswordError('User cannot change password. Ensure user is active, using local provider, has a password set, and email is verified.');
-    }
-
-    if (!this.ensureNewPasswordIsDifferent(newPassword)) {
-      throw new CannotChangePasswordError('New password must be different from the current password.');
     }
 
     this.props.password = newPassword;
@@ -356,10 +352,6 @@ export class AuthUser extends AggregateRoot {
   public resetPassword(newPassword: Password): void {
     if (!this.canResetPassword()) {
       throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
-    }
-
-    if (!this.ensureNewPasswordIsDifferent(newPassword)) {
-      throw new CannotResetPasswordError('New password must be different from the current password.');
     }
 
     this.props.password = newPassword;
