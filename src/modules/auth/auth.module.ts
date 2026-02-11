@@ -21,6 +21,7 @@ import { ResetPasswordUseCase } from "./application/use-cases/reset-password.use
 import { PasswordResetTokenRepository } from "./infrastructure/repositories/password-reset-token.repository";
 import { ForgotPasswordUseCase } from "./application/use-cases/forgot-password.usecase";
 import { VerificationTokenRepository } from "./infrastructure/repositories/email-verification-token.repository";
+import { TokenGeneratorModule } from "src/core/infrastructure/services/token-generator/token-generator.module";
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { VerificationTokenRepository } from "./infrastructure/repositories/email
     PassportModule,
     TokenModule,
     MailModule,
-    AuditModule
+    AuditModule,
+    TokenGeneratorModule
   ],
   controllers: [AuthController],
   providers: [

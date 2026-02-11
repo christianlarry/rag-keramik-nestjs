@@ -2,8 +2,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { MailService } from "src/modules/mail/mail.service";
 import { PasswordResetTokenRepository } from "../../infrastructure/repositories/password-reset-token.repository";
-
-import crypto from 'crypto';
+import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";
 
 interface ForgotPasswordCommand {
   email: string;
@@ -19,6 +18,9 @@ export class ForgotPasswordUseCase {
     private readonly authUserRepository: AuthUserRepository,
     private readonly passwordResetTokenRepository: PasswordResetTokenRepository,
 
+    @Inject(TOKEN_GENERATOR_TOKEN)
+    private readonly tokenGenerator: TokenGenerator,
+
     private readonly mail: MailService,
   ) { }
 
@@ -28,23 +30,17 @@ export class ForgotPasswordUseCase {
 
     if (authUser && authUser.canForgetPassword()) {
       // Generate password reset token
-      const resetPasswordToken = await this.generateResetToken();
+      const resetPasswordToken = await this.tokenGenerator.generateWithHash();
 
       // Save token to redis or similar with expiration for validation during reset
-      await this.passwordResetTokenRepository.save(resetPasswordToken, authUser.id.getValue());
+      await this.passwordResetTokenRepository.save(resetPasswordToken.hashed, authUser.id.getValue());
 
       // Send reset password email
       await this.mail.sendResetPasswordEmail({
         to: authUser.email.getValue(),
         name: authUser.name.getFullName(),
-        token: resetPasswordToken,
+        token: resetPasswordToken.raw,
       });
     }
-  }
-
-  private async generateResetToken(): Promise<string> {
-    // Implement token generation logic here (Opaque token)
-    const randomBytes = crypto.randomBytes(32).toString('hex');
-    return crypto.createHash('sha256').update(randomBytes).digest('hex');
   }
 }

@@ -8,6 +8,7 @@ import { AuditService } from "src/modules/audit/audit.service";
 import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
 import { MailService } from "src/modules/mail/mail.service";
 import { PasswordResetTokenRepository } from "../../infrastructure/repositories/password-reset-token.repository";
+import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";
 
 interface ResetPasswordCommand {
   token: string;
@@ -22,11 +23,14 @@ export class ResetPasswordUseCase {
   constructor(
     @Inject(AUTH_USER_REPOSITORY_TOKEN)
     private readonly authUserRepository: AuthUserRepository,
+    private readonly passwordResetTokenRepository: PasswordResetTokenRepository,
+
     @Inject(PASSWORD_HASHER_TOKEN)
     private readonly passwordHasher: PasswordHasher,
     @Inject(UNIT_OF_WORK_TOKEN)
     private readonly uow: UnitOfWork,
-    private readonly passwordResetTokenRepository: PasswordResetTokenRepository,
+    @Inject(TOKEN_GENERATOR_TOKEN)
+    private readonly tokenGenerator: TokenGenerator,
 
     private readonly audit: AuditService,
     private readonly mail: MailService,
@@ -34,8 +38,11 @@ export class ResetPasswordUseCase {
   ) { }
 
   async execute(command: ResetPasswordCommand): Promise<void> {
-    // Check token against cache to ensure it's valid and not used/revoked
-    const cachedUserId = await this.passwordResetTokenRepository.get<string>(command.token);
+    // Hash token becauase stored token is hashed
+    const hashedToken = this.tokenGenerator.hashToken(command.token);
+
+    // Validate token and get user ID
+    const cachedUserId = await this.passwordResetTokenRepository.get<string>(hashedToken);
     if (!cachedUserId) {
       this.logger.warn(`Expired or invalid password reset token used for user ID ${cachedUserId} from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
       throw new TokenInvalidError('Invalid or Expired Reset Password Token');

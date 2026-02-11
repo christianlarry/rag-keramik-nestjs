@@ -1,4 +1,4 @@
-import { DomainEvent } from "src/core/domain/events/domain-event.base";
+import { DomainEvent } from "src/core/domain/domain-event.base";
 
 interface UserRegisteredEventPayload {
   readonly userId: string;

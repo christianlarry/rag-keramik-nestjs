@@ -30,6 +30,7 @@ import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
 import { CacheModule } from './modules/cache/cache.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { TokenGeneratorModule } from './core/infrastructure/services/token-generator/token-generator.module';
 
 @Module({
   imports: [
@@ -98,7 +99,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     MailModule,
     UsersModule,
     AuthModule,
-    AuditModule
+    AuditModule,
+    TokenGeneratorModule,
   ],
   controllers: [
     AppController

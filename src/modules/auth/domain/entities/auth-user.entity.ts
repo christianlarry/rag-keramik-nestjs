@@ -6,11 +6,11 @@ import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../value-objects/auth-provider.vo";
 import { InvalidProviderError } from "../errors/invalid-provider.error";
 import { CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
-import { AggregateRoot } from "src/core/domain/aggregates/aggregate-root.base";
 import { UserRegisteredEvent } from "../events/user-registered.event";
 import { CannotResetPasswordError } from "../errors/cannot-reset-password.error";
 import { CannotChangePasswordError } from "../errors/cannot-change-password.error";
 import { Name } from "src/modules/users/domain/value-objects/name.vo";
+import { AggregateRoot } from "src/core/domain/aggregate-root.base";
 
 interface AuthUserProps {
   name: Name;
