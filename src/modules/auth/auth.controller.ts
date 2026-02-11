@@ -25,6 +25,8 @@ import { ForgotPasswordUseCase } from "./application/use-cases/forgot-password.u
 import { ResetPasswordUseCase } from "./application/use-cases/reset-password.usecase";
 import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-response.dto";
 import { ResetPasswordResponseDto } from "./dto/response/reset-password-response.dto";
+import { LoginWithEmailUseCase } from "./application/use-cases/login-with-email.usecase";
+import { AuthLoginResponseDto } from "./dto/response/auth-login-response.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -38,6 +40,7 @@ export class AuthController {
     private readonly verifyEmailUseCase: VerifyEmailUseCase,
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
+    private readonly loginWithEmailUseCase: LoginWithEmailUseCase,
   ) { }
 
   @Post('register')
@@ -142,8 +145,21 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.STRICT, ttl: TTL.FIFTEEN_MINUTES } }) // 5 requests per 15 minutes
-  async login(@Body() loginDto: AuthLoginDto) {
-    return this.authService.loginWithEmail(loginDto.email, loginDto.password);
+  async login(@Body() loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
+    const result = await this.loginWithEmailUseCase.execute({
+      email: loginDto.email,
+      password: loginDto.password,
+    })
+
+    return new AuthLoginResponseDto({
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: {
+        'id': result.user.id,
+        'email': result.user.email,
+        'fullName': result.user.fullName,
+      }
+    });
   }
 
   @Post('logout')

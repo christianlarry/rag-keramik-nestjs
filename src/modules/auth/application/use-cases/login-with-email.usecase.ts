@@ -8,12 +8,12 @@ import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
 import { AccessTokenGenerator } from "../../infrastructure/generator/access-token.generator";
 import { RefreshTokenGenerator } from "../../infrastructure/generator/refresh-token.generator";
 
-interface LoginCommand {
+interface LoginWithEmailCommand {
   email: string;
   password: string;
 }
 
-interface LoginResult {
+interface LoginWithEmailResult {
   accessToken: string;
   refreshToken: string;
   user: {
@@ -24,7 +24,7 @@ interface LoginResult {
 }
 
 @Injectable()
-export class LoginUseCase {
+export class LoginWithEmailUseCase {
 
   constructor(
     @Inject(AUTH_USER_REPOSITORY_TOKEN)
@@ -41,7 +41,7 @@ export class LoginUseCase {
     private readonly refreshTokenGenerator: RefreshTokenGenerator,
   ) { }
 
-  async execute(command: LoginCommand): Promise<LoginResult> {
+  async execute(command: LoginWithEmailCommand): Promise<LoginWithEmailResult> {
     // Find user by email
     const authUser = await this.authUserRepository.findByEmail(command.email);
 

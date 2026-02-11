@@ -24,6 +24,7 @@ import { VerificationTokenRepository } from "./infrastructure/repositories/email
 import { TokenGeneratorModule } from "src/core/infrastructure/services/token-generator/token-generator.module";
 import { AccessTokenGenerator } from "./infrastructure/generator/access-token.generator";
 import { RefreshTokenGenerator } from "./infrastructure/generator/refresh-token.generator";
+import { LoginWithEmailUseCase } from "./application/use-cases/login-with-email.usecase";
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { RefreshTokenGenerator } from "./infrastructure/generator/refresh-token.
     VerifyEmailUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
+    LoginWithEmailUseCase
   ]
 })
 export class AuthModule { }
