@@ -38,6 +38,7 @@
     "@nestjs/throttler": "^6.5.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "argon2": "^0.44.0",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.66.4",
     "class-transformer": "^0.5.1",

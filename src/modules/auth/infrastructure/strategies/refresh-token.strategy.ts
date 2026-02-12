@@ -9,6 +9,7 @@ import { UsersService } from "src/modules/users/users.service";
 import { UserStatus } from "src/generated/prisma/enums";
 import { IRefreshPayload } from "src/modules/token/interfaces/refresh-payload.interface";
 import { TokenType } from "src/modules/token/enums/token-type.enum";
+import { RefreshTokenGenerator, RefreshTokenPayload } from "../generator/refresh-token.generator";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refresh") {
@@ -32,8 +33,8 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
     })
   }
 
-  override async validate(req: Request, payload: IRefreshPayload) {
-    if (payload.type !== TokenType.REFRESH) {
+  override async validate(req: Request, payload: RefreshTokenPayload) {
+    if (payload.type !== RefreshTokenGenerator.TokenType) {
       throw new UnauthorizedException('Invalid token type');
     }
 

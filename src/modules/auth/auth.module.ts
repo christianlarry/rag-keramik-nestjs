@@ -12,7 +12,6 @@ import { AUTH_USER_REPOSITORY_TOKEN } from "./domain/repositories/auth-user-repo
 import { PrismaAuthUserRepository } from "./infrastructure/repositories/prisma-auth-user.repository";
 import { RegisterUseCase } from "./application/use-cases/register.usecase";
 import { PASSWORD_HASHER_TOKEN } from "./domain/services/password-hasher.interface";
-import { BcryptPasswordHasher } from "./infrastructure/hasher/bcrypt-password.hasher";
 import { UNIT_OF_WORK_TOKEN } from "src/core/application/unit-of-work.interface";
 import { PrismaUnitOfWork } from "../prisma/prisma-unit-of-work";
 import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
@@ -26,6 +25,7 @@ import { AccessTokenGenerator } from "./infrastructure/generator/access-token.ge
 import { RefreshTokenGenerator } from "./infrastructure/generator/refresh-token.generator";
 import { LoginWithEmailUseCase } from "./application/use-cases/login-with-email.usecase";
 import { BlacklistedAccessTokenRepository } from "./infrastructure/repositories/blacklisted-access-token.repository";
+import { Argon2PasswordHasher } from "./infrastructure/hasher/argon2-password.hasher";
 
 @Module({
   imports: [
@@ -48,7 +48,7 @@ import { BlacklistedAccessTokenRepository } from "./infrastructure/repositories/
     },
     {
       provide: PASSWORD_HASHER_TOKEN,
-      useClass: BcryptPasswordHasher
+      useClass: Argon2PasswordHasher
     },
     {
       provide: UNIT_OF_WORK_TOKEN,
