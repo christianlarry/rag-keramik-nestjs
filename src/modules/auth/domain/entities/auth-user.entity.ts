@@ -5,7 +5,7 @@ import { Role } from "src/modules/users/domain/value-objects/role.vo";
 import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../value-objects/auth-provider.vo";
 import { InvalidProviderError } from "../errors/invalid-provider.error";
-import { CannotLoginError, CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
+import { CannotAccessProtectedResourceError, CannotLoginError, CannotRefreshTokenError, CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
 import { UserRegisteredEvent } from "../events/user-registered.event";
 import { CannotResetPasswordError } from "../errors/cannot-reset-password.error";
 import { CannotChangePasswordError } from "../errors/cannot-change-password.error";
@@ -242,6 +242,17 @@ export class AuthUser extends AggregateRoot {
     return this.canResetPassword();
   }
 
+  public canAccessProtectedResources(): boolean {
+    return this.props.status.isActive() && this.props.emailVerified;
+  }
+
+  public canRefreshToken(): boolean {
+    return (
+      this.props.status.isActive() &&
+      !this.hasNoRefreshTokens()// User must have at least one active refresh token to be able to refresh  
+    );
+  }
+
   public isUsingOAuthProvider(): boolean {
     return this.props.provider.isOAuth();
   }
@@ -334,6 +345,18 @@ export class AuthUser extends AggregateRoot {
 
   public hasNoRefreshTokens(): boolean {
     return this.props.refreshTokens.length === 0;
+  }
+
+  public ensureCanRefreshToken(): void {
+    if (!this.canRefreshToken()) {
+      throw new CannotRefreshTokenError('User cannot refresh token. Ensure user is active and has at least one active refresh token.');
+    }
+  }
+
+  public ensureCanAccessProtectedResources(): void {
+    if (!this.canAccessProtectedResources()) {
+      throw new CannotAccessProtectedResourceError('User cannot access protected resources. Ensure user is active and email is verified.');
+    }
   }
 
   // == Login Management == //

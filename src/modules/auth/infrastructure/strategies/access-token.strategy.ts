@@ -1,11 +1,10 @@
-import { ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from 'src/config/config.type';
-import { BlacklistedAccessTokenRepository } from '../repositories/blacklisted-access-token.repository';
-import { AccessTokenGenerator, AccessTokenPayload } from '../generator/access-token.generator';
-import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from '../../domain/repositories/auth-user-repository.interface';
+import { AccessTokenPayload } from '../generator/access-token.generator';
+import { ValidateAccessTokenUseCase } from '../../application/use-cases/validate-access-token.usecase';
 
 /**
  * JWT Authentication Strategy
@@ -33,9 +32,7 @@ import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from '../../domai
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
-    private readonly blacklistedAccessTokenRepository: BlacklistedAccessTokenRepository,
-    @Inject(AUTH_USER_REPOSITORY_TOKEN)
-    private readonly authUserRepository: AuthUserRepository,
+    private readonly validateAccessTokenUseCase: ValidateAccessTokenUseCase,
   ) {
     super({
       // Extract JWT dari Authorization header dengan format: "Bearer <token>"
@@ -61,45 +58,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
    * @throws UnauthorizedException jika token type bukan 'access'
    */
   async validate(payload: AccessTokenPayload): Promise<Record<string, any>> {
-    // Check token blacklisting
-    const isBlacklisted = await this.blacklistedAccessTokenRepository.get(payload.jti);
-    if (isBlacklisted) {
-      throw new UnauthorizedException('Token has been revoked.');
-    }
-
-    // Validasi token type - hanya terima access token
-    // Refresh token tidak boleh digunakan untuk access protected routes
-    if (payload.type !== AccessTokenGenerator.TokenType) {
-      throw new UnauthorizedException('Invalid token type. Access token required.');
-    }
-
-    // Fetch user dari database
-    const authUser = await this.authUserRepository.findById(payload.sub);
-    if (!authUser) {
-      throw new UnauthorizedException('User not found.');
-    }
-
-    // Cek email verified, Unauthorized jika tidak memenuhi syarat
-    if (!authUser.emailVerified) {
-      throw new UnauthorizedException('Email not verified. Please verify your email to access this resource.');
-    }
-
-    // Cek status user, Forbidden jika statusnya tidak aktif
-    switch (authUser.status.getValue()) {
-      case 'inactive':
-        throw new ForbiddenException('User account is inactive. Please reactivate your account.');
-      case 'suspended':
-        throw new ForbiddenException('User account is suspended. Contact support for more information.');
-      case 'deleted':
-        throw new ForbiddenException('User account has been deleted.');
-    }
-
-    // Object ini akan tersedia di request.user
-    return {
-      id: authUser.id.getValue(),
-      email: authUser.email.getValue(),
-      role: authUser.role.getValue(),
-    };
+    return this.validateAccessTokenUseCase.execute({ tokenPayload: payload });
   }
 }
 

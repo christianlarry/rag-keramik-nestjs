@@ -5,7 +5,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { IRequestUser } from './interfaces/request-user.interface';
+import { RequestedUser } from 'src/modules/auth/presentation/http/interfaces/requested-user.interface';
 
 /**
  * Custom decorator untuk extract user dari request
@@ -13,7 +13,7 @@ import { IRequestUser } from './interfaces/request-user.interface';
  * 
  * @example
  * // Get full user object
- * async getProfile(@User() user: IRequestUser) { ... }
+ * async getProfile(@User() user: RequestedUser) { ... }
  * 
  * @example
  * // Get specific property (dengan type safety)
@@ -29,14 +29,14 @@ import { IRequestUser } from './interfaces/request-user.interface';
  * @throws UnauthorizedException jika user tidak ditemukan di request (belum authenticated)
  */
 export const User = createParamDecorator(
-  <K extends keyof IRequestUser>(
+  <K extends keyof RequestedUser>(
     data: K | undefined,
     ctx: ExecutionContext,
-  ): IRequestUser | IRequestUser[K] => {
+  ): RequestedUser | RequestedUser[K] => {
     const logger = new Logger('UserDecorator');
 
     const request = ctx.switchToHttp().getRequest();
-    const user = request.user as IRequestUser | undefined;
+    const user = request.user as RequestedUser | undefined;
 
     // Validasi: pastikan user exist di request
     // Ini terjadi jika decorator digunakan tanpa guard atau guard tidak set request.user

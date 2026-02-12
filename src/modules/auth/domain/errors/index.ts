@@ -13,3 +13,5 @@ export * from "./cannot-reset-password.error";
 export * from "./cannot-change-password.error";
 export * from "./cannot-forgot-password.error";
 export * from "./cannot-login.error";
+export * from "./cannot-access-protected-resource.error";
+export * from "./cannot-refresh-token.error";

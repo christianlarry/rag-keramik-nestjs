@@ -17,7 +17,6 @@ import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { JwtRefreshGuard } from "src/common/guards/jwt-refresh.guard";
 import { AuthLoginDto } from "./dto/auth-login.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
-import { User } from "src/common/decorator/user.decorator";
 import { RegisterUseCase } from "./application/use-cases/register.usecase";
 import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
 import { VerifyEmailUseCase } from "./application/use-cases/verify-email.usecase";
@@ -27,6 +26,7 @@ import { ForgotPasswordResponseDto } from "./dto/response/forgot-password-respon
 import { ResetPasswordResponseDto } from "./dto/response/reset-password-response.dto";
 import { LoginWithEmailUseCase } from "./application/use-cases/login-with-email.usecase";
 import { AuthLoginResponseDto } from "./dto/response/auth-login-response.dto";
+import { User } from "src/common/decorator/user.decorator";
 
 @ApiTags('Auth')
 @Controller('auth')
