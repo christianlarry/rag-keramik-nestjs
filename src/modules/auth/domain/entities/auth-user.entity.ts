@@ -328,6 +328,14 @@ export class AuthUser extends AggregateRoot {
     this.props.updatedAt = new Date();
   }
 
+  public hasRefreshToken(token: string): boolean {
+    return this.props.refreshTokens.includes(token);
+  }
+
+  public hasNoRefreshTokens(): boolean {
+    return this.props.refreshTokens.length === 0;
+  }
+
   // == Login Management == //
   public ensureCanLogin(): void {
     if (!this.canLogin()) {

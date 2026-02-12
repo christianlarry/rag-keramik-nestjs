@@ -1,21 +1,21 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { IRequestUser } from "src/common/decorator/interfaces/request-user.interface";
 import { AllConfigType } from "src/config/config.type";
 import { Request } from "express";
 import { UsersService } from "src/modules/users/users.service";
-import { UserStatus } from "src/generated/prisma/enums";
-import { IRefreshPayload } from "src/modules/token/interfaces/refresh-payload.interface";
-import { TokenType } from "src/modules/token/enums/token-type.enum";
 import { RefreshTokenGenerator, RefreshTokenPayload } from "../generator/refresh-token.generator";
+import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
+import { Status } from "src/modules/users/domain/enums/status.enum";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refresh") {
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
     private readonly usersService: UsersService,
+    @Inject(AUTH_USER_REPOSITORY_TOKEN)
+    private readonly authUserRepository: AuthUserRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -33,7 +33,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
     })
   }
 
-  override async validate(req: Request, payload: RefreshTokenPayload) {
+  override async validate(req: Request, payload: RefreshTokenPayload): Promise<Record<string, any>> {
     if (payload.type !== RefreshTokenGenerator.TokenType) {
       throw new UnauthorizedException('Invalid token type');
     }
@@ -44,56 +44,55 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, "jwt-refres
       throw new UnauthorizedException('Refresh token not found');
     }
 
-    const user = await this.usersService.findById(payload.sub);
-    if (!user) {
+    const authUser = await this.authUserRepository.findById(payload.sub);
+    if (!authUser) {
       throw new UnauthorizedException('User not found.');
     }
 
     // Cek apakah user masih aktif
-    this.validateUserStatus(user.status);
+    this.validateUserStatus(authUser.status.getValue());
 
     // Cek apakah ada refresh token di database
-    if (!user.refreshTokens || user.refreshTokens.length === 0) {
+    if (authUser.hasNoRefreshTokens()) {
       throw new UnauthorizedException('No active sessions found. Please log in again.');
     }
 
     // Cek apakah refresh token valid, Jika tidak, hapus semua refresh token (logout dari semua device) Possible token theft
-    if (!user.refreshTokens.includes(incomingRefreshToken)) {
-      await this.usersService.clearRefreshTokens(payload.sub);
+    if (!authUser.hasRefreshToken(incomingRefreshToken)) {
+      authUser.clearRefreshTokens();
+      await this.authUserRepository.save(authUser);
 
       throw new UnauthorizedException('Refresh token is invalid or has been revoked');
     }
 
-    const requestUser: IRequestUser = {
-      id: payload.sub,
-      email: payload.email,
-      role: payload.role,
+    return {
+      id: authUser.id.getValue(),
+      email: authUser.email.getValue(),
+      role: authUser.role.getValue(),
       refreshToken: incomingRefreshToken,
     }
-
-    return requestUser;
   }
 
   /**
    * Validate user account status
    * @throws UnauthorizedException if status is not ACTIVE
    */
-  private validateUserStatus(status: UserStatus | undefined): void {
+  private validateUserStatus(status: Status): void {
     switch (status) {
-      case UserStatus.ACTIVE:
+      case Status.ACTIVE:
         return; // Valid status
 
-      case UserStatus.INACTIVE:
+      case Status.INACTIVE:
         throw new UnauthorizedException(
           'User account is inactive. Please verify your email.'
         );
 
-      case UserStatus.SUSPENDED:
+      case Status.SUSPENDED:
         throw new UnauthorizedException(
           'User account is suspended. Contact support for more information.'
         );
 
-      case UserStatus.DELETED:
+      case Status.DELETED:
         throw new UnauthorizedException(
           'User account has been deleted.'
         );

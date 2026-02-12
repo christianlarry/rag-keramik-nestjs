@@ -37,7 +37,7 @@ export class LogoutUseCase {
     // Invalidate the refresh token
     authUser.removeRefreshToken(command.refreshToken);
 
-    // Blacklist the access token (implementation depends on your token management strategy)
+    // Blacklist the access token by saving its jti to the blacklist repository
     const accessDecoded = await this.accessTokenGenerator.decode(command.accessToken);
     const accessTokenJti = accessDecoded.jti;
     const blacklistExpirationInSeconds = accessDecoded.exp ? accessDecoded.exp - Math.floor(Date.now() / 1000) : 60 * 15;

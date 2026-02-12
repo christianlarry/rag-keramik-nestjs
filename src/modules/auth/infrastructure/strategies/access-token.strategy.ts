@@ -1,13 +1,11 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { IRequestUser } from '../../../../common/decorator/interfaces/request-user.interface';
 import { AllConfigType } from 'src/config/config.type';
-import { UsersService } from 'src/modules/users/users.service';
-import { UserStatus } from 'src/generated/prisma/enums';
 import { BlacklistedAccessTokenRepository } from '../repositories/blacklisted-access-token.repository';
 import { AccessTokenGenerator, AccessTokenPayload } from '../generator/access-token.generator';
+import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from '../../domain/repositories/auth-user-repository.interface';
 
 /**
  * JWT Authentication Strategy
@@ -35,8 +33,9 @@ import { AccessTokenGenerator, AccessTokenPayload } from '../generator/access-to
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
-    private readonly usersService: UsersService,
-    private readonly blacklistedAccessTokenRepository: BlacklistedAccessTokenRepository
+    private readonly blacklistedAccessTokenRepository: BlacklistedAccessTokenRepository,
+    @Inject(AUTH_USER_REPOSITORY_TOKEN)
+    private readonly authUserRepository: AuthUserRepository,
   ) {
     super({
       // Extract JWT dari Authorization header dengan format: "Bearer <token>"
@@ -61,7 +60,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
    * @returns RequestUser object yang akan di-inject ke request.user
    * @throws UnauthorizedException jika token type bukan 'access'
    */
-  async validate(payload: AccessTokenPayload): Promise<IRequestUser> {
+  async validate(payload: AccessTokenPayload): Promise<Record<string, any>> {
     // Check token blacklisting
     const isBlacklisted = await this.blacklistedAccessTokenRepository.get(payload.jti);
     if (isBlacklisted) {
@@ -74,36 +73,33 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
       throw new UnauthorizedException('Invalid token type. Access token required.');
     }
 
-    // Cek status user
-    const user = await this.usersService.findById(payload.sub);
-
-    // Jika user tidak ditemukan atau statusnya tidak valid, tolak akses
-    if (!user) {
+    // Fetch user dari database
+    const authUser = await this.authUserRepository.findById(payload.sub);
+    if (!authUser) {
       throw new UnauthorizedException('User not found.');
     }
 
     // Cek email verified, Unauthorized jika tidak memenuhi syarat
-    if (!user.emailVerified) {
+    if (!authUser.emailVerified) {
       throw new UnauthorizedException('Email not verified. Please verify your email to access this resource.');
     }
 
     // Cek status user, Forbidden jika statusnya tidak aktif
-    switch (user.status) {
-      case UserStatus.INACTIVE:
+    switch (authUser.status.getValue()) {
+      case 'inactive':
         throw new ForbiddenException('User account is inactive. Please reactivate your account.');
-      case UserStatus.SUSPENDED:
+      case 'suspended':
         throw new ForbiddenException('User account is suspended. Contact support for more information.');
-      case UserStatus.DELETED:
+      case 'deleted':
         throw new ForbiddenException('User account has been deleted.');
     }
 
-    // Transform JWT payload ke RequestUser
     // Object ini akan tersedia di request.user
     return {
-      id: payload.sub,
-      email: payload.email,
-      role: payload.role,
-    } as IRequestUser;
+      id: authUser.id.getValue(),
+      email: authUser.email.getValue(),
+      role: authUser.role.getValue(),
+    };
   }
 }
 

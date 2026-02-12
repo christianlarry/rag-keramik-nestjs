@@ -1,5 +1,3 @@
-import { Role } from "src/generated/prisma/enums";
-
 /**
  * Type untuk user object yang ada di request setelah JWT validation
  * Ini adalah object yang akan dimasukkan ke request.user oleh Passport JWT strategy
@@ -18,7 +16,7 @@ export interface IRequestUser {
   /**
    * User role untuk authorization
    */
-  role: Role;
+  role: string;
 
   /**
    * User name (optional)
