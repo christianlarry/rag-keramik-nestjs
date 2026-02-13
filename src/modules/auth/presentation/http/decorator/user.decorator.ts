@@ -5,7 +5,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RequestedUser } from 'src/common/interfaces/requested-user.interface';
+import { RequestedUser } from 'src/modules/auth/presentation/http/interfaces/requested-user.interface';
 
 /**
  * Custom decorator untuk extract user dari request
