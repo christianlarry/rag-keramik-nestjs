@@ -2,8 +2,10 @@ import { PrismaConfig } from "src/modules/prisma/config/prisma-config.type";
 import { MailConfig } from "src/modules/mail/config/mail-config.type";
 import { AppConfig } from "./app/app-config.type";
 import { RedisConfig } from "src/modules/redis/config/redis-config.type";
-import { AuthConfig } from "src/modules/auth/infrastructure/config/auth-config.type";
+import { AuthConfig } from "src/modules/auth/infrastructure/config/types/auth-config.type";
 import { RateLimitConfig } from "./rate-limit/rate-limit-config.type";
+import { AuthFacebookConfig } from "src/modules/auth/infrastructure/config/types/auth-facebook.config.type";
+import { AuthGoogleConfig } from "src/modules/auth/infrastructure/config/types/auth-google-config.type";
 
 export type AllConfigType = {
   // Global Configuration
@@ -16,5 +18,7 @@ export type AllConfigType = {
   // Module Configuration
   mail: MailConfig;
   auth: AuthConfig;
+  authGoogle: AuthGoogleConfig;
+  authFacebook: AuthFacebookConfig;
   rateLimit: RateLimitConfig;
 };

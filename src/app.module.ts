@@ -32,6 +32,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TokenGeneratorModule } from './core/infrastructure/services/token-generator/token-generator.module';
 import { JwtModule } from '@nestjs/jwt';
 import authConfig from './modules/auth/infrastructure/config/auth.config';
+import authGoogleConfig from './modules/auth/infrastructure/config/auth-google.config';
+import authFacebookConfig from './modules/auth/infrastructure/config/auth-facebook.config';
 
 @Module({
   imports: [
@@ -46,6 +48,8 @@ import authConfig from './modules/auth/infrastructure/config/auth.config';
         mailConfig,
         redisConfig,
         authConfig,
+        authGoogleConfig,
+        authFacebookConfig,
         rateLimitConfig
       ],
     }),
