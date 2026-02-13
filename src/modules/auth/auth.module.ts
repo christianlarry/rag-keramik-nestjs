@@ -30,6 +30,7 @@ import { LogoutUseCase } from "./application/use-cases/logout.usecase";
 import { RefreshTokenUseCase } from "./application/use-cases/refresh-token.usecase";
 import { ChangePasswordUseCase } from "./application/use-cases/change-password.usecase";
 import { AuthController } from "./presentation/http/auth.controller";
+import { GoogleAuthCallbackUseCase } from "./application/use-cases/google-auth-callback.usecase";
 
 @Module({
   imports: [
@@ -77,6 +78,9 @@ import { AuthController } from "./presentation/http/auth.controller";
     ChangePasswordUseCase,
     LogoutUseCase,
     RefreshTokenUseCase,
+
+    // OAuth Use Cases
+    GoogleAuthCallbackUseCase,
 
     // Use cases for token validation in the passport strategies
     ValidateAccessTokenUseCase,

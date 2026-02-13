@@ -1,7 +1,7 @@
 export interface OAuthUser {
-  email: string | null;
-  firstName: string | null;
-  lastName: string | null;
+  email: string;
+  firstName: string;
+  lastName: string;
   picture: string | null;
   providerId: string;
   provider: string;

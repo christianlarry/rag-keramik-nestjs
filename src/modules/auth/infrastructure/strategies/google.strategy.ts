@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { Profile, Strategy, VerifyCallback } from "passport-google-oauth20";
@@ -13,6 +13,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: config.get<string>('authGoogle.clientID', { infer: true })!,
       clientSecret: config.get<string>('authGoogle.clientSecret', { infer: true })!,
       callbackURL: config.get<string>('authGoogle.callbackURL', { infer: true })!,
+      scope: ['email', 'profile'],
     })
   }
 
@@ -22,12 +23,19 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
     done: VerifyCallback
   ): void {
-    const { name, emails, photos, id, provider } = profile;
+    const { name, emails, photos, id, provider, displayName } = profile;
+
+    if (!emails || emails.length === 0) {
+      return done(new BadRequestException('No email associated with this account!'), undefined);
+    }
+
+    const fallBackFirstName = displayName.split(' ')[0];
+    const fallBackLastName = displayName.split(' ').slice(1).join(' ');
 
     const user = {
-      email: emails && emails.length > 0 ? emails[0].value : null,
-      firstName: name?.givenName + ' ' + name?.middleName || null,
-      lastName: name?.familyName || null,
+      email: emails[0].value,
+      firstName: name?.givenName || fallBackFirstName,
+      lastName: name?.familyName || fallBackLastName,
       picture: photos && photos.length > 0 ? photos[0].value : null,
       providerId: id,
       provider: provider
