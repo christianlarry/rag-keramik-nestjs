@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import { UsersModule } from "../users/users.module";
 import { PassportModule } from "@nestjs/passport";
-import { AuthService } from "./auth.service";
 import { AccessTokenStrategy } from "./infrastructure/strategies/access-token.strategy";
 import { RefreshTokenStrategy } from "./infrastructure/strategies/refresh-token.strategy";
 import { TokenModule } from "../token/token.module";
@@ -44,9 +43,6 @@ import { AuthController } from "./presentation/http/auth.controller";
   controllers: [AuthController],
   providers: [
     // Infrastructure Services
-    AuthService,
-    AccessTokenStrategy,
-    RefreshTokenStrategy,
     {
       provide: AUTH_USER_REPOSITORY_TOKEN,
       useClass: PrismaAuthUserRepository
@@ -63,10 +59,15 @@ import { AuthController } from "./presentation/http/auth.controller";
     VerificationTokenRepository,
     BlacklistedAccessTokenRepository,
 
+    // Passport Strategies
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+
+    // Token Generators
     AccessTokenGenerator,
     RefreshTokenGenerator,
 
-    // Use Cases can be added here
+    // Use Cases
     RegisterUseCase,
     ResendEmailVerificationUseCase,
     VerifyEmailUseCase,
@@ -77,7 +78,7 @@ import { AuthController } from "./presentation/http/auth.controller";
     LogoutUseCase,
     RefreshTokenUseCase,
 
-    // New use cases for token validation in the passport strategies
+    // Use cases for token validation in the passport strategies
     ValidateAccessTokenUseCase,
     ValidateRefreshTokenUseCase
   ]

@@ -37,15 +37,20 @@ export class LogoutUseCase {
 
     // Find the user by ID
     const authUser = await this.authUserRepository.findById(command.userId);
-    if (authUser !== null && command.refreshToken.length > 0) {
+    if (authUser && command.refreshToken.length > 0) {
       // Invalidate the refresh token
       authUser.removeRefreshToken(command.refreshToken);
+    }
+
+    if (authUser && command.refreshToken.length === 0) {
+      // No refresh token provided, clear all refresh tokens. Why? Because we can't be sure which one to remove.
+      authUser.clearRefreshTokens();
     }
 
 
     // Save the updated user entity
     await this.uow.withTransaction(async () => {
-      if (authUser !== null && command.refreshToken.length > 0) {
+      if (authUser) {
         await this.authUserRepository.save(authUser);
       }
 

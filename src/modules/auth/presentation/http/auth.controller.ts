@@ -184,7 +184,7 @@ export class AuthController {
     await this.logoutUseCase.execute({
       userId: userId,
       accessToken: req.headers['authorization']?.replace('Bearer ', '') ?? '',
-      refreshToken: req.cookies['refreshToken'] ?? '',
+      refreshToken: req.cookies['refreshToken'] ?? req.body.refreshToken ?? '',
     })
 
     return new AuthLogoutResponseDto({
