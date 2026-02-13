@@ -58,6 +58,9 @@ export class RegisterUseCase {
    * @throws EmailAlreadyInUseError if the email is already registered
    */
   async execute(command: RegisterCommand): Promise<RegisterResult> {
+
+    // Should i validate fullName? 
+
     // Check for email uniqueness
     const exists = await this.authUserRepository.isEmailExisting(command.email);
     if (exists) throw new EmailAlreadyInUseError(command.email);

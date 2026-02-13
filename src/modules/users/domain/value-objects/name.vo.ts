@@ -3,18 +3,33 @@ import { InvalidNameError } from "../errors/invalid-name.error";
 export class Name {
   private readonly fullName: string;
 
+  private readonly NAME_REGEX: RegExp = /^[a-zA-Zà-žÀ-Ž'´`-]{1,}([ ][a-zA-Zà-žÀ-Ž'´`-]{1,})+$/; // Allows letters (including accented), spaces, apostrophes, and hyphens
+
   private constructor(
     fullName: string
   ) {
-    this.fullName = fullName;
+    this.validate(fullName);
 
-    this.validate();
+    this.fullName = this.sanitaize(fullName);
   }
 
-  private validate() {
+  private validate(fullName: string) {
     // Display name validation
-    if (this.fullName.trim().length === 0) { throw new InvalidNameError('Full name cannot be empty'); }
-    if (this.fullName.length > 100) { throw new InvalidNameError('Full name cannot exceed 100 characters'); }
+    if (fullName.trim().length === 0) { throw new InvalidNameError('Full name cannot be empty'); }
+    if (fullName.trim().length < 2) { throw new InvalidNameError('Full name must be at least 2 characters long'); }
+    if (fullName.trim().length > 100) { throw new InvalidNameError('Full name cannot exceed 100 characters'); }
+    if (!this.NAME_REGEX.test(fullName)) { throw new InvalidNameError('Full name contains invalid characters or format'); }
+  }
+
+  private sanitaize(fullName: string): string {
+    let sanitized: string = fullName;
+
+    sanitized = sanitized.trim().replace(/\s+/g, ' '); // Trim and replace multiple spaces with a single space
+    sanitized = sanitized.split(' ').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' '); // Capitalize first letter of each word
+
+    return sanitized;
   }
 
   public static create(fullName: string): Name {

@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsString,
   IsStrongPassword,
+  Matches,
   MaxLength,
   MinLength
 } from "class-validator";
@@ -77,8 +78,9 @@ export class AuthRegisterDto {
 
   @ApiProperty({ example: 'John Doe', description: 'Full name of the user' })
   @IsString()
-  @MinLength(2, { message: 'fullName must be at least 2 characters long' })
-  @MaxLength(255, { message: 'fullName must be at most 255 characters long' })
+  @MinLength(3, { message: 'fullName must be at least 3 characters long' })
+  @MaxLength(100, { message: 'fullName must be at most 100 characters long' })
+  @Matches(/^[a-zA-Zà-žÀ-Ž'´`-]{1,}([ ][a-zA-Zà-žÀ-Ž'´`-]{1,})+$/, { message: 'fullName contains invalid characters or format' })
   @IsNotEmpty()
   fullName: string;
 
