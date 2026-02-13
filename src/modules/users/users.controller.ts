@@ -9,11 +9,11 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { Role } from 'src/generated/prisma/enums';
 import { User } from 'src/common/decorator/user.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorator/roles.decorator';
+import { Role } from './domain/enums/role.enum';
 
 @ApiTags('Users')
 @Controller('users')
@@ -59,7 +59,7 @@ export class UsersController {
     return this.usersService.findAll({
       page: page ? +page : 1,
       limit: limit ? +limit : 20,
-      role,
+      role: undefined,
       search,
     });
   }

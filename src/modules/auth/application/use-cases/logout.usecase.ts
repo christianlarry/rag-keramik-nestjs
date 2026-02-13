@@ -28,15 +28,6 @@ export class LogoutUseCase {
   ) { }
 
   async execute(command: LogoutCommand): Promise<void> {
-    // Find the user by ID
-    const authUser = await this.authUserRepository.findById(command.userId);
-    if (!authUser) {
-      return; // If user not found, simply return
-    }
-
-    // Invalidate the refresh token
-    authUser.removeRefreshToken(command.refreshToken);
-
     // Blacklist the access token by saving its jti to the blacklist repository
     const accessDecoded = await this.accessTokenGenerator.decode(command.accessToken);
     const accessTokenJti = accessDecoded.jti;
@@ -44,15 +35,25 @@ export class LogoutUseCase {
 
     await this.blacklistedAccessTokenRepository.save(accessTokenJti, blacklistExpirationInSeconds);
 
+    // Find the user by ID
+    const authUser = await this.authUserRepository.findById(command.userId);
+    if (authUser !== null && command.refreshToken.length > 0) {
+      // Invalidate the refresh token
+      authUser.removeRefreshToken(command.refreshToken);
+    }
+
+
     // Save the updated user entity
     await this.uow.withTransaction(async () => {
-      await this.authUserRepository.save(authUser);
+      if (authUser !== null && command.refreshToken.length > 0) {
+        await this.authUserRepository.save(authUser);
+      }
 
       await this.audit.logUserAction(
-        authUser.id.getValue(),
+        command.userId,
         AuditAction.LOGOUT,
         AuditTargetType.USER,
-        authUser.id.getValue(),
+        command.userId,
       )
     });
   }

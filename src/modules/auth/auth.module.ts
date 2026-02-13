@@ -3,7 +3,6 @@ import { UsersModule } from "../users/users.module";
 import { PassportModule } from "@nestjs/passport";
 import { AuthService } from "./auth.service";
 import { AccessTokenStrategy } from "./infrastructure/strategies/access-token.strategy";
-import { AuthController } from "./auth.controller";
 import { RefreshTokenStrategy } from "./infrastructure/strategies/refresh-token.strategy";
 import { TokenModule } from "../token/token.module";
 import { MailModule } from "../mail/mail.module";
@@ -26,6 +25,12 @@ import { RefreshTokenGenerator } from "./infrastructure/generator/refresh-token.
 import { LoginWithEmailUseCase } from "./application/use-cases/login-with-email.usecase";
 import { BlacklistedAccessTokenRepository } from "./infrastructure/repositories/blacklisted-access-token.repository";
 import { Argon2PasswordHasher } from "./infrastructure/hasher/argon2-password.hasher";
+import { ValidateAccessTokenUseCase } from "./application/use-cases/validate-access-token.usecase";
+import { ValidateRefreshTokenUseCase } from "./application/use-cases/validate-refresh-token.usecase";
+import { LogoutUseCase } from "./application/use-cases/logout.usecase";
+import { RefreshTokenUseCase } from "./application/use-cases/refresh-token.usecase";
+import { ChangePasswordUseCase } from "./application/use-cases/change-password.usecase";
+import { AuthController } from "./presentation/http/auth.controller";
 
 @Module({
   imports: [
@@ -67,7 +72,14 @@ import { Argon2PasswordHasher } from "./infrastructure/hasher/argon2-password.ha
     VerifyEmailUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
-    LoginWithEmailUseCase
+    LoginWithEmailUseCase,
+    ChangePasswordUseCase,
+    LogoutUseCase,
+    RefreshTokenUseCase,
+
+    // New use cases for token validation in the passport strategies
+    ValidateAccessTokenUseCase,
+    ValidateRefreshTokenUseCase
   ]
 })
 export class AuthModule { }

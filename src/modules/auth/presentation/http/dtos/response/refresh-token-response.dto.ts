@@ -1,5 +1,5 @@
 export class RefreshTokenResponseDto {
-  token: string;
+  accessToken: string;
   refreshToken: string;
 
   constructor(data: RefreshTokenResponseDto) {
