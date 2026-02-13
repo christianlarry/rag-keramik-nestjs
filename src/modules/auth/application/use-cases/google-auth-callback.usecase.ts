@@ -5,8 +5,7 @@ interface GoogleAuthCallbackCommand {
   user: {
     providerId: string;
     email: string;
-    firstName: string | null;
-    lastName: string | null;
+    fullName: string;
     avatarUrl: string | null;
   }
 }
@@ -42,7 +41,7 @@ export class GoogleAuthCallbackUseCase {
       user: {
         id: 'mock-user-id',
         email: command.user.email,
-        fullName: `${command.user.firstName} ${command.user.lastName}`
+        fullName: command.user.fullName
       }
     }
   }

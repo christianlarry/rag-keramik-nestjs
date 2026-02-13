@@ -166,7 +166,7 @@ export class AuthController {
       user: {
         'id': result.user.id,
         'email': result.user.email,
-        'name': result.user.name,
+        'fullName': result.user.fullName,
       }
     });
   }

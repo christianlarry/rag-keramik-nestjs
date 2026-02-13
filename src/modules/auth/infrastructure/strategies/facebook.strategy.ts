@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { AllConfigType } from "src/config/config.type";
@@ -22,12 +22,13 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
     profile: Profile,
     done: (err: any, user?: any, info?: any) => void
   ): void {
-    const { name, emails, id, provider, photos } = profile;
+    const { emails, id, provider, photos, displayName } = profile;
+    const email = emails?.[0].value;
+    if (!email) done(new BadRequestException('No email associated with this account!'), undefined);
 
     const user = {
       email: emails && emails.length > 0 ? emails[0].value : null,
-      firstName: name?.givenName + ' ' + name?.middleName || null,
-      lastName: name?.familyName || null,
+      fullName: displayName,
       picture: photos && photos.length > 0 ? photos[0].value : null,
       providerId: id,
       provider: provider

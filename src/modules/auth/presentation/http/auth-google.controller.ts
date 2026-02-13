@@ -33,8 +33,7 @@ export class AuthGoogleController {
         providerId: user.providerId,
         avatarUrl: user.picture,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        fullName: user.fullName,
       }
     })
 

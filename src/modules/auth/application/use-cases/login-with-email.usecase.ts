@@ -19,7 +19,7 @@ interface LoginWithEmailResult {
   user: {
     id: string;
     email: string;
-    name: string;
+    fullName: string;
   }
 }
 
@@ -87,7 +87,7 @@ export class LoginWithEmailUseCase {
       user: {
         id: authUser.id.getValue(),
         email: authUser.email.getValue(),
-        name: authUser.name.getFullName(),
+        fullName: authUser.name.getFullName(),
       }
     };
   }
