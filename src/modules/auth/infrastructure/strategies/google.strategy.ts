@@ -25,17 +25,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ): void {
     const { name, emails, photos, id, provider, displayName } = profile;
 
-    if (!emails || emails.length === 0) {
+    const email = emails?.[0].value
+    const firstName = name?.givenName || displayName.split(' ')[0];
+    const lastName = name?.familyName || displayName.split(' ').slice(1).join(' ');
+
+    if (!email) {
       return done(new BadRequestException('No email associated with this account!'), undefined);
     }
 
-    const fallBackFirstName = displayName.split(' ')[0];
-    const fallBackLastName = displayName.split(' ').slice(1).join(' ');
-
     const user = {
-      email: emails[0].value,
-      firstName: name?.givenName || fallBackFirstName,
-      lastName: name?.familyName || fallBackLastName,
+      email: email,
+      firstName: firstName.length > 0 ? firstName : null,
+      lastName: lastName.length > 0 ? lastName : null,
       picture: photos && photos.length > 0 ? photos[0].value : null,
       providerId: id,
       provider: provider

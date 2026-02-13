@@ -5,8 +5,8 @@ interface GoogleAuthCallbackCommand {
   user: {
     providerId: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     avatarUrl: string | null;
   }
 }

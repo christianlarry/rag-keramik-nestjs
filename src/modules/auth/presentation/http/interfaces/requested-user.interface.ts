@@ -4,7 +4,7 @@ export interface RequestedUser {
   id: string;
   email: string;
   role: Role;
-  name?: string;
+  name: string;
   provider?: string;
   refreshToken?: string;
 }

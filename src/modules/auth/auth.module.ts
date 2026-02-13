@@ -31,6 +31,9 @@ import { RefreshTokenUseCase } from "./application/use-cases/refresh-token.useca
 import { ChangePasswordUseCase } from "./application/use-cases/change-password.usecase";
 import { AuthController } from "./presentation/http/auth.controller";
 import { GoogleAuthCallbackUseCase } from "./application/use-cases/google-auth-callback.usecase";
+import { AuthGoogleController } from "./presentation/http/auth-google.controller";
+import { GoogleStrategy } from "./infrastructure/strategies/google.strategy";
+import { FacebookStrategy } from "./infrastructure/strategies/facebook.strategy";
 
 @Module({
   imports: [
@@ -41,7 +44,10 @@ import { GoogleAuthCallbackUseCase } from "./application/use-cases/google-auth-c
     AuditModule,
     TokenGeneratorModule
   ],
-  controllers: [AuthController],
+  controllers: [
+    AuthController,
+    AuthGoogleController
+  ],
   providers: [
     // Infrastructure Services
     {
@@ -63,6 +69,8 @@ import { GoogleAuthCallbackUseCase } from "./application/use-cases/google-auth-c
     // Passport Strategies
     AccessTokenStrategy,
     RefreshTokenStrategy,
+    GoogleStrategy,
+    FacebookStrategy,
 
     // Token Generators
     AccessTokenGenerator,

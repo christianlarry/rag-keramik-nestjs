@@ -1,71 +1,47 @@
 import { InvalidNameError } from "../errors/invalid-name.error";
 
 export class Name {
-  private readonly firstName: string;
-  private readonly lastName: string;
+  private readonly fullName: string;
 
-  private constructor(firstName: string, lastName: string) {
-    this.firstName = firstName;
-    this.lastName = lastName;
+  private constructor(
+    fullName: string
+  ) {
+    this.fullName = fullName;
 
     this.validate();
   }
 
   private validate() {
-    if (!this.firstName || this.firstName.trim().length === 0) {
-      // TODO : Create Custom Error
-      throw new InvalidNameError('First name cannot be empty');
-    }
-    if (!this.lastName || this.lastName.trim().length === 0) {
-      // TODO : Create Custom Error
-      throw new InvalidNameError('Last name cannot be empty');
-    }
-    if (this.firstName.length > 50) {
-      // TODO : Create Custom Error
-      throw new InvalidNameError('First name cannot exceed 50 characters');
-    }
-    if (this.lastName.length > 50) {
-      // TODO : Create Custom Error
-      throw new InvalidNameError('Last name cannot exceed 50 characters');
-    }
+    // Display name validation
+    if (this.fullName.trim().length === 0) { throw new InvalidNameError('Full name cannot be empty'); }
+    if (this.fullName.length > 100) { throw new InvalidNameError('Full name cannot exceed 100 characters'); }
   }
 
-  public static create(firstName: string, lastName: string): Name {
-    return new Name(firstName, lastName);
+  public static create(fullName: string): Name {
+    return new Name(fullName);
   }
 
   public getFullName(): string {
-    return `${this.firstName} ${this.lastName}`;
+    return this.fullName;
   }
 
   public getFirstName(): string {
-    return this.firstName;
+    return this.fullName.split(' ')[0];
   }
 
   public getLastName(): string {
-    return this.lastName;
+    if (this.fullName.split(' ').length === 1) return this.fullName; // If there's only one name, return it as the last name
+
+    return this.fullName.split(' ').slice(1).join(' ');
   }
 
   public getInitials(): string {
-    return `${this.firstName.charAt(0).toUpperCase()}${this.lastName.charAt(0).toUpperCase()}`;
-  }
+    if (this.fullName.split(' ').length === 1) return this.fullName.charAt(0).toUpperCase(); // If there's only one name, return its initial
 
-  public getFirstLastInitial(): string {
-    return `${this.firstName} ${this.lastName.charAt(0).toUpperCase()}.`;
-  }
-
-  public getLastFirstInitial(): string {
-    return `${this.lastName}, ${this.firstName.charAt(0).toUpperCase()}.`;
-  }
-
-  public getValue(): { firstName: string; lastName: string } {
-    return {
-      firstName: this.firstName,
-      lastName: this.lastName
-    };
+    return this.fullName.split(' ').map(name => name.charAt(0).toUpperCase()).join('');
   }
 
   public equals(other: Name): boolean {
-    return this.firstName === other.firstName && this.lastName === other.lastName;
+    return this.fullName === other.fullName;
   }
 }

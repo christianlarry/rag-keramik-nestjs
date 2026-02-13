@@ -13,6 +13,7 @@ interface ValidateAccessTokenResult {
   id: string;
   email: string;
   role: Role;
+  name: string;
 }
 
 @Injectable()
@@ -51,6 +52,7 @@ export class ValidateAccessTokenUseCase {
       id: authUser.id.getValue(),
       email: authUser.email.getValue(),
       role: authUser.role.getValue(),
+      name: authUser.name.getFullName(),
     };
   }
 }

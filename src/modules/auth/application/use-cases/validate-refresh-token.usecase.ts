@@ -13,6 +13,7 @@ interface ValidateRefreshTokenResult {
   id: string;
   email: string;
   role: Role;
+  name: string;
   refreshToken: string;
 }
 
@@ -49,6 +50,7 @@ export class ValidateRefreshTokenUseCase {
       id: authUser.id.getValue(),
       email: authUser.email.getValue(),
       role: authUser.role.getValue(),
+      name: authUser.name.getFullName(),
       refreshToken: command.refreshToken,
     }
   }

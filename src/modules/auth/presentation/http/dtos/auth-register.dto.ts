@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsString,
   IsStrongPassword,
+  MaxLength,
   MinLength
 } from "class-validator";
 
@@ -74,6 +75,13 @@ export class RegisterAddressDto {
 
 export class AuthRegisterDto {
 
+  @ApiProperty({ example: 'John Doe', description: 'Full name of the user' })
+  @IsString()
+  @MinLength(2, { message: 'fullName must be at least 2 characters long' })
+  @MaxLength(255, { message: 'fullName must be at most 255 characters long' })
+  @IsNotEmpty()
+  fullName: string;
+
   @ApiProperty({ example: 'john.doe@example.com', description: 'Email address of the user' })
   @Transform((val) => val.value?.toLowerCase()?.trim()) // Normalize email
   @IsEmail()
@@ -85,18 +93,6 @@ export class AuthRegisterDto {
   @IsStrongPassword()
   @IsNotEmpty()
   password: string;
-
-  @ApiProperty({ example: 'John', description: 'First name of the user' })
-  @IsString()
-  @MinLength(2)
-  @IsNotEmpty()
-  firstName: string;
-
-  @ApiProperty({ example: 'Doe', description: 'Last name of the user' })
-  @IsString()
-  @MinLength(2)
-  @IsNotEmpty()
-  lastName: string;
 
   /*
   @ApiProperty({ example: 'male', description: 'Gender of the user', enum: Gender })

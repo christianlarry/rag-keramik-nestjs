@@ -10,8 +10,7 @@ import { Name } from "src/modules/users/domain/value-objects/name.vo";
 
 interface RawAuthUser {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   emailVerified: boolean;
   emailVerifiedAt: Date | null;
@@ -30,7 +29,7 @@ interface RawAuthUser {
 export class PrismaAuthUserMapper {
   static toDomain(raw: RawAuthUser): AuthUser {
 
-    const name = Name.create(raw.firstName, raw.lastName);
+    const name = Name.create(raw.fullName);
     const email = Email.create(raw.email)
     const password = raw.password ? Password.fromHash(raw.password) : null;
     const role = Role.create(roleMapper.toEntity(raw.role));
@@ -56,8 +55,7 @@ export class PrismaAuthUserMapper {
 
   static toPersistence(user: AuthUser): RawAuthUser {
     return {
-      firstName: user.name.getFirstName(),
-      lastName: user.name.getLastName(),
+      fullName: user.name.getFullName(),
       id: user.id.getValue(),
       email: user.email.getValue(),
       emailVerified: user.emailVerified,

@@ -16,8 +16,7 @@ import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastruct
 
 interface RegisterCommand {
   // Auth Info
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   password: string;
 }
@@ -68,7 +67,7 @@ export class RegisterUseCase {
     const hashedPassword = await this.passwordHasher.hash(command.password);
 
     // Create value objects
-    const name: Name = Name.create(command.firstName, command.lastName);
+    const name: Name = Name.create(command.fullName);
     const password: Password = await Password.fromHash(hashedPassword);
     const email: Email = Email.create(command.email);
     const role: Role = Role.createCustomer();

@@ -6,6 +6,7 @@ import { LIMIT, TTL } from "src/common/constants/rate-limit.constants";
 import { OAuthUser } from "./decorator/oauth-user.decorator";
 import { type OAuthUser as OAuthUserInterface } from "./interfaces/oauth-user.interface";
 import { GoogleAuthCallbackUseCase } from "../../application/use-cases/google-auth-callback.usecase";
+import { AuthGoogleCallbackResponseDto } from "./dtos/response/auth-google-callback-response.dto";
 
 @ApiTags('Auth')
 @Controller('auth/google')
@@ -26,8 +27,8 @@ export class AuthGoogleController {
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_MINUTE } }) // 10 requests per minute
   async googleAuthCallback(
     @OAuthUser() user: OAuthUserInterface
-  ) {
-    await this.googleAuthCallbackUseCase.execute({
+  ): Promise<AuthGoogleCallbackResponseDto> {
+    const result = await this.googleAuthCallbackUseCase.execute({
       user: {
         providerId: user.providerId,
         avatarUrl: user.picture,
@@ -36,5 +37,15 @@ export class AuthGoogleController {
         lastName: user.lastName,
       }
     })
+
+    return new AuthGoogleCallbackResponseDto({
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: {
+        id: result.user.id,
+        email: result.user.email,
+        fullName: result.user.fullName,
+      }
+    });
   }
 }
