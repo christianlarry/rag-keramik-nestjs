@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { RegisterUseCase } from "../../application/use-cases/register.usecase";
 import { ResendEmailVerificationUseCase } from "../../application/use-cases/resend-email-verification.usecase";
 import { VerifyEmailUseCase } from "../../application/use-cases/verify-email.usecase";
@@ -52,6 +52,10 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: LIMIT.STRICT, ttl: TTL.FIFTEEN_MINUTES } }) // 5 requests per 15 minutes
+  @ApiOperation({ summary: 'Register a new user', description: 'Creates a new user account and sends a verification email.' })
+  @ApiResponse({ status: 201, description: 'User registered successfully.', type: AuthRegisterResponseDto })
+  @ApiResponse({ status: 400, description: 'Bad request - invalid input data.' })
+  @ApiResponse({ status: 429, description: 'Too many requests - rate limit exceeded.' })
   async register(
     @Body() registerDto: AuthRegisterDto
   ): Promise<AuthRegisterResponseDto> {
@@ -70,6 +74,9 @@ export class AuthController {
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   @SkipThrottle() // Exempt from rate limiting to ensure email verification can proceed smoothly  
+  @ApiOperation({ summary: 'Verify user email', description: 'Verifies the user\'s email address using a verification token.' })
+  @ApiResponse({ status: 200, description: 'Email verified successfully.', type: VerifyEmailResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
   async verifyEmail(
     @Body() verifyEmailDto: VerifyEmailDto
   ): Promise<VerifyEmailResponseDto> {
@@ -86,6 +93,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ResendVerificationThrottlerGuard) // Track from Email level
   @Throttle({ default: { limit: LIMIT.VERY_STRICT, ttl: TTL.ONE_HOUR } }) // 3 requests per hour
+  @ApiOperation({ summary: 'Resend email verification', description: 'Resends the email verification link to the user\'s email address.' })
+  @ApiResponse({ status: 200, description: 'Verification email resent.', type: ResendVerificationResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid email or user not found.' })
+  @ApiResponse({ status: 429, description: 'Too many requests - rate limit exceeded.' })
   async resendVerification(
     @Body() resendVerificationDto: ResendVerificationDto
   ): Promise<ResendVerificationResponseDto> {
@@ -101,6 +112,9 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.VERY_STRICT, ttl: TTL.ONE_HOUR } }) // 3 requests per hour
+  @ApiOperation({ summary: 'Request password reset', description: 'Sends a password reset link to the user\'s email if the account exists.' })
+  @ApiResponse({ status: 200, description: 'Password reset email sent if account exists.', type: ForgotPasswordResponseDto })
+  @ApiResponse({ status: 429, description: 'Too many requests - rate limit exceeded.' })
   async forgotPassword(
     @Body() forgotPasswordDto: ForgotPasswordDto
   ): Promise<ForgotPasswordResponseDto> {
@@ -116,6 +130,10 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_HOUR } }) // 10 requests per hour
+  @ApiOperation({ summary: 'Reset password', description: 'Resets the user\'s password using a reset token.' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully.', type: ResetPasswordResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
+  @ApiResponse({ status: 429, description: 'Too many requests - rate limit exceeded.' })
   async resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
     @Req() req: Request
@@ -133,9 +151,15 @@ export class AuthController {
   }
 
   @Post('change-password')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_HOUR } }) // 10 requests per hour
   @UseGuards(JwtAuthGuard) // Must be authenticated
+  @ApiOperation({ summary: 'Change password', description: 'Changes the authenticated user\'s password.' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully.', type: ChangePasswordResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid current password or new password.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token.' })
+  @ApiResponse({ status: 429, description: 'Too many requests - rate limit exceeded.' })
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
     @User('id') userId: string
@@ -154,6 +178,10 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.STRICT, ttl: TTL.FIFTEEN_MINUTES } }) // 5 requests per 15 minutes
+  @ApiOperation({ summary: 'Login with email and password', description: 'Authenticates a user and returns access and refresh tokens.' })
+  @ApiResponse({ status: 200, description: 'Login successful.', type: AuthLoginResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid credentials.' })
+  @ApiResponse({ status: 429, description: 'Too many requests - rate limit exceeded.' })
   async login(@Body() loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
     const result = await this.loginWithEmailUseCase.execute({
       email: loginDto.email,
@@ -172,9 +200,14 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.LENIENT, ttl: TTL.ONE_MINUTE } }) // 20 requests per minute
   @UseGuards(JwtAuthGuard) // Must be authenticated
+  @ApiOperation({ summary: 'Logout user', description: 'Logs out the authenticated user by invalidating tokens.' })
+  @ApiResponse({ status: 200, description: 'Logout successful.', type: AuthLogoutResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token.' })
+  @ApiResponse({ status: 429, description: 'Too many requests - rate limit exceeded.' })
   async logout(
     @User('id') userId: string,
     @Req() req: Request
@@ -195,6 +228,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_MINUTE } }) // 10 requests per minute
   @UseGuards(JwtRefreshGuard) // Must have a valid refresh token
+  @ApiOperation({ summary: 'Refresh access token', description: 'Refreshes the access token using a valid refresh token.' })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully.', type: RefreshTokenResponseDto })
+  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token.' })
+  @ApiResponse({ status: 429, description: 'Too many requests - rate limit exceeded.' })
   async refreshToken(
     @User('refreshToken') refreshToken: string,
     @User('id') userId: string

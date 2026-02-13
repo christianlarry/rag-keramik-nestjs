@@ -37,8 +37,7 @@ export class AuditService {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
+              fullName: true,
               role: true,
             },
           },
@@ -136,8 +135,7 @@ export class AuditService {
               select: {
                 id: true,
                 email: true,
-                firstName: true,
-                lastName: true,
+                fullName: true,
                 role: true,
               },
             },
@@ -181,8 +179,7 @@ export class AuditService {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
+              fullName: true,
               role: true,
             },
           },
@@ -212,8 +209,7 @@ export class AuditService {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
+              fullName: true,
               role: true,
             },
           },
@@ -253,8 +249,7 @@ export class AuditService {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
+              fullName: true,
               role: true,
             },
           },
