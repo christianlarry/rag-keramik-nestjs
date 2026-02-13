@@ -1,0 +1,30 @@
+import { HttpStatus } from "@nestjs/common";
+import { AuthErrorCode } from "src/modules/auth/domain/errors";
+
+export const authErrorToHttpStatusMap: Record<AuthErrorCode, HttpStatus> = {
+  // 400 Bad Request
+  AUTH_PASSWORD_TOO_WEAK: HttpStatus.BAD_REQUEST,
+  AUTH_INVALID_PROVIDER: HttpStatus.BAD_REQUEST,
+  AUTH_INVALID_AUTH_STATE: HttpStatus.BAD_REQUEST,
+  AUTH_CANNOT_VERIFY_EMAIL: HttpStatus.BAD_REQUEST,
+  AUTH_CANNOT_UNVERIFY_EMAIL: HttpStatus.BAD_REQUEST,
+  AUTH_CANNOT_RESET_PASSWORD: HttpStatus.BAD_REQUEST,
+  AUTH_CANNOT_CHANGE_PASSWORD: HttpStatus.BAD_REQUEST,
+  AUTH_CANNOT_FORGOT_PASSWORD: HttpStatus.BAD_REQUEST,
+
+  // 401 Unauthorized
+  AUTH_INVALID_CREDENTIALS: HttpStatus.UNAUTHORIZED,
+  AUTH_CANNOT_LOGIN: HttpStatus.UNAUTHORIZED,
+  AUTH_CANNOT_REFRESH_TOKEN: HttpStatus.UNAUTHORIZED,
+  AUTH_ACCESS_TOKEN_INVALID: HttpStatus.UNAUTHORIZED,
+
+  // 403 Forbidden
+  AUTH_EMAIL_NOT_VERIFIED: HttpStatus.FORBIDDEN,
+  AUTH_CANNOT_ACCESS_PROTECTED_RESOURCE: HttpStatus.FORBIDDEN,
+
+  // 404 Not Found
+  AUTH_USER_NOT_FOUND: HttpStatus.NOT_FOUND,
+
+  // 409 Conflict
+  AUTH_EMAIL_ALREADY_IN_USE: HttpStatus.CONFLICT,
+}

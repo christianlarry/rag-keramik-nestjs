@@ -11,9 +11,9 @@ import { UsersService } from './users.service';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { User } from 'src/modules/auth/presentation/http/decorator/user.decorator';
 import { JwtAuthGuard } from 'src/modules/auth/presentation/http/guard/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/modules/auth/presentation/http/decorator/roles.decorator';
 import { Role } from './domain/enums/role.enum';
+import { RolesGuard } from '../auth/presentation/http/guard/roles.guard';
 
 @ApiTags('Users')
 @Controller('users')

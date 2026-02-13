@@ -208,7 +208,7 @@ export class AuthUser extends AggregateRoot {
     return (
       this.props.status.isActive() &&
       (this.props.provider.isLocal() || this.props.provider.isOAuth()) &&
-      (this.props.emailVerified || this.props.emailVerifiedAt !== null)
+      (this.props.emailVerified)
     );
   }
 

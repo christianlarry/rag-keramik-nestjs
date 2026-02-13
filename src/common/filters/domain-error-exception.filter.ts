@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { DomainError } from 'src/core/domain/domain-error.base';
+import { authErrorToHttpStatusMap } from 'src/modules/auth/presentation/http/errors/auth-error-to-http-status.map';
 
 /**
  * Exception filter that catches all DomainError exceptions
@@ -21,57 +22,7 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
    * This ensures that domain errors are translated to appropriate HTTP responses.
    */
   private readonly errorCodeToHttpStatusMap: Record<string, HttpStatus> = {
-    // 404 Not Found
-    USER_NOT_FOUND: HttpStatus.NOT_FOUND,
-
-    // 409 Conflict - Resource already exists
-    USER_EMAIL_ALREADY_EXISTS: HttpStatus.CONFLICT,
-    USER_USERNAME_ALREADY_EXISTS: HttpStatus.CONFLICT,
-    USER_EMAIL_ALREADY_VERIFIED: HttpStatus.CONFLICT,
-    USER_OAUTH_ALREADY_LINKED: HttpStatus.CONFLICT,
-
-    // 403 Forbidden - State/Status issues
-    USER_INACTIVE: HttpStatus.FORBIDDEN,
-    USER_SUSPENDED: HttpStatus.FORBIDDEN,
-    USER_DELETED: HttpStatus.FORBIDDEN,
-    USER_BANNED: HttpStatus.FORBIDDEN,
-
-    // 401 Unauthorized - Authentication issues
-    USER_UNAUTHORIZED: HttpStatus.UNAUTHORIZED,
-    USER_INVALID_CREDENTIALS: HttpStatus.UNAUTHORIZED,
-    USER_TOKEN_INVALID: HttpStatus.UNAUTHORIZED,
-    USER_TOKEN_EXPIRED: HttpStatus.UNAUTHORIZED,
-    USER_SESSION_EXPIRED: HttpStatus.UNAUTHORIZED,
-
-    // 403 Forbidden - Authorization/Permission issues
-    USER_FORBIDDEN: HttpStatus.FORBIDDEN,
-    USER_INSUFFICIENT_PERMISSIONS: HttpStatus.FORBIDDEN,
-    USER_CANNOT_CHANGE_OWN_ROLE: HttpStatus.FORBIDDEN,
-
-    // 400 Bad Request - Validation/Business rule violations
-    USER_PASSWORD_INVALID: HttpStatus.BAD_REQUEST,
-    USER_PASSWORD_MISMATCH: HttpStatus.BAD_REQUEST,
-    USER_PASSWORD_EXPIRED: HttpStatus.BAD_REQUEST,
-    USER_PASSWORD_TOO_WEAK: HttpStatus.BAD_REQUEST,
-    USER_EMAIL_INVALID: HttpStatus.BAD_REQUEST,
-    USER_EMAIL_NOT_VERIFIED: HttpStatus.BAD_REQUEST,
-    USER_PROFILE_INCOMPLETE: HttpStatus.BAD_REQUEST,
-    USER_INVALID_PROVIDER: HttpStatus.BAD_REQUEST,
-
-    TOKEN_INVALID: HttpStatus.BAD_REQUEST,
-    TOKEN_EXPIRED: HttpStatus.BAD_REQUEST,
-
-    // 422 Unprocessable Entity - Operation constraints
-    USER_CANNOT_BE_UPDATED: HttpStatus.UNPROCESSABLE_ENTITY,
-    USER_CANNOT_BE_DELETED: HttpStatus.UNPROCESSABLE_ENTITY,
-    USER_CANNOT_SELF_DELETE: HttpStatus.UNPROCESSABLE_ENTITY,
-
-    // 500 Internal Server Error - Upload/External service failures
-    USER_AVATAR_UPLOAD_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
-    USER_OAUTH_LINK_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
-
-    // 404 Not Found - Provider not linked
-    USER_PROVIDER_NOT_LINKED: HttpStatus.NOT_FOUND,
+    ...authErrorToHttpStatusMap,
   };
 
   catch(exception: DomainError, host: ArgumentsHost): void {
