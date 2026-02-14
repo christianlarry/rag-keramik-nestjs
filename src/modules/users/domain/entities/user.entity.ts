@@ -50,7 +50,11 @@ export class User extends AggregateRoot {
   }
 
   private validate() {
-    // Additional validations can be added here if needed, Some are already handled in VOs. Validate Invariants.
+    // Validate address default constraint
+    const defaultAddresses = this.props.addresses.filter(addr => addr.isDefault());
+    if (defaultAddresses.length > 1) {
+      throw new UserStateConflictError('User cannot have more than one default address.');
+    }
 
     // Ensure that if phone is verified, phone number must be present
     if (this.props.phoneVerified && !this.props.phoneNumber) {
@@ -502,6 +506,7 @@ export class User extends AggregateRoot {
   public get phoneVerified(): boolean { return this.props.phoneVerified; }
   public get phoneVerifiedAt(): Date | null { return this.props.phoneVerifiedAt; }
   public get addresses(): Address[] { return this.props.addresses; }
+  public get defaultAddress(): Address | null { return this.props.addresses.find(addr => addr.isDefault()) ?? null; }
   public get role(): Role { return this.props.role; }
   public get status(): Status { return this.props.status; }
   public get createdAt(): Date { return this.props.createdAt; }

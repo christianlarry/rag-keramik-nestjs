@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { User } from "../../domain/entities/user.entity";
-import { UserRepository } from "../../domain/repositories/user-repository.interface";
+import { type UserRepository } from "../../domain/repositories/user-repository.interface";
 import { PrismaService } from "src/core/infrastructure/persistence/prisma/prisma.service";
 import { PrismaUserMapper } from "../mappers/prisma-user.mapper";
 import { UserCache } from "../cache/user.cache";

@@ -13,6 +13,7 @@ export interface AddressProps {
   country: string;
   latitude: number | null;
   longitude: number | null;
+  isDefault: boolean;
 }
 
 export class Address {
@@ -109,6 +110,7 @@ export class Address {
       country: props.country || 'Indonesia',
       latitude: props.latitude ?? null,
       longitude: props.longitude ?? null,
+      isDefault: props.isDefault ?? false,
     });
   }
 
@@ -119,6 +121,7 @@ export class Address {
       country: props.country || 'Indonesia',
       latitude: props.latitude ?? null,
       longitude: props.longitude ?? null,
+      isDefault: props.isDefault ?? false,
     });
   }
 
@@ -129,6 +132,7 @@ export class Address {
       country: props.country || 'Indonesia',
       latitude: props.latitude ?? null,
       longitude: props.longitude ?? null,
+      isDefault: props.isDefault ?? false,
     });
   }
 
@@ -139,6 +143,7 @@ export class Address {
       country: props.country || 'Indonesia',
       latitude: props.latitude ?? null,
       longitude: props.longitude ?? null,
+      isDefault: props.isDefault ?? false,
     });
   }
 
@@ -206,6 +211,10 @@ export class Address {
 
   public isIndonesia(): boolean {
     return this.props.country.toLowerCase() === 'indonesia';
+  }
+
+  public isDefault(): boolean {
+    return this.props.isDefault;
   }
 
   /**

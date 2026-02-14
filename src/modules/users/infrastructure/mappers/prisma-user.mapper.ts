@@ -81,6 +81,7 @@ export class PrismaUserMapper {
         country: addr.country,
         latitude: addr.latitude ? Number(addr.latitude) : null,
         longitude: addr.longitude ? Number(addr.longitude) : null,
+        isDefault: addr.isDefault,
       });
     });
 
@@ -105,7 +106,7 @@ export class PrismaUserMapper {
   /**
    * Map User domain entity to Prisma persistence format
    */
-  static toPersistence(user: User): Omit<RawUser, 'addresses'> & { addresses: Omit<RawAddress, 'id' | 'createdAt' | 'updatedAt'>[] } {
+  static toPersistence(user: User): Omit<RawUser, 'addresses'> & { addresses: Omit<RawAddress, 'id'>[] } {
     return {
       id: user.id.getValue(),
       fullName: user.name.getFullName(),
@@ -132,7 +133,7 @@ export class PrismaUserMapper {
         country: addr.getCountry(),
         latitude: addr.getLatitude(),
         longitude: addr.getLongitude(),
-        isDefault: false, // Default value, can be enhanced if needed
+        isDefault: addr.isDefault(),
       })),
     };
   }
