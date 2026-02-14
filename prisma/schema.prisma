@@ -142,6 +142,7 @@ model User {
   authProviders AuthProvider[]
 
   @@index([status])
+  @@index([phoneNumber])
 }
 
 model AuthProvider {

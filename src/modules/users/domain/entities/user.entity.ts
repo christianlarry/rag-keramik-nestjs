@@ -9,6 +9,7 @@ import { Address } from "../value-objects/address.vo";
 import { UserStateConflictError, UserInvalidOperationError, UserCannotTransitionStateError, UserAddressNotFoundError } from "../errors";
 import { Avatar } from "../value-objects/avatar.vo";
 import { DateOfBirth } from "../value-objects/date-of-birth.vo";
+import { AggregateRoot } from "src/core/domain/aggregate-root.base";
 
 interface UserProps {
   // Profile Informations
@@ -34,11 +35,13 @@ interface UserProps {
   deletedAt: Date | null;
 }
 
-export class User {
+export class User extends AggregateRoot {
   private readonly _id: UserId;
   private props: UserProps;
 
   constructor(id: UserId, props: UserProps) {
+    super();
+
     this._id = id;
     this.props = props;
 
@@ -136,6 +139,14 @@ export class User {
     }
 
     this.props.updatedAt = new Date();
+  }
+
+  /**
+   * Clear user's phone number and reset verification status
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   */
+  public clearPhoneNumber(): void {
+    this.updatePhoneNumber(null);
   }
 
   /**
@@ -485,4 +496,12 @@ export class User {
   public get createdAt(): Date { return this.props.createdAt; }
   public get updatedAt(): Date { return this.props.updatedAt; }
   public get deletedAt(): Date | null { return this.props.deletedAt; }
-}
+  public get profile(): { name: Name; dateOfBirth: DateOfBirth | null; gender: Gender | null; avatarUrl: Avatar | null } {
+    return {
+      name: this.props.name,
+      dateOfBirth: this.props.dateOfBirth,
+      gender: this.props.gender,
+      avatarUrl: this.props.avatarUrl,
+    };
+  }
+} 

@@ -15,3 +15,4 @@ export * from './invalid-avatar.error';
 export * from './user-invalid-operation.error';
 export * from './user-cannot-transition-state.error';
 export * from './user-address-not-found.error';
+export * from './user-not-found.error';
