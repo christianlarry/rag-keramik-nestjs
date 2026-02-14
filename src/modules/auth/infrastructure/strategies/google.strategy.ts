@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { Profile, Strategy, VerifyCallback } from "passport-google-oauth20";
 import { AllConfigType } from "src/config/config.type";
+import { Name } from "src/modules/users/domain/value-objects/name.vo";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -31,9 +32,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       return done(new BadRequestException('No email associated with this account!'), undefined);
     }
 
+    const sanitizedDisplayName = displayName
+      .trim()
+      .replace(/\s+/g, ' ') // Replace multiple spaces with a single space 
+      .replace(/[^a-zA-Zà-žÀ-Ž'´`\s-]/g, ''); // Remove invalid characters
+
+    if (!Name.REGEX.test(sanitizedDisplayName)) {
+      return done(new BadRequestException('Invalid display name format!'), undefined);
+    }
+
     const user = {
       email: email,
-      fullName: displayName,
+      fullName: sanitizedDisplayName,
       picture: photos && photos.length > 0 ? photos[0].value : null,
       providerId: id,
       provider: provider

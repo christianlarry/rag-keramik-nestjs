@@ -2,69 +2,69 @@ import { AuthProvider as AuthProviderEnum } from "../enums/auth-provider.enum"
 import { InvalidProviderError } from "../errors/invalid-provider.error";
 
 export class AuthProvider {
-  private readonly provider: AuthProviderEnum;
-  private readonly providerId: string | null;
+  private readonly providerName: AuthProviderEnum;
+  private readonly providerId: string;
+  private readonly linkedAt: Date;
 
-  private constructor(provider: AuthProviderEnum, providerId: string | null) {
-    this.provider = provider;
+  private constructor(providerName: AuthProviderEnum, providerId: string, linkedAt: Date) {
+    this.providerName = providerName;
     this.providerId = providerId;
+    this.linkedAt = linkedAt;
+
 
     this.validate();
   }
 
   private validate(): void {
-    if (!Object.values(AuthProviderEnum).includes(this.provider)) {
+    if (!Object.values(AuthProviderEnum).includes(this.providerName)) {
       throw new InvalidProviderError();
     }
-
-    if (this.provider === AuthProviderEnum.LOCAL && this.providerId !== null) {
-      throw new InvalidProviderError("Local provider should not have a provider ID.");
-    }
   }
 
-  public static create(provider: string, providerId: string | null): AuthProvider {
-    return new AuthProvider(provider as AuthProviderEnum, providerId);
+  public static createGoogleProvider(providerId: string): AuthProvider {
+    return new AuthProvider(AuthProviderEnum.GOOGLE, providerId, new Date());
   }
 
-  public static createLocal(): AuthProvider {
-    return new AuthProvider(AuthProviderEnum.LOCAL, null);
+  public static createFacebookProvider(providerId: string): AuthProvider {
+    return new AuthProvider(AuthProviderEnum.FACEBOOK, providerId, new Date());
   }
 
-  public static createOAuthProvider(provider: AuthProviderEnum, providerId: string): AuthProvider {
-    if (provider === AuthProviderEnum.LOCAL) {
-      throw new InvalidProviderError("Local provider cannot be used for OAuth.");
-    }
-
-    return new AuthProvider(provider, providerId);
+  public static reconstruct(provider: AuthProviderEnum, providerId: string, linkedAt: Date): AuthProvider {
+    return new AuthProvider(provider, providerId, linkedAt);
   }
 
-  public getValue(): { provider: AuthProviderEnum; providerId: string | null } {
+  public getValue(): { provider: AuthProviderEnum; providerId: string } {
     return {
-      provider: this.provider,
+      provider: this.providerName,
       providerId: this.providerId,
     };
   }
 
-  public getProvider(): AuthProviderEnum {
-    return this.provider;
+  public getProviderName(): AuthProviderEnum {
+    return this.providerName;
   }
 
-  public getProviderId(): string | null {
+  public getProviderId(): string {
     return this.providerId;
+  }
+
+  public getLinkedAt(): Date {
+    return this.linkedAt;
   }
 
   public equals(other: AuthProvider): boolean {
     return (
-      this.provider === other.provider &&
-      this.providerId === other.providerId
+      this.providerName === other.providerName &&
+      this.providerId === other.providerId &&
+      this.linkedAt.getTime() === other.linkedAt.getTime()
     );
   }
 
-  public isLocal(): boolean {
-    return this.provider === AuthProviderEnum.LOCAL;
+  public isGoogle(): boolean {
+    return this.providerName === AuthProviderEnum.GOOGLE;
   }
 
-  public isOAuth(): boolean {
-    return this.provider !== AuthProviderEnum.LOCAL;
+  public isFacebook(): boolean {
+    return this.providerName === AuthProviderEnum.FACEBOOK;
   }
 }

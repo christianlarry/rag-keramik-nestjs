@@ -80,7 +80,7 @@ export class AuthRegisterDto {
   @IsString()
   @MinLength(3, { message: 'fullName must be at least 3 characters long' })
   @MaxLength(100, { message: 'fullName must be at most 100 characters long' })
-  @Matches(/^[a-zA-Zà-žÀ-Ž'´`-]{1,}([ ][a-zA-Zà-žÀ-Ž'´`-]{1,})+$/, { message: 'fullName contains invalid characters or format' })
+  @Matches(/^[a-zA-Zà-žÀ-Ž'´`-]{3,}([ ][a-zA-Zà-žÀ-Ž'´`-]{1,})*$/, { message: 'fullName contains invalid characters or format' })
   @IsNotEmpty()
   fullName: string;
 

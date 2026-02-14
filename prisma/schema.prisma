@@ -126,8 +126,7 @@ enum AuditTargetType {
   // add more as needed
 }
 
-enum AuthProvider {
-  LOCAL
+enum AuthProviderName {
   GOOGLE
   FACEBOOK
 }
@@ -150,12 +149,11 @@ model User {
   avatarUrl       String?   @db.VarChar(2048)
 
   // OAuth fields
-  role          Role         @default(CUSTOMER)
-  status        UserStatus   @default(ACTIVE)
-  provider      AuthProvider // e.g., google, facebook
-  providerId    String?      @db.VarChar(255) // e.g., google id, facebook id
+  role   Role       @default(CUSTOMER)
+  status UserStatus @default(ACTIVE)
+
   // Array refresh tokens for multiple device sessions
-  refreshTokens String[]     @default([])
+  refreshTokens String[] @default([])
 
   loginAttempts Int @default(0)
 
@@ -166,13 +164,30 @@ model User {
   passwordChangedAt DateTime?
   lastLoginAt       DateTime?
 
-  carts     Cart[]
-  orders    Order[]
-  sessions  ChatSession[]
-  audits    AuditLog[]    @relation("AuditActor")
-  addresses Address[]
+  carts         Cart[]
+  orders        Order[]
+  sessions      ChatSession[]
+  audits        AuditLog[]     @relation("AuditActor")
+  addresses     Address[]
+  authProviders AuthProvider[]
 
   @@index([status])
+}
+
+model AuthProvider {
+  id         String           @id @default(uuid())
+  userId     String
+  provider   AuthProviderName
+  providerId String           @db.VarChar(255)
+
+  // Audit
+  linkedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
 }
 
 // --------------------------

@@ -3,7 +3,7 @@ import { InvalidNameError } from "../errors/invalid-name.error";
 export class Name {
   private readonly fullName: string;
 
-  private readonly NAME_REGEX: RegExp = /^[a-zA-Zà-žÀ-Ž'´`-]{1,}([ ][a-zA-Zà-žÀ-Ž'´`-]{1,})+$/; // Allows letters (including accented), spaces, apostrophes, and hyphens
+  public static readonly REGEX: RegExp = /^[a-zA-Zà-žÀ-Ž'´`-]{3,}([ ][a-zA-Zà-žÀ-Ž'´`-]{1,})*$/; // Allows letters (including accented), spaces, apostrophes, and hyphens
 
   private constructor(
     fullName: string
@@ -16,18 +16,19 @@ export class Name {
   private validate(fullName: string) {
     // Display name validation
     if (fullName.trim().length === 0) { throw new InvalidNameError('Full name cannot be empty'); }
-    if (fullName.trim().length < 2) { throw new InvalidNameError('Full name must be at least 2 characters long'); }
+    if (fullName.trim().length < 3) { throw new InvalidNameError('Full name must be at least 3 characters long'); }
     if (fullName.trim().length > 100) { throw new InvalidNameError('Full name cannot exceed 100 characters'); }
-    if (!this.NAME_REGEX.test(fullName)) { throw new InvalidNameError('Full name contains invalid characters or format'); }
+    if (!Name.REGEX.test(fullName)) { throw new InvalidNameError('Full name contains invalid characters or format'); }
   }
 
   private sanitaize(fullName: string): string {
-    let sanitized: string = fullName;
-
-    sanitized = sanitized.trim().replace(/\s+/g, ' '); // Trim and replace multiple spaces with a single space
-    sanitized = sanitized.split(' ').map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    ).join(' '); // Capitalize first letter of each word
+    const sanitized: string = fullName
+      .trim()
+      .replace(/[^a-zA-Zà-žÀ-Ž'´`-\s]/g, '') // Remove invalid characters except letters, spaces, apostrophes, and hyphens
+      .replace(/[-]{2,}/g, '-') // Replace multiple hyphens with a single hyphen
+      .replace(/[ ]{2,}/g, ' ') // Replace multiple spaces with a single space
+      .replace(/[\s]-|-[\s]/g, '-') // Remove spaces around hyphens
+      .replace(/\s{2,}/g, ' '); // Final trim of multiple spaces
 
     return sanitized;
   }

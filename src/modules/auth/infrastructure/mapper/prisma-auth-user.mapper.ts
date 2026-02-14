@@ -49,7 +49,7 @@ export class PrismaAuthUserMapper {
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       deletedAt: raw.deletedAt,
-      provider: provider
+      provider: provider,
     })
   }
 

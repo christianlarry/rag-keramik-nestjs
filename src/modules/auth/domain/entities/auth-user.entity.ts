@@ -4,8 +4,8 @@ import { Password } from "../value-objects/password.vo";
 import { Role } from "src/modules/users/domain/value-objects/role.vo";
 import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../value-objects/auth-provider.vo";
-import { InvalidProviderError } from "../errors/invalid-provider.error";
-import { CannotAccessProtectedResourceError, CannotLoginError, CannotRefreshTokenError, CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError } from "../errors";
+import { AuthProvider as AuthProviderEnum } from "../enums/auth-provider.enum";
+import { CannotAccessProtectedResourceError, CannotLoginError, CannotRefreshTokenError, CannotUnverifyEmailError, CannotVerifyEmailError, InvalidAuthStateError, InvalidProviderError } from "../errors";
 import { UserRegisteredEvent } from "../events/user-registered.event";
 import { CannotResetPasswordError } from "../errors/cannot-reset-password.error";
 import { CannotChangePasswordError } from "../errors/cannot-change-password.error";
@@ -20,7 +20,7 @@ interface AuthUserProps {
   password: Password | null;
   role: Role;
   status: Status;
-  provider: AuthProvider;
+  providers: AuthProvider[];
   lastLoginAt: Date | null;
   refreshTokens: string[];
   createdAt: Date;
@@ -69,7 +69,7 @@ export class AuthUser extends AggregateRoot {
         password: params.password,
         role: params.role || Role.createCustomer(),
         status: Status.createInactive(),
-        provider: AuthProvider.createLocal(),
+        providers: [],
         lastLoginAt: null,
         refreshTokens: [],
         createdAt: new Date(),
@@ -90,11 +90,6 @@ export class AuthUser extends AggregateRoot {
   }
 
   public static fromOAuth(params: OAuthParams): AuthUser {
-
-    if (params.provider.isOAuth() === false) {
-      throw new InvalidProviderError('Auth provider must be an OAuth provider');
-    }
-
     return new AuthUser(UserId.generate(),
       {
         name: params.name,
@@ -104,7 +99,7 @@ export class AuthUser extends AggregateRoot {
         password: null,
         role: params.role || Role.createCustomer(),
         status: Status.create('active'),
-        provider: params.provider,
+        providers: [params.provider],
         lastLoginAt: null,
         refreshTokens: [],
         createdAt: new Date(),
@@ -119,20 +114,9 @@ export class AuthUser extends AggregateRoot {
   }
 
   private validate(): void {
-    // Ensure password is provided for local provider
-    if (this.props.provider.isLocal() && this.props.password === null) {
-      throw new InvalidAuthStateError('Password cannot be null for local provider');
-    }
-
-    // Ensure password is null for OAuth providers
-    if (this.props.provider.isOAuth() && this.props.password !== null) {
-      throw new InvalidAuthStateError('Password must be null for OAuth provider');
-    }
-
     // Ensure email is verified for OAuth providers
     if (
-      (this.props.provider.isOAuth() && this.props.emailVerified === false) ||
-      (this.props.provider.isOAuth() && this.props.emailVerifiedAt === null)
+      (this.isUsingOAuthProvider() && (this.props.emailVerified === false || this.props.emailVerifiedAt === null))
     ) {
       throw new InvalidAuthStateError('Email must be verified for OAuth provider');
     }
@@ -207,7 +191,7 @@ export class AuthUser extends AggregateRoot {
   public canLogin(): boolean {
     return (
       this.props.status.isActive() &&
-      (this.props.provider.isLocal() || this.props.provider.isOAuth()) &&
+      (this.isUsingLocalProvider()) &&
       (this.props.emailVerified)
     );
   }
@@ -216,7 +200,7 @@ export class AuthUser extends AggregateRoot {
     return (
       !this.props.status.isActive() &&
       !this.props.emailVerified &&
-      this.props.provider.isLocal()
+      this.isUsingLocalProvider()
     );
   }
 
@@ -227,7 +211,7 @@ export class AuthUser extends AggregateRoot {
   public canResetPassword(): boolean {
     return (
       this.props.status.isActive() &&
-      this.props.provider.isLocal() &&
+      this.isUsingLocalProvider() &&
       this.props.password !== null &&
       this.props.emailVerified &&
       this.props.emailVerifiedAt !== null
@@ -253,14 +237,6 @@ export class AuthUser extends AggregateRoot {
     );
   }
 
-  public isUsingOAuthProvider(): boolean {
-    return this.props.provider.isOAuth();
-  }
-
-  public isUsingLocalProvider(): boolean {
-    return this.props.provider.isLocal();
-  }
-
   public isInactiveForOneWeek(): boolean {
     if (!this.props.lastLoginAt) {
       return true;
@@ -279,6 +255,36 @@ export class AuthUser extends AggregateRoot {
     return this.props.lastLoginAt < oneMonthAgo;
   }
 
+  // == Provider Management == //
+  public isUsingOAuthProvider(): boolean {
+    return this.props.providers.length > 0;
+  }
+
+  public isUsingLocalProvider(): boolean {
+    return this.props.password !== null;
+  }
+
+  public hasProvider(providerName: AuthProviderEnum): boolean {
+    return this.props.providers.some(p => p.getProviderName() === providerName);
+  }
+
+  public linkOAuth(provider: AuthProvider): void {
+    if (this.hasProvider(provider.getProviderName())) {
+      throw new InvalidProviderError(`User already linked with ${provider.getProviderName()} provider`);
+    }
+
+    this.props.providers.push(provider);
+    this.props.updatedAt = new Date();
+  }
+
+  public unlinkOAuth(providerName: AuthProviderEnum): void {
+    if (!this.hasProvider(providerName)) {
+      throw new InvalidProviderError(`User is not linked with ${providerName} provider`);
+    }
+
+    this.props.providers = this.props.providers.filter(p => p.getProviderName() !== providerName);
+    this.props.updatedAt = new Date();
+  }
 
   // ===== Command methods ===== //
 
@@ -442,7 +448,7 @@ export class AuthUser extends AggregateRoot {
   public get password(): Password | null { return this.props.password; }
   public get role(): Role { return this.props.role; }
   public get status(): Status { return this.props.status; }
-  public get provider(): AuthProvider { return this.props.provider; }
+  public get providers(): AuthProvider[] { return this.props.providers; }
   public get lastLoginAt(): Date | null { return this.props.lastLoginAt; }
   public get refreshTokens(): string[] { return this.props.refreshTokens; }
   public get createdAt(): Date { return this.props.createdAt; }

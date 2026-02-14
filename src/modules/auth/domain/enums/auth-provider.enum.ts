@@ -1,5 +1,4 @@
 export const AuthProvider = {
-  LOCAL: 'local',
   GOOGLE: 'google',
   FACEBOOK: 'facebook',
 } as const;
