@@ -4,7 +4,8 @@ import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domai
 import { AuthUserNotFoundError } from "../../domain/errors";
 import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
 import { AuditService } from "src/modules/audit/audit.service";
-import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
+import { AuditAction } from "src/modules/audit/enums/audit-action.enum";
+import { AuditTargetType } from "src/modules/audit/enums/audit-target-type.enum";
 import { MailService } from "src/modules/mail/mail.service";
 import { VerificationTokenRepository } from "../../infrastructure/repositories/email-verification-token.repository";
 import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";

@@ -2,7 +2,8 @@ import { Inject, Injectable } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
 import { AuditService } from "src/modules/audit/audit.service";
-import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
+import { AuditAction } from "src/modules/audit/enums/audit-action.enum";
+import { AuditTargetType } from "src/modules/audit/enums/audit-target-type.enum";
 import { BlacklistedAccessTokenRepository } from "../../infrastructure/repositories/blacklisted-access-token.repository";
 import { AccessTokenGenerator } from "../../infrastructure/generator/access-token.generator";
 

@@ -27,8 +27,8 @@ export type AggregateAuditLog = {
 export type AuditLogMinAggregateOutputType = {
   id: string | null
   actorId: string | null
-  action: $Enums.AuditAction | null
-  targetType: $Enums.AuditTargetType | null
+  action: string | null
+  targetType: string | null
   targetId: string | null
   createdAt: Date | null
 }
@@ -36,8 +36,8 @@ export type AuditLogMinAggregateOutputType = {
 export type AuditLogMaxAggregateOutputType = {
   id: string | null
   actorId: string | null
-  action: $Enums.AuditAction | null
-  targetType: $Enums.AuditTargetType | null
+  action: string | null
+  targetType: string | null
   targetId: string | null
   createdAt: Date | null
 }
@@ -158,8 +158,8 @@ export type AuditLogGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 export type AuditLogGroupByOutputType = {
   id: string
   actorId: string | null
-  action: $Enums.AuditAction
-  targetType: $Enums.AuditTargetType
+  action: string
+  targetType: string
   targetId: string | null
   metadata: runtime.JsonValue | null
   createdAt: Date
@@ -189,8 +189,8 @@ export type AuditLogWhereInput = {
   NOT?: Prisma.AuditLogWhereInput | Prisma.AuditLogWhereInput[]
   id?: Prisma.StringFilter<"AuditLog"> | string
   actorId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
-  action?: Prisma.EnumAuditActionFilter<"AuditLog"> | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFilter<"AuditLog"> | $Enums.AuditTargetType
+  action?: Prisma.StringFilter<"AuditLog"> | string
+  targetType?: Prisma.StringFilter<"AuditLog"> | string
   targetId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"AuditLog">
   createdAt?: Prisma.DateTimeFilter<"AuditLog"> | Date | string
@@ -214,8 +214,8 @@ export type AuditLogWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.AuditLogWhereInput[]
   NOT?: Prisma.AuditLogWhereInput | Prisma.AuditLogWhereInput[]
   actorId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
-  action?: Prisma.EnumAuditActionFilter<"AuditLog"> | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFilter<"AuditLog"> | $Enums.AuditTargetType
+  action?: Prisma.StringFilter<"AuditLog"> | string
+  targetType?: Prisma.StringFilter<"AuditLog"> | string
   targetId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"AuditLog">
   createdAt?: Prisma.DateTimeFilter<"AuditLog"> | Date | string
@@ -241,8 +241,8 @@ export type AuditLogScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AuditLogScalarWhereWithAggregatesInput | Prisma.AuditLogScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AuditLog"> | string
   actorId?: Prisma.StringNullableWithAggregatesFilter<"AuditLog"> | string | null
-  action?: Prisma.EnumAuditActionWithAggregatesFilter<"AuditLog"> | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeWithAggregatesFilter<"AuditLog"> | $Enums.AuditTargetType
+  action?: Prisma.StringWithAggregatesFilter<"AuditLog"> | string
+  targetType?: Prisma.StringWithAggregatesFilter<"AuditLog"> | string
   targetId?: Prisma.StringNullableWithAggregatesFilter<"AuditLog"> | string | null
   metadata?: Prisma.JsonNullableWithAggregatesFilter<"AuditLog">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AuditLog"> | Date | string
@@ -250,8 +250,8 @@ export type AuditLogScalarWhereWithAggregatesInput = {
 
 export type AuditLogCreateInput = {
   id?: string
-  action: $Enums.AuditAction
-  targetType: $Enums.AuditTargetType
+  action: string
+  targetType: string
   targetId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -261,8 +261,8 @@ export type AuditLogCreateInput = {
 export type AuditLogUncheckedCreateInput = {
   id?: string
   actorId?: string | null
-  action: $Enums.AuditAction
-  targetType: $Enums.AuditTargetType
+  action: string
+  targetType: string
   targetId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -270,8 +270,8 @@ export type AuditLogUncheckedCreateInput = {
 
 export type AuditLogUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  action?: Prisma.EnumAuditActionFieldUpdateOperationsInput | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFieldUpdateOperationsInput | $Enums.AuditTargetType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.StringFieldUpdateOperationsInput | string
   targetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -281,8 +281,8 @@ export type AuditLogUpdateInput = {
 export type AuditLogUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  action?: Prisma.EnumAuditActionFieldUpdateOperationsInput | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFieldUpdateOperationsInput | $Enums.AuditTargetType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.StringFieldUpdateOperationsInput | string
   targetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -291,8 +291,8 @@ export type AuditLogUncheckedUpdateInput = {
 export type AuditLogCreateManyInput = {
   id?: string
   actorId?: string | null
-  action: $Enums.AuditAction
-  targetType: $Enums.AuditTargetType
+  action: string
+  targetType: string
   targetId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -300,8 +300,8 @@ export type AuditLogCreateManyInput = {
 
 export type AuditLogUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  action?: Prisma.EnumAuditActionFieldUpdateOperationsInput | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFieldUpdateOperationsInput | $Enums.AuditTargetType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.StringFieldUpdateOperationsInput | string
   targetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -310,8 +310,8 @@ export type AuditLogUpdateManyMutationInput = {
 export type AuditLogUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  action?: Prisma.EnumAuditActionFieldUpdateOperationsInput | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFieldUpdateOperationsInput | $Enums.AuditTargetType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.StringFieldUpdateOperationsInput | string
   targetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -397,18 +397,10 @@ export type AuditLogUncheckedUpdateManyWithoutActorNestedInput = {
   deleteMany?: Prisma.AuditLogScalarWhereInput | Prisma.AuditLogScalarWhereInput[]
 }
 
-export type EnumAuditActionFieldUpdateOperationsInput = {
-  set?: $Enums.AuditAction
-}
-
-export type EnumAuditTargetTypeFieldUpdateOperationsInput = {
-  set?: $Enums.AuditTargetType
-}
-
 export type AuditLogCreateWithoutActorInput = {
   id?: string
-  action: $Enums.AuditAction
-  targetType: $Enums.AuditTargetType
+  action: string
+  targetType: string
   targetId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -416,8 +408,8 @@ export type AuditLogCreateWithoutActorInput = {
 
 export type AuditLogUncheckedCreateWithoutActorInput = {
   id?: string
-  action: $Enums.AuditAction
-  targetType: $Enums.AuditTargetType
+  action: string
+  targetType: string
   targetId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -455,8 +447,8 @@ export type AuditLogScalarWhereInput = {
   NOT?: Prisma.AuditLogScalarWhereInput | Prisma.AuditLogScalarWhereInput[]
   id?: Prisma.StringFilter<"AuditLog"> | string
   actorId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
-  action?: Prisma.EnumAuditActionFilter<"AuditLog"> | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFilter<"AuditLog"> | $Enums.AuditTargetType
+  action?: Prisma.StringFilter<"AuditLog"> | string
+  targetType?: Prisma.StringFilter<"AuditLog"> | string
   targetId?: Prisma.StringNullableFilter<"AuditLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"AuditLog">
   createdAt?: Prisma.DateTimeFilter<"AuditLog"> | Date | string
@@ -464,8 +456,8 @@ export type AuditLogScalarWhereInput = {
 
 export type AuditLogCreateManyActorInput = {
   id?: string
-  action: $Enums.AuditAction
-  targetType: $Enums.AuditTargetType
+  action: string
+  targetType: string
   targetId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -473,8 +465,8 @@ export type AuditLogCreateManyActorInput = {
 
 export type AuditLogUpdateWithoutActorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  action?: Prisma.EnumAuditActionFieldUpdateOperationsInput | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFieldUpdateOperationsInput | $Enums.AuditTargetType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.StringFieldUpdateOperationsInput | string
   targetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -482,8 +474,8 @@ export type AuditLogUpdateWithoutActorInput = {
 
 export type AuditLogUncheckedUpdateWithoutActorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  action?: Prisma.EnumAuditActionFieldUpdateOperationsInput | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFieldUpdateOperationsInput | $Enums.AuditTargetType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.StringFieldUpdateOperationsInput | string
   targetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -491,8 +483,8 @@ export type AuditLogUncheckedUpdateWithoutActorInput = {
 
 export type AuditLogUncheckedUpdateManyWithoutActorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  action?: Prisma.EnumAuditActionFieldUpdateOperationsInput | $Enums.AuditAction
-  targetType?: Prisma.EnumAuditTargetTypeFieldUpdateOperationsInput | $Enums.AuditTargetType
+  action?: Prisma.StringFieldUpdateOperationsInput | string
+  targetType?: Prisma.StringFieldUpdateOperationsInput | string
   targetId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -562,8 +554,8 @@ export type $AuditLogPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     actorId: string | null
-    action: $Enums.AuditAction
-    targetType: $Enums.AuditTargetType
+    action: string
+    targetType: string
     targetId: string | null
     metadata: runtime.JsonValue | null
     createdAt: Date
@@ -993,8 +985,8 @@ export interface Prisma__AuditLogClient<T, Null = never, ExtArgs extends runtime
 export interface AuditLogFieldRefs {
   readonly id: Prisma.FieldRef<"AuditLog", 'String'>
   readonly actorId: Prisma.FieldRef<"AuditLog", 'String'>
-  readonly action: Prisma.FieldRef<"AuditLog", 'AuditAction'>
-  readonly targetType: Prisma.FieldRef<"AuditLog", 'AuditTargetType'>
+  readonly action: Prisma.FieldRef<"AuditLog", 'String'>
+  readonly targetType: Prisma.FieldRef<"AuditLog", 'String'>
   readonly targetId: Prisma.FieldRef<"AuditLog", 'String'>
   readonly metadata: Prisma.FieldRef<"AuditLog", 'Json'>
   readonly createdAt: Prisma.FieldRef<"AuditLog", 'DateTime'>

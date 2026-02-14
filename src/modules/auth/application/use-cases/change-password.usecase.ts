@@ -5,7 +5,8 @@ import { PASSWORD_HASHER_TOKEN, type PasswordHasher } from "../../domain/service
 import { Password } from "../../domain/value-objects/password.vo";
 import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
 import { AuditService } from "src/modules/audit/audit.service";
-import { AuditAction, AuditTargetType } from "src/generated/prisma/enums";
+import { AuditAction } from "src/modules/audit/enums/audit-action.enum";
+import { AuditTargetType } from "src/modules/audit/enums/audit-target-type.enum";
 
 interface ChangePasswordCommand {
   userId: string;

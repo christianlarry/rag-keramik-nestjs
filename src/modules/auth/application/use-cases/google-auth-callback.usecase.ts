@@ -4,6 +4,10 @@ import { AuthUser } from "../../domain/entities/auth-user.entity";
 import { AuthProvider } from "../../domain/value-objects/auth-provider.vo";
 import { Name } from "src/modules/users/domain/value-objects/name.vo";
 import { Email } from "src/modules/users/domain/value-objects/email.vo";
+import { AccessTokenGenerator } from "../../infrastructure/generator/access-token.generator";
+import { RefreshTokenGenerator } from "../../infrastructure/generator/refresh-token.generator";
+import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
+import { AuditService } from "src/modules/audit/audit.service";
 
 interface GoogleAuthCallbackCommand {
   user: {
@@ -31,7 +35,13 @@ export class GoogleAuthCallbackUseCase {
 
   constructor(
     @Inject(AUTH_USER_REPOSITORY_TOKEN)
-    private readonly authUserRepository: AuthUserRepository
+    private readonly authUserRepository: AuthUserRepository,
+    private readonly accessTokenGenerator: AccessTokenGenerator,
+    private readonly refreshTokenGenerator: RefreshTokenGenerator,
+
+    @Inject(UNIT_OF_WORK_TOKEN)
+    private readonly uow: UnitOfWork, // Replace with actual UnitOfWork type if you have it
+    private readonly audit: AuditService, // Inject your AuditService if you have it for logging purposes
   ) { }
 
   async execute(command: GoogleAuthCallbackCommand): Promise<GoogleAuthCallbackResult> {
@@ -53,20 +63,35 @@ export class GoogleAuthCallbackUseCase {
       });
     }
 
-    await authUser.recordOAuthLogin('google', { avatarUrl: command.user.avatarUrl });
-    await this.authUserRepository.save(authUser);
-
     // TODO : 3. Generate access and refresh tokens
-    // TODO : 4. Return tokens and user info
+    const accessToken = await this.accessTokenGenerator.generate({
+      userId: authUser.id.getValue(),
+      email: authUser.email.getValue(),
+      role: authUser.role.getValue(),
+    });
+    const refreshToken = await this.refreshTokenGenerator.generate({
+      userId: authUser.id.getValue(),
+    });
 
-    // For demonstration purposes, returning mock data
+    authUser.addRefreshToken(refreshToken);
+    await authUser.recordOAuthLogin('google', { avatarUrl: command.user.avatarUrl });
+
+    await this.uow.withTransaction(async () => {
+      await this.authUserRepository.save(authUser);
+
+      await this.audit.logUserAction(
+        authUser.id.getValue(),
+
+      )
+    })
+
     return {
-      accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token',
+      accessToken: accessToken,
+      refreshToken: refreshToken,
       user: {
-        id: 'mock-user-id',
-        email: command.user.email,
-        fullName: command.user.fullName
+        id: authUser.id.getValue(),
+        email: authUser.email.getValue(),
+        fullName: authUser.name.getFullName(),
       }
     }
   }
