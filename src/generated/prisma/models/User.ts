@@ -49,8 +49,6 @@ export type UserMinAggregateOutputType = {
   avatarUrl: string | null
   role: $Enums.Role | null
   status: $Enums.UserStatus | null
-  provider: $Enums.AuthProvider | null
-  providerId: string | null
   loginAttempts: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -74,8 +72,6 @@ export type UserMaxAggregateOutputType = {
   avatarUrl: string | null
   role: $Enums.Role | null
   status: $Enums.UserStatus | null
-  provider: $Enums.AuthProvider | null
-  providerId: string | null
   loginAttempts: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -99,8 +95,6 @@ export type UserCountAggregateOutputType = {
   avatarUrl: number
   role: number
   status: number
-  provider: number
-  providerId: number
   refreshTokens: number
   loginAttempts: number
   createdAt: number
@@ -135,8 +129,6 @@ export type UserMinAggregateInputType = {
   avatarUrl?: true
   role?: true
   status?: true
-  provider?: true
-  providerId?: true
   loginAttempts?: true
   createdAt?: true
   updatedAt?: true
@@ -160,8 +152,6 @@ export type UserMaxAggregateInputType = {
   avatarUrl?: true
   role?: true
   status?: true
-  provider?: true
-  providerId?: true
   loginAttempts?: true
   createdAt?: true
   updatedAt?: true
@@ -185,8 +175,6 @@ export type UserCountAggregateInputType = {
   avatarUrl?: true
   role?: true
   status?: true
-  provider?: true
-  providerId?: true
   refreshTokens?: true
   loginAttempts?: true
   createdAt?: true
@@ -298,8 +286,6 @@ export type UserGroupByOutputType = {
   avatarUrl: string | null
   role: $Enums.Role
   status: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId: string | null
   refreshTokens: string[]
   loginAttempts: number
   createdAt: Date
@@ -347,8 +333,6 @@ export type UserWhereInput = {
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
-  providerId?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
   loginAttempts?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -361,6 +345,7 @@ export type UserWhereInput = {
   sessions?: Prisma.ChatSessionListRelationFilter
   audits?: Prisma.AuditLogListRelationFilter
   addresses?: Prisma.AddressListRelationFilter
+  authProviders?: Prisma.AuthProviderListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -378,8 +363,6 @@ export type UserOrderByWithRelationInput = {
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  provider?: Prisma.SortOrder
-  providerId?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokens?: Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -392,6 +375,7 @@ export type UserOrderByWithRelationInput = {
   sessions?: Prisma.ChatSessionOrderByRelationAggregateInput
   audits?: Prisma.AuditLogOrderByRelationAggregateInput
   addresses?: Prisma.AddressOrderByRelationAggregateInput
+  authProviders?: Prisma.AuthProviderOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -412,8 +396,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
-  providerId?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
   loginAttempts?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -426,6 +408,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sessions?: Prisma.ChatSessionListRelationFilter
   audits?: Prisma.AuditLogListRelationFilter
   addresses?: Prisma.AddressListRelationFilter
+  authProviders?: Prisma.AuthProviderListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -443,8 +426,6 @@ export type UserOrderByWithAggregationInput = {
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  provider?: Prisma.SortOrder
-  providerId?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokens?: Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -477,8 +458,6 @@ export type UserScalarWhereWithAggregatesInput = {
   avatarUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusWithAggregatesFilter<"User"> | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderWithAggregatesFilter<"User"> | $Enums.AuthProvider
-  providerId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   refreshTokens?: Prisma.StringNullableListFilter<"User">
   loginAttempts?: Prisma.IntWithAggregatesFilter<"User"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -503,8 +482,6 @@ export type UserCreateInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -517,6 +494,7 @@ export type UserCreateInput = {
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -534,8 +512,6 @@ export type UserUncheckedCreateInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -548,6 +524,7 @@ export type UserUncheckedCreateInput = {
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -565,8 +542,6 @@ export type UserUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -579,6 +554,7 @@ export type UserUpdateInput = {
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -596,8 +572,6 @@ export type UserUncheckedUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -610,6 +584,7 @@ export type UserUncheckedUpdateInput = {
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -627,8 +602,6 @@ export type UserCreateManyInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -653,8 +626,6 @@ export type UserUpdateManyMutationInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -679,8 +650,6 @@ export type UserUncheckedUpdateManyInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -713,8 +682,6 @@ export type UserCountOrderByAggregateInput = {
   avatarUrl?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  provider?: Prisma.SortOrder
-  providerId?: Prisma.SortOrder
   refreshTokens?: Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -743,8 +710,6 @@ export type UserMaxOrderByAggregateInput = {
   avatarUrl?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  provider?: Prisma.SortOrder
-  providerId?: Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -768,8 +733,6 @@ export type UserMinOrderByAggregateInput = {
   avatarUrl?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  provider?: Prisma.SortOrder
-  providerId?: Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -824,10 +787,6 @@ export type EnumUserStatusFieldUpdateOperationsInput = {
   set?: $Enums.UserStatus
 }
 
-export type EnumAuthProviderFieldUpdateOperationsInput = {
-  set?: $Enums.AuthProvider
-}
-
 export type UserUpdaterefreshTokensInput = {
   set?: string[]
   push?: string | string[]
@@ -843,6 +802,20 @@ export type IntFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type UserCreateNestedOneWithoutAuthProvidersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuthProvidersInput, Prisma.UserUncheckedCreateWithoutAuthProvidersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuthProvidersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAuthProvidersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuthProvidersInput, Prisma.UserUncheckedCreateWithoutAuthProvidersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuthProvidersInput
+  upsert?: Prisma.UserUpsertWithoutAuthProvidersInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuthProvidersInput, Prisma.UserUpdateWithoutAuthProvidersInput>, Prisma.UserUncheckedUpdateWithoutAuthProvidersInput>
 }
 
 export type UserCreateNestedOneWithoutAddressesInput = {
@@ -919,6 +892,138 @@ export type UserUpdateOneWithoutAuditsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditsInput, Prisma.UserUpdateWithoutAuditsInput>, Prisma.UserUncheckedUpdateWithoutAuditsInput>
 }
 
+export type UserCreateWithoutAuthProvidersInput = {
+  id?: string
+  email: string
+  emailVerified?: boolean
+  emailVerifiedAt?: Date | string | null
+  password?: string | null
+  fullName: string
+  gender?: $Enums.Gender | null
+  dateOfBirth?: Date | string | null
+  phoneNumber?: string | null
+  phoneVerified?: boolean
+  phoneVerifiedAt?: Date | string | null
+  avatarUrl?: string | null
+  role?: $Enums.Role
+  status?: $Enums.UserStatus
+  refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  carts?: Prisma.CartCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAuthProvidersInput = {
+  id?: string
+  email: string
+  emailVerified?: boolean
+  emailVerifiedAt?: Date | string | null
+  password?: string | null
+  fullName: string
+  gender?: $Enums.Gender | null
+  dateOfBirth?: Date | string | null
+  phoneNumber?: string | null
+  phoneVerified?: boolean
+  phoneVerifiedAt?: Date | string | null
+  avatarUrl?: string | null
+  role?: $Enums.Role
+  status?: $Enums.UserStatus
+  refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
+  loginAttempts?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  carts?: Prisma.CartUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
+  audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAuthProvidersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuthProvidersInput, Prisma.UserUncheckedCreateWithoutAuthProvidersInput>
+}
+
+export type UserUpsertWithoutAuthProvidersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAuthProvidersInput, Prisma.UserUncheckedUpdateWithoutAuthProvidersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuthProvidersInput, Prisma.UserUncheckedCreateWithoutAuthProvidersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAuthProvidersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAuthProvidersInput, Prisma.UserUncheckedUpdateWithoutAuthProvidersInput>
+}
+
+export type UserUpdateWithoutAuthProvidersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carts?: Prisma.CartUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAuthProvidersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carts?: Prisma.CartUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
+  audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
+}
+
 export type UserCreateWithoutAddressesInput = {
   id?: string
   email: string
@@ -934,8 +1039,6 @@ export type UserCreateWithoutAddressesInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -947,6 +1050,7 @@ export type UserCreateWithoutAddressesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  authProviders?: Prisma.AuthProviderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAddressesInput = {
@@ -964,8 +1068,6 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -977,6 +1079,7 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  authProviders?: Prisma.AuthProviderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAddressesInput = {
@@ -1010,8 +1113,6 @@ export type UserUpdateWithoutAddressesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1023,6 +1124,7 @@ export type UserUpdateWithoutAddressesInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  authProviders?: Prisma.AuthProviderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAddressesInput = {
@@ -1040,8 +1142,6 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1053,6 +1153,7 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  authProviders?: Prisma.AuthProviderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCartsInput = {
@@ -1070,8 +1171,6 @@ export type UserCreateWithoutCartsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -1083,6 +1182,7 @@ export type UserCreateWithoutCartsInput = {
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCartsInput = {
@@ -1100,8 +1200,6 @@ export type UserUncheckedCreateWithoutCartsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -1113,6 +1211,7 @@ export type UserUncheckedCreateWithoutCartsInput = {
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCartsInput = {
@@ -1146,8 +1245,6 @@ export type UserUpdateWithoutCartsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1159,6 +1256,7 @@ export type UserUpdateWithoutCartsInput = {
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCartsInput = {
@@ -1176,8 +1274,6 @@ export type UserUncheckedUpdateWithoutCartsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1189,6 +1285,7 @@ export type UserUncheckedUpdateWithoutCartsInput = {
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrdersInput = {
@@ -1206,8 +1303,6 @@ export type UserCreateWithoutOrdersInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -1219,6 +1314,7 @@ export type UserCreateWithoutOrdersInput = {
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrdersInput = {
@@ -1236,8 +1332,6 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -1249,6 +1343,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrdersInput = {
@@ -1282,8 +1377,6 @@ export type UserUpdateWithoutOrdersInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1295,6 +1388,7 @@ export type UserUpdateWithoutOrdersInput = {
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -1312,8 +1406,6 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1325,6 +1417,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -1342,8 +1435,6 @@ export type UserCreateWithoutSessionsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -1355,6 +1446,7 @@ export type UserCreateWithoutSessionsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -1372,8 +1464,6 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -1385,6 +1475,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   audits?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -1418,8 +1509,6 @@ export type UserUpdateWithoutSessionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1431,6 +1520,7 @@ export type UserUpdateWithoutSessionsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1448,8 +1538,6 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1461,6 +1549,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   audits?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditsInput = {
@@ -1478,8 +1567,6 @@ export type UserCreateWithoutAuditsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -1491,6 +1578,7 @@ export type UserCreateWithoutAuditsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionCreateNestedManyWithoutUserInput
   addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditsInput = {
@@ -1508,8 +1596,6 @@ export type UserUncheckedCreateWithoutAuditsInput = {
   avatarUrl?: string | null
   role?: $Enums.Role
   status?: $Enums.UserStatus
-  provider: $Enums.AuthProvider
-  providerId?: string | null
   refreshTokens?: Prisma.UserCreaterefreshTokensInput | string[]
   loginAttempts?: number
   createdAt?: Date | string
@@ -1521,6 +1607,7 @@ export type UserUncheckedCreateWithoutAuditsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.ChatSessionUncheckedCreateNestedManyWithoutUserInput
   addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
+  authProviders?: Prisma.AuthProviderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditsInput = {
@@ -1554,8 +1641,6 @@ export type UserUpdateWithoutAuditsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1567,6 +1652,7 @@ export type UserUpdateWithoutAuditsInput = {
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUpdateManyWithoutUserNestedInput
   addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditsInput = {
@@ -1584,8 +1670,6 @@ export type UserUncheckedUpdateWithoutAuditsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refreshTokens?: Prisma.UserUpdaterefreshTokensInput | string[]
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1597,6 +1681,7 @@ export type UserUncheckedUpdateWithoutAuditsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.ChatSessionUncheckedUpdateManyWithoutUserNestedInput
   addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
+  authProviders?: Prisma.AuthProviderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1610,6 +1695,7 @@ export type UserCountOutputType = {
   sessions: number
   audits: number
   addresses: number
+  authProviders: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1618,6 +1704,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   audits?: boolean | UserCountOutputTypeCountAuditsArgs
   addresses?: boolean | UserCountOutputTypeCountAddressesArgs
+  authProviders?: boolean | UserCountOutputTypeCountAuthProvidersArgs
 }
 
 /**
@@ -1665,6 +1752,13 @@ export type UserCountOutputTypeCountAddressesArgs<ExtArgs extends runtime.Types.
   where?: Prisma.AddressWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAuthProvidersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuthProviderWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1681,8 +1775,6 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   avatarUrl?: boolean
   role?: boolean
   status?: boolean
-  provider?: boolean
-  providerId?: boolean
   refreshTokens?: boolean
   loginAttempts?: boolean
   createdAt?: boolean
@@ -1695,6 +1787,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   audits?: boolean | Prisma.User$auditsArgs<ExtArgs>
   addresses?: boolean | Prisma.User$addressesArgs<ExtArgs>
+  authProviders?: boolean | Prisma.User$authProvidersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1713,8 +1806,6 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   avatarUrl?: boolean
   role?: boolean
   status?: boolean
-  provider?: boolean
-  providerId?: boolean
   refreshTokens?: boolean
   loginAttempts?: boolean
   createdAt?: boolean
@@ -1739,8 +1830,6 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   avatarUrl?: boolean
   role?: boolean
   status?: boolean
-  provider?: boolean
-  providerId?: boolean
   refreshTokens?: boolean
   loginAttempts?: boolean
   createdAt?: boolean
@@ -1765,8 +1854,6 @@ export type UserSelectScalar = {
   avatarUrl?: boolean
   role?: boolean
   status?: boolean
-  provider?: boolean
-  providerId?: boolean
   refreshTokens?: boolean
   loginAttempts?: boolean
   createdAt?: boolean
@@ -1776,13 +1863,14 @@ export type UserSelectScalar = {
   lastLoginAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "emailVerifiedAt" | "password" | "fullName" | "gender" | "dateOfBirth" | "phoneNumber" | "phoneVerified" | "phoneVerifiedAt" | "avatarUrl" | "role" | "status" | "provider" | "providerId" | "refreshTokens" | "loginAttempts" | "createdAt" | "updatedAt" | "deletedAt" | "passwordChangedAt" | "lastLoginAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "emailVerifiedAt" | "password" | "fullName" | "gender" | "dateOfBirth" | "phoneNumber" | "phoneVerified" | "phoneVerifiedAt" | "avatarUrl" | "role" | "status" | "refreshTokens" | "loginAttempts" | "createdAt" | "updatedAt" | "deletedAt" | "passwordChangedAt" | "lastLoginAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   carts?: boolean | Prisma.User$cartsArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   audits?: boolean | Prisma.User$auditsArgs<ExtArgs>
   addresses?: boolean | Prisma.User$addressesArgs<ExtArgs>
+  authProviders?: boolean | Prisma.User$authProvidersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1796,6 +1884,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sessions: Prisma.$ChatSessionPayload<ExtArgs>[]
     audits: Prisma.$AuditLogPayload<ExtArgs>[]
     addresses: Prisma.$AddressPayload<ExtArgs>[]
+    authProviders: Prisma.$AuthProviderPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1812,8 +1901,6 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     avatarUrl: string | null
     role: $Enums.Role
     status: $Enums.UserStatus
-    provider: $Enums.AuthProvider
-    providerId: string | null
     refreshTokens: string[]
     loginAttempts: number
     createdAt: Date
@@ -2220,6 +2307,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   audits<T extends Prisma.User$auditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   addresses<T extends Prisma.User$addressesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$addressesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AddressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  authProviders<T extends Prisma.User$authProvidersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$authProvidersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuthProviderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2263,8 +2351,6 @@ export interface UserFieldRefs {
   readonly avatarUrl: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'Role'>
   readonly status: Prisma.FieldRef<"User", 'UserStatus'>
-  readonly provider: Prisma.FieldRef<"User", 'AuthProvider'>
-  readonly providerId: Prisma.FieldRef<"User", 'String'>
   readonly refreshTokens: Prisma.FieldRef<"User", 'String[]'>
   readonly loginAttempts: Prisma.FieldRef<"User", 'Int'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -2777,6 +2863,30 @@ export type User$addressesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.AddressScalarFieldEnum | Prisma.AddressScalarFieldEnum[]
+}
+
+/**
+ * User.authProviders
+ */
+export type User$authProvidersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AuthProvider
+   */
+  select?: Prisma.AuthProviderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AuthProvider
+   */
+  omit?: Prisma.AuthProviderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuthProviderInclude<ExtArgs> | null
+  where?: Prisma.AuthProviderWhereInput
+  orderBy?: Prisma.AuthProviderOrderByWithRelationInput | Prisma.AuthProviderOrderByWithRelationInput[]
+  cursor?: Prisma.AuthProviderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuthProviderScalarFieldEnum | Prisma.AuthProviderScalarFieldEnum[]
 }
 
 /**

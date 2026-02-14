@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  AuthProvider: 'AuthProvider',
   Address: 'Address',
   Product: 'Product',
   Inventory: 'Inventory',
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "address" | "product" | "inventory" | "discount" | "productDiscount" | "discountProduct" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "document" | "documentChunk" | "chatSession" | "chatMessage" | "auditLog" | "outbox"
+    modelProps: "user" | "authProvider" | "address" | "product" | "inventory" | "discount" | "productDiscount" | "discountProduct" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "document" | "documentChunk" | "chatSession" | "chatMessage" | "auditLog" | "outbox"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -492,6 +493,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    AuthProvider: {
+      payload: Prisma.$AuthProviderPayload<ExtArgs>
+      fields: Prisma.AuthProviderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuthProviderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuthProviderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>
+        }
+        findFirst: {
+          args: Prisma.AuthProviderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuthProviderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>
+        }
+        findMany: {
+          args: Prisma.AuthProviderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>[]
+        }
+        create: {
+          args: Prisma.AuthProviderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>
+        }
+        createMany: {
+          args: Prisma.AuthProviderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AuthProviderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>[]
+        }
+        delete: {
+          args: Prisma.AuthProviderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>
+        }
+        update: {
+          args: Prisma.AuthProviderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>
+        }
+        deleteMany: {
+          args: Prisma.AuthProviderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuthProviderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AuthProviderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>[]
+        }
+        upsert: {
+          args: Prisma.AuthProviderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthProviderPayload>
+        }
+        aggregate: {
+          args: Prisma.AuthProviderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAuthProvider>
+        }
+        groupBy: {
+          args: Prisma.AuthProviderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuthProviderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuthProviderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuthProviderCountAggregateOutputType> | number
         }
       }
     }
@@ -1807,8 +1882,6 @@ export const UserScalarFieldEnum = {
   avatarUrl: 'avatarUrl',
   role: 'role',
   status: 'status',
-  provider: 'provider',
-  providerId: 'providerId',
   refreshTokens: 'refreshTokens',
   loginAttempts: 'loginAttempts',
   createdAt: 'createdAt',
@@ -1819,6 +1892,18 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const AuthProviderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  provider: 'provider',
+  providerId: 'providerId',
+  linkedAt: 'linkedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuthProviderScalarFieldEnum = (typeof AuthProviderScalarFieldEnum)[keyof typeof AuthProviderScalarFieldEnum]
 
 
 export const AddressScalarFieldEnum = {
@@ -2210,20 +2295,6 @@ export type ListEnumUserStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
- * Reference to a field of type 'AuthProvider'
- */
-export type EnumAuthProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthProvider'>
-    
-
-
-/**
- * Reference to a field of type 'AuthProvider[]'
- */
-export type ListEnumAuthProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthProvider[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -2234,6 +2305,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AuthProviderName'
+ */
+export type EnumAuthProviderNameFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthProviderName'>
+    
+
+
+/**
+ * Reference to a field of type 'AuthProviderName[]'
+ */
+export type ListEnumAuthProviderNameFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthProviderName[]'>
     
 
 
@@ -2528,6 +2613,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  authProvider?: Prisma.AuthProviderOmit
   address?: Prisma.AddressOmit
   product?: Prisma.ProductOmit
   inventory?: Prisma.InventoryOmit

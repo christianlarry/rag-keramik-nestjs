@@ -81,13 +81,6 @@ export type EnumUserStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumUserStatusFilter<$PrismaModel> | $Enums.UserStatus
 }
 
-export type EnumAuthProviderFilter<$PrismaModel = never> = {
-  equals?: $Enums.AuthProvider | Prisma.EnumAuthProviderFieldRefInput<$PrismaModel>
-  in?: $Enums.AuthProvider[] | Prisma.ListEnumAuthProviderFieldRefInput<$PrismaModel>
-  notIn?: $Enums.AuthProvider[] | Prisma.ListEnumAuthProviderFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumAuthProviderFilter<$PrismaModel> | $Enums.AuthProvider
-}
-
 export type IntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -203,16 +196,6 @@ export type EnumUserStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumUserStatusFilter<$PrismaModel>
 }
 
-export type EnumAuthProviderWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.AuthProvider | Prisma.EnumAuthProviderFieldRefInput<$PrismaModel>
-  in?: $Enums.AuthProvider[] | Prisma.ListEnumAuthProviderFieldRefInput<$PrismaModel>
-  notIn?: $Enums.AuthProvider[] | Prisma.ListEnumAuthProviderFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumAuthProviderWithAggregatesFilter<$PrismaModel> | $Enums.AuthProvider
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumAuthProviderFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumAuthProviderFilter<$PrismaModel>
-}
-
 export type IntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -241,6 +224,23 @@ export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
+}
+
+export type EnumAuthProviderNameFilter<$PrismaModel = never> = {
+  equals?: $Enums.AuthProviderName | Prisma.EnumAuthProviderNameFieldRefInput<$PrismaModel>
+  in?: $Enums.AuthProviderName[] | Prisma.ListEnumAuthProviderNameFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AuthProviderName[] | Prisma.ListEnumAuthProviderNameFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAuthProviderNameFilter<$PrismaModel> | $Enums.AuthProviderName
+}
+
+export type EnumAuthProviderNameWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AuthProviderName | Prisma.EnumAuthProviderNameFieldRefInput<$PrismaModel>
+  in?: $Enums.AuthProviderName[] | Prisma.ListEnumAuthProviderNameFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AuthProviderName[] | Prisma.ListEnumAuthProviderNameFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAuthProviderNameWithAggregatesFilter<$PrismaModel> | $Enums.AuthProviderName
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAuthProviderNameFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAuthProviderNameFilter<$PrismaModel>
 }
 
 export type EnumAddressLabelFilter<$PrismaModel = never> = {
@@ -678,13 +678,6 @@ export type NestedEnumUserStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumUserStatusFilter<$PrismaModel> | $Enums.UserStatus
 }
 
-export type NestedEnumAuthProviderFilter<$PrismaModel = never> = {
-  equals?: $Enums.AuthProvider | Prisma.EnumAuthProviderFieldRefInput<$PrismaModel>
-  in?: $Enums.AuthProvider[] | Prisma.ListEnumAuthProviderFieldRefInput<$PrismaModel>
-  notIn?: $Enums.AuthProvider[] | Prisma.ListEnumAuthProviderFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumAuthProviderFilter<$PrismaModel> | $Enums.AuthProvider
-}
-
 export type NestedIntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -804,16 +797,6 @@ export type NestedEnumUserStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumUserStatusFilter<$PrismaModel>
 }
 
-export type NestedEnumAuthProviderWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.AuthProvider | Prisma.EnumAuthProviderFieldRefInput<$PrismaModel>
-  in?: $Enums.AuthProvider[] | Prisma.ListEnumAuthProviderFieldRefInput<$PrismaModel>
-  notIn?: $Enums.AuthProvider[] | Prisma.ListEnumAuthProviderFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumAuthProviderWithAggregatesFilter<$PrismaModel> | $Enums.AuthProvider
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumAuthProviderFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumAuthProviderFilter<$PrismaModel>
-}
-
 export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -853,6 +836,23 @@ export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
+}
+
+export type NestedEnumAuthProviderNameFilter<$PrismaModel = never> = {
+  equals?: $Enums.AuthProviderName | Prisma.EnumAuthProviderNameFieldRefInput<$PrismaModel>
+  in?: $Enums.AuthProviderName[] | Prisma.ListEnumAuthProviderNameFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AuthProviderName[] | Prisma.ListEnumAuthProviderNameFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAuthProviderNameFilter<$PrismaModel> | $Enums.AuthProviderName
+}
+
+export type NestedEnumAuthProviderNameWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AuthProviderName | Prisma.EnumAuthProviderNameFieldRefInput<$PrismaModel>
+  in?: $Enums.AuthProviderName[] | Prisma.ListEnumAuthProviderNameFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AuthProviderName[] | Prisma.ListEnumAuthProviderNameFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAuthProviderNameWithAggregatesFilter<$PrismaModel> | $Enums.AuthProviderName
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAuthProviderNameFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAuthProviderNameFilter<$PrismaModel>
 }
 
 export type NestedEnumAddressLabelFilter<$PrismaModel = never> = {

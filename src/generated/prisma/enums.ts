@@ -157,10 +157,9 @@ export const AuditTargetType = {
 export type AuditTargetType = (typeof AuditTargetType)[keyof typeof AuditTargetType]
 
 
-export const AuthProvider = {
-  LOCAL: 'LOCAL',
+export const AuthProviderName = {
   GOOGLE: 'GOOGLE',
   FACEBOOK: 'FACEBOOK'
 } as const
 
-export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
+export type AuthProviderName = (typeof AuthProviderName)[keyof typeof AuthProviderName]

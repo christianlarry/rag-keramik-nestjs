@@ -44,8 +44,13 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
             createdAt: true,
             updatedAt: true,
             deletedAt: true,
-            provider: true,
-            providerId: true
+            authProviders: {
+              select: {
+                provider: true,
+                providerId: true,
+                linkedAt: true
+              }
+            }
           }
         });
 
@@ -79,8 +84,13 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
             createdAt: true,
             updatedAt: true,
             deletedAt: true,
-            provider: true,
-            providerId: true
+            authProviders: {
+              select: {
+                provider: true,
+                providerId: true,
+                linkedAt: true
+              }
+            }
           }
         });
 
@@ -101,12 +111,26 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
   }
 
   async save(authUser: AuthUser): Promise<void> {
-    const persistenceUser = PrismaAuthUserMapper.toPersistence(authUser);
+    const { authProviders, ...persistenceUser } = PrismaAuthUserMapper.toPersistence(authUser);
 
     await this.client.user.upsert({
       where: { id: persistenceUser.id },
-      create: persistenceUser,
-      update: persistenceUser
+      create: {
+        ...persistenceUser,
+        authProviders: {
+          createMany: {
+            data: authProviders
+          }
+        }
+      },
+      update: {
+        ...persistenceUser,
+        authProviders: {
+          createMany: {
+            data: authProviders
+          }
+        }
+      }
     });
 
     // Invalidate cache

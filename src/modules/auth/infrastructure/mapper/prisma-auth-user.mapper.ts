@@ -1,4 +1,4 @@
-import { UserStatus as PrismaUserStatus, Role as PrismaRole, AuthProvider as PrismaAuthProvider } from "src/generated/prisma/enums";
+import { UserStatus as PrismaUserStatus, Role as PrismaRole, AuthProviderName as PrismaAuthProviderName } from "src/generated/prisma/enums";
 import { AuthUser } from "../../domain/entities/auth-user.entity";
 import { Email } from "src/modules/users/domain/value-objects/email.vo";
 import { Password } from "../../domain/value-objects/password.vo";
@@ -18,12 +18,15 @@ interface RawAuthUser {
   role: PrismaRole;
   status: PrismaUserStatus;
   refreshTokens: string[];
-  provider: PrismaAuthProvider;
-  providerId: string | null;
   lastLoginAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+  authProviders: {
+    provider: PrismaAuthProviderName;
+    providerId: string;
+    linkedAt: Date;
+  }[];
 }
 
 export class PrismaAuthUserMapper {
@@ -34,7 +37,7 @@ export class PrismaAuthUserMapper {
     const password = raw.password ? Password.fromHash(raw.password) : null;
     const role = Role.create(roleMapper.toEntity(raw.role));
     const status = Status.create(statusMapper.toEntity(raw.status));
-    const provider = AuthProvider.create(providerMapper.toEntity(raw.provider), raw.providerId);
+    const providers = raw.authProviders.map(p => AuthProvider.reconstruct(providerMapper.toEntity(p.provider), p.providerId, p.linkedAt));
 
     return AuthUser.reconstruct(raw.id, {
       name: name,
@@ -49,7 +52,7 @@ export class PrismaAuthUserMapper {
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       deletedAt: raw.deletedAt,
-      provider: provider,
+      providers: providers,
     })
   }
 
@@ -64,8 +67,11 @@ export class PrismaAuthUserMapper {
       role: roleMapper.toPersistence(user.role.getValue()),
       status: statusMapper.toPersistence(user.status.getValue()),
       refreshTokens: user.refreshTokens,
-      provider: providerMapper.toPersistence(user.provider.getProvider()),
-      providerId: user.provider.getProviderId(),
+      authProviders: user.providers.map(p => ({
+        provider: providerMapper.toPersistence(p.getProviderName()),
+        providerId: p.getProviderId(),
+        linkedAt: p.getLinkedAt(),
+      })),
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
@@ -87,8 +93,7 @@ const statusMapper = createEnumMapper<Status['value'], PrismaUserStatus>({
   deleted: 'DELETED'
 });
 
-const providerMapper = createEnumMapper<AuthProvider['provider'], PrismaAuthProvider>({
-  local: 'LOCAL',
+const providerMapper = createEnumMapper<AuthProvider['providerName'], PrismaAuthProviderName>({
   google: 'GOOGLE',
   facebook: 'FACEBOOK'
 });
