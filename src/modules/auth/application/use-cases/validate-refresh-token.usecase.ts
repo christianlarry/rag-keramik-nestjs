@@ -1,7 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { RefreshTokenGenerator, RefreshTokenPayload } from "../../infrastructure/generator/refresh-token.generator";
-import { Role } from "src/modules/users/domain/enums/role.enum";
 import { CannotRefreshTokenError } from "../../domain/errors";
 
 interface ValidateRefreshTokenCommand {
@@ -12,7 +11,7 @@ interface ValidateRefreshTokenCommand {
 interface ValidateRefreshTokenResult {
   id: string;
   email: string;
-  role: Role;
+  role: string;
   fullName: string;
   refreshToken: string;
 }
@@ -36,7 +35,6 @@ export class ValidateRefreshTokenUseCase {
     const authUser = await this.authUserRepository.findById(payload.sub);
     if (!authUser) throw new CannotRefreshTokenError('Unauthorized access with invalid refresh token.'); // Do not reveal that the user does not exist for security reasons
 
-    // TODO Change ensureCanRefreshToken logic
     authUser.ensureCanRefreshToken();
 
     // Cek apakah refresh token valid, Jika tidak, hapus semua refresh token (logout dari semua device) Possible token theft

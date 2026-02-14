@@ -34,6 +34,8 @@ import { GoogleAuthCallbackUseCase } from "./application/use-cases/google-auth-c
 import { AuthGoogleController } from "./presentation/http/auth-google.controller";
 import { GoogleStrategy } from "./infrastructure/strategies/google.strategy";
 import { FacebookStrategy } from "./infrastructure/strategies/facebook.strategy";
+import { AUTH_USER_QUERY_REPOSITORY_TOKEN } from "./domain/repositories/auth-user-query-repository.inteface";
+import { PrismaAuthUserQueryRepository } from "./infrastructure/repositories/prisma-auth-user-query.repository";
 
 @Module({
   imports: [
@@ -53,6 +55,10 @@ import { FacebookStrategy } from "./infrastructure/strategies/facebook.strategy"
     {
       provide: AUTH_USER_REPOSITORY_TOKEN,
       useClass: PrismaAuthUserRepository
+    },
+    {
+      provide: AUTH_USER_QUERY_REPOSITORY_TOKEN,
+      useClass: PrismaAuthUserQueryRepository
     },
     {
       provide: PASSWORD_HASHER_TOKEN,

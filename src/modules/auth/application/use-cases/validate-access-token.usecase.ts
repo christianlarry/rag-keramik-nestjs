@@ -1,9 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { AccessTokenGenerator, AccessTokenPayload } from "../../infrastructure/generator/access-token.generator";
 import { BlacklistedAccessTokenRepository } from "../../infrastructure/repositories/blacklisted-access-token.repository";
-import { Role } from "src/modules/users/domain/enums/role.enum";
 import { AccessTokenInvalidError } from "../../domain/errors";
+import { AUTH_USER_QUERY_REPOSITORY_TOKEN, type AuthUserQueryRepository } from "../../domain/repositories/auth-user-query-repository.inteface";
 
 interface ValidateAccessTokenCommand {
   tokenPayload: AccessTokenPayload;
@@ -12,15 +11,15 @@ interface ValidateAccessTokenCommand {
 interface ValidateAccessTokenResult {
   id: string;
   email: string;
-  role: Role;
+  role: string;
   fullName: string;
 }
 
 @Injectable()
 export class ValidateAccessTokenUseCase {
   constructor(
-    @Inject(AUTH_USER_REPOSITORY_TOKEN)
-    private readonly authUserRepository: AuthUserRepository,
+    @Inject(AUTH_USER_QUERY_REPOSITORY_TOKEN)
+    private readonly authUserQueryRepository: AuthUserQueryRepository,
     private readonly blacklistedAccessTokenRepository: BlacklistedAccessTokenRepository,
   ) { }
 
@@ -40,17 +39,17 @@ export class ValidateAccessTokenUseCase {
     }
 
     // Fetch user dari database
-    const authUser = await this.authUserRepository.findById(payload.sub);
-    if (!authUser) {
+    const user = await this.authUserQueryRepository.getRequestedUserById(payload.sub);
+    if (!user) {
       throw new AccessTokenInvalidError('Unauthorized access with invalid access token.');
     }
 
     // Object ini akan tersedia di request.user
     return {
-      id: authUser.id.getValue(),
-      email: authUser.email.getValue(),
-      role: authUser.role.getValue(),
-      fullName: authUser.name.getFullName(),
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      fullName: user.fullName,
     };
   }
 }
