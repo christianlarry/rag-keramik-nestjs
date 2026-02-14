@@ -5,7 +5,7 @@ import { Password } from "../../domain/value-objects/password.vo";
 import { Role } from "src/modules/users/domain/value-objects/role.vo";
 import { Status } from "src/modules/users/domain/value-objects/status.vo";
 import { AuthProvider } from "../../domain/value-objects/auth-provider.vo";
-import { createEnumMapper } from "src/core/infrastructure/mapper/create-enum-mapper";
+import { createEnumMapper } from "src/core/infrastructure/persistence/mapper/create-enum-mapper";
 import { Name } from "src/modules/users/domain/value-objects/name.vo";
 
 interface RawAuthUser {

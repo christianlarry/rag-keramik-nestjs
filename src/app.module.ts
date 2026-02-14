@@ -5,35 +5,34 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Config Modules
 import appConfig from 'src/config/app/app.config'
-import prismaConfig from 'src/modules/prisma/config/prisma.config';
+import prismaConfig from 'src/core/infrastructure/persistence/prisma/config/prisma.config';
 
 // Database Module
-import { PrismaModule } from './modules/prisma/prisma.module';
+import { PrismaModule } from 'src/core/infrastructure/persistence/prisma/prisma.module';
 
 // Feature Modules
 import { UsersModule } from './modules/users/users.module';
-import mailConfig from './modules/mail/config/mail.config';
-import { MailerModule } from './modules/mailer/mailer.module';
-import { MailModule } from './modules/mail/mail.module';
+import mailConfig from './core/infrastructure/services/mail/config/mail.config';
+import { MailModule } from './core/infrastructure/services/mail/mail.module';
 import { BullModule } from '@nestjs/bullmq';
 import { AllConfigType } from './config/config.type';
 import { AuthModule } from './modules/auth/auth.module';
-import redisConfig from './modules/redis/config/redis.config';
-import { TokenModule } from './modules/token/token.module';
+import redisConfig from './core/infrastructure/persistence/redis/config/redis.config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import rateLimitConfig from './config/rate-limit/rate-limit.config';
-import { REDIS_CLIENT, RedisModule } from './modules/redis/redis.module';
+import { REDIS_CLIENT, RedisModule } from './core/infrastructure/persistence/redis/redis.module';
 import { Redis } from 'ioredis';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
-import { CacheModule } from './modules/cache/cache.module';
-import { AuditModule } from './modules/audit/audit.module';
+import { AuditModule } from './core/infrastructure/services/audit/audit.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TokenGeneratorModule } from './core/infrastructure/services/token-generator/token-generator.module';
 import { JwtModule } from '@nestjs/jwt';
 import authConfig from './modules/auth/infrastructure/config/auth.config';
 import authGoogleConfig from './modules/auth/infrastructure/config/auth-google.config';
 import authFacebookConfig from './modules/auth/infrastructure/config/auth-facebook.config';
+import { MailerModule } from './core/infrastructure/mailer/mailer.module';
+import { CacheModule } from './core/infrastructure/services/cache/cache.module';
 
 @Module({
   imports: [
@@ -101,7 +100,6 @@ import authFacebookConfig from './modules/auth/infrastructure/config/auth-facebo
     JwtModule.register({
       global: true,
     }),
-    TokenModule,
     PrismaModule,
     MailerModule,
     MailModule,

@@ -2,11 +2,6 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import {
-  MAIL_JOB_OPTIONS,
-  MAIL_QUEUE_NAME,
-} from './constants/mail-queue.constants';
-import { MailJobPriority, MailJobType } from './enums/mail-job.enum';
-import {
   IMailJobData,
   INewLoginNotificationData,
   IPasswordChangedEmailData,
@@ -15,6 +10,8 @@ import {
   IVerificationEmailData,
   IWelcomeEmailData,
 } from './interfaces/mail-job-data.interface';
+import { MAIL_JOB_OPTIONS, MAIL_QUEUE_NAME } from './constants/mail-queue.constants';
+import { MailJobPriority, MailJobType } from './enums/mail-job.enum';
 
 /**
  * Mail Service

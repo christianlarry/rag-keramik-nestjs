@@ -1,8 +1,9 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { AuthUserNotFoundError, CannotVerifyEmailError } from "../../domain/errors";
-import { MailService } from "src/modules/mail/mail.service";
-import { TokenService } from "src/modules/token/token.service";
+import { MailService } from "src/core/infrastructure/services/mail/mail.service";
+import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";
+import { VerificationTokenRepository } from "../../infrastructure/repositories/email-verification-token.repository";
 
 interface ResendEmailVerificationCommand {
   email: string;
@@ -16,9 +17,11 @@ export class ResendEmailVerificationUseCase {
   constructor(
     @Inject(AUTH_USER_REPOSITORY_TOKEN)
     private readonly authUserRepository: AuthUserRepository,
+    @Inject(TOKEN_GENERATOR_TOKEN)
+    private readonly token: TokenGenerator,
+    private readonly verificationTokenRepository: VerificationTokenRepository,
 
     private readonly mail: MailService,
-    private readonly token: TokenService,
   ) { }
 
   async execute(command: ResendEmailVerificationCommand): Promise<void> {
@@ -35,14 +38,16 @@ export class ResendEmailVerificationUseCase {
       throw new CannotVerifyEmailError(`User with ID ${authUser.id} cannot verify email.`);
     }
 
+    // Generate new verification token
+    const token = await this.token.generateWithHash();
+    await this.verificationTokenRepository.save(token.hashed, authUser.id.getValue());
+
     // Resend verification email
     this.logger.log(`Resending email verification to user with email: ${command.email}`);
-
-    const token = await this.token.generateEmailVerificationToken(authUser.id.getValue(), authUser.email.getValue());
     await this.mail.sendVerificationEmail({
       to: authUser.email.getValue(),
       name: authUser.name.getFullName(),
-      token: token,
+      token: token.raw,
     })
   }
 }

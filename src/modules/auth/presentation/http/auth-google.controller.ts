@@ -1,5 +1,4 @@
 import { Controller, Get, HttpCode, HttpStatus, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { LIMIT, TTL } from "src/common/constants/rate-limit.constants";
@@ -7,6 +6,7 @@ import { OAuthUser } from "./decorator/oauth-user.decorator";
 import { type OAuthUser as OAuthUserInterface } from "./interfaces/oauth-user.interface";
 import { GoogleAuthCallbackUseCase } from "../../application/use-cases/google-auth-callback.usecase";
 import { AuthGoogleCallbackResponseDto } from "./dtos/response/auth-google-callback-response.dto";
+import { GoogleAuthGuard } from "./guard/google-auth.guard";
 
 @ApiTags('Auth')
 @Controller('auth/google')
@@ -16,7 +16,7 @@ export class AuthGoogleController {
   ) { }
 
   @Get()
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_MINUTE } }) // 10 requests per minute
   @ApiOperation({ summary: 'Initiate Google OAuth login', description: 'Redirects the user to Google for authentication.' })
@@ -24,7 +24,7 @@ export class AuthGoogleController {
   async googleAuth() { } // No need to implement anything here, as the guard will handle the redirection to Google
 
   @Get('callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_MINUTE } }) // 10 requests per minute
   @ApiOperation({ summary: 'Handle Google OAuth callback', description: 'Processes the callback from Google OAuth and returns authentication tokens.' })

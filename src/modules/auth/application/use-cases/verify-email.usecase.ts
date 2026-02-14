@@ -1,12 +1,11 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { TokenInvalidError } from "src/modules/token/errors";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
-import { AuthUserNotFoundError } from "../../domain/errors";
+import { AuthUserNotFoundError, InvalidVerificationTokenError } from "../../domain/errors";
 import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
-import { AuditService } from "src/modules/audit/audit.service";
-import { AuditAction } from "src/modules/audit/enums/audit-action.enum";
-import { AuditTargetType } from "src/modules/audit/enums/audit-target-type.enum";
-import { MailService } from "src/modules/mail/mail.service";
+import { AuditService } from "src/core/infrastructure/services/audit/audit.service";
+import { AuditAction } from "src/core/infrastructure/services/audit/enums/audit-action.enum";
+import { AuditTargetType } from "src/core/infrastructure/services/audit/enums/audit-target-type.enum";
+import { MailService } from "src/core/infrastructure/services/mail/mail.service";
 import { VerificationTokenRepository } from "../../infrastructure/repositories/email-verification-token.repository";
 import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";
 
@@ -45,7 +44,7 @@ export class VerifyEmailUseCase {
     // Verify the token and extract the payload
     const cachedUserId = await this.verificationTokenRepository.get(hashedToken);
     if (!cachedUserId) {
-      throw new TokenInvalidError('Email verification token is invalid or has expired');
+      throw new InvalidVerificationTokenError('Email verification token is invalid or has expired');
     }
 
     // Find the user associated with the token

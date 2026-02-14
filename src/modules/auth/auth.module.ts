@@ -3,15 +3,13 @@ import { UsersModule } from "../users/users.module";
 import { PassportModule } from "@nestjs/passport";
 import { AccessTokenStrategy } from "./infrastructure/strategies/access-token.strategy";
 import { RefreshTokenStrategy } from "./infrastructure/strategies/refresh-token.strategy";
-import { TokenModule } from "../token/token.module";
-import { MailModule } from "../mail/mail.module";
-import { AuditModule } from "../audit/audit.module";
+import { MailModule } from "../../core/infrastructure/services/mail/mail.module";
+import { AuditModule } from "../../core/infrastructure/services/audit/audit.module";
 import { AUTH_USER_REPOSITORY_TOKEN } from "./domain/repositories/auth-user-repository.interface";
 import { PrismaAuthUserRepository } from "./infrastructure/repositories/prisma-auth-user.repository";
 import { RegisterUseCase } from "./application/use-cases/register.usecase";
 import { PASSWORD_HASHER_TOKEN } from "./domain/services/password-hasher.interface";
 import { UNIT_OF_WORK_TOKEN } from "src/core/application/unit-of-work.interface";
-import { PrismaUnitOfWork } from "../prisma/prisma-unit-of-work";
 import { ResendEmailVerificationUseCase } from "./application/use-cases/resend-email-verification.usecase";
 import { VerifyEmailUseCase } from "./application/use-cases/verify-email.usecase";
 import { ResetPasswordUseCase } from "./application/use-cases/reset-password.usecase";
@@ -36,12 +34,12 @@ import { GoogleStrategy } from "./infrastructure/strategies/google.strategy";
 import { FacebookStrategy } from "./infrastructure/strategies/facebook.strategy";
 import { AUTH_USER_QUERY_REPOSITORY_TOKEN } from "./domain/repositories/auth-user-query-repository.inteface";
 import { PrismaAuthUserQueryRepository } from "./infrastructure/repositories/prisma-auth-user-query.repository";
+import { PrismaUnitOfWork } from "src/core/infrastructure/persistence/prisma/prisma-unit-of-work";
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
-    TokenModule,
     MailModule,
     AuditModule,
     TokenGeneratorModule

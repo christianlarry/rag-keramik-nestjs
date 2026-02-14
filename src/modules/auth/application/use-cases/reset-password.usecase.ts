@@ -1,16 +1,15 @@
 import { Inject, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
-import { TokenInvalidError } from "src/modules/token/errors";
 import { Password } from "../../domain/value-objects/password.vo";
 import { PASSWORD_HASHER_TOKEN, type PasswordHasher } from "../../domain/services/password-hasher.interface";
 import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
-import { AuditService } from "src/modules/audit/audit.service";
-import { AuditAction } from "src/modules/audit/enums/audit-action.enum";
-import { AuditTargetType } from "src/modules/audit/enums/audit-target-type.enum";
-import { MailService } from "src/modules/mail/mail.service";
+import { AuditService } from "src/core/infrastructure/services/audit/audit.service";
+import { AuditAction } from "src/core/infrastructure/services/audit/enums/audit-action.enum";
+import { AuditTargetType } from "src/core/infrastructure/services/audit/enums/audit-target-type.enum";
+import { MailService } from "src/core/infrastructure/services/mail/mail.service";
 import { PasswordResetTokenRepository } from "../../infrastructure/repositories/password-reset-token.repository";
 import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";
-import { CannotResetPasswordError } from "../../domain/errors";
+import { CannotResetPasswordError, InvalidResetPasswordTokenError } from "../../domain/errors";
 
 interface ResetPasswordCommand {
   token: string;
@@ -51,14 +50,14 @@ export class ResetPasswordUseCase {
     const cachedUserId = await this.passwordResetTokenRepository.get<string>(hashedToken);
     if (!cachedUserId) {
       this.logger.warn(`Expired or invalid password reset token used for user ID ${cachedUserId} from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
-      throw new TokenInvalidError('Invalid or Expired Reset Password Token');
+      throw new InvalidResetPasswordTokenError('Invalid or Expired Reset Password Token');
     }
 
     // Find the user
     const authUser = await this.authUserRepository.findById(cachedUserId);
     if (!authUser) {
       this.logger.warn(`Password reset attempt for non-existent user ID ${cachedUserId} from IP ${command.ipAddress} with User-Agent ${command.userAgent}`);
-      throw new TokenInvalidError('Invalid or Expired Reset Password Token'); // Do not reveal user existence
+      throw new InvalidResetPasswordTokenError('Invalid or Expired Reset Password Token'); // Do not reveal user existence
     }
 
     // Ensure user can reset password

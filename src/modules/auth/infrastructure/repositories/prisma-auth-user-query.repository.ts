@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { AuthUserQueryRepository, GetRequestedUserByIdResult } from "../../domain/repositories/auth-user-query-repository.inteface";
-import { PrismaService } from "src/modules/prisma/prisma.service";
+import { PrismaService } from "src/core/infrastructure/persistence/prisma/prisma.service";
 import { TransactionClient } from "src/generated/prisma/internal/prismaNamespace";
 import { PrismaClient } from "src/generated/prisma/client";
 

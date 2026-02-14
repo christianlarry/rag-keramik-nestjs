@@ -1,8 +1,8 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
-import { MailService } from "src/modules/mail/mail.service";
 import { PasswordResetTokenRepository } from "../../infrastructure/repositories/password-reset-token.repository";
 import { TOKEN_GENERATOR_TOKEN, type TokenGenerator } from "src/core/infrastructure/services/token-generator/interfaces/token-generator.interface";
+import { MailService } from "src/core/infrastructure/services/mail/mail.service";
 
 interface ForgotPasswordCommand {
   email: string;

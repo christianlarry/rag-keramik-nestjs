@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AllConfigType } from "src/config/config.type";
-import { CacheService } from "src/modules/cache/cache.service";
+import { CacheService } from "src/core/infrastructure/services/cache/cache.service";
 
 @Injectable()
 export class PasswordResetTokenRepository {

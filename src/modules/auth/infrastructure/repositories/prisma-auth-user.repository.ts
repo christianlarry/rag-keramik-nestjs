@@ -1,13 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { AuthUser } from "../../domain/entities/auth-user.entity";
 import { AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
-import { PrismaService } from "src/modules/prisma/prisma.service";
+import { PrismaService } from "src/core/infrastructure/persistence/prisma/prisma.service";
 import { PrismaAuthUserMapper } from "../mapper/prisma-auth-user.mapper";
-import { CacheService } from "src/modules/cache/cache.service";
 import { UserAuthCache } from "../cache/user-auth.cache";
 import { PrismaClient } from "src/generated/prisma/client";
 import { TransactionClient } from "src/generated/prisma/internal/prismaNamespace";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { CacheService } from "src/core/infrastructure/services/cache/cache.service";
 
 @Injectable()
 export class PrismaAuthUserRepository implements AuthUserRepository {

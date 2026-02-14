@@ -1,7 +1,7 @@
-import { PrismaConfig } from "src/modules/prisma/config/prisma-config.type";
-import { MailConfig } from "src/modules/mail/config/mail-config.type";
+import { PrismaConfig } from "src/core/infrastructure/persistence/prisma/config/prisma-config.type";
+import { MailConfig } from "src/core/infrastructure/services/mail/config/mail-config.type";
 import { AppConfig } from "./app/app-config.type";
-import { RedisConfig } from "src/modules/redis/config/redis-config.type";
+import { RedisConfig } from "src/core/infrastructure/persistence/redis/config/redis-config.type";
 import { AuthConfig } from "src/modules/auth/infrastructure/config/types/auth-config.type";
 import { RateLimitConfig } from "./rate-limit/rate-limit-config.type";
 import { AuthFacebookConfig } from "src/modules/auth/infrastructure/config/types/auth-facebook.config.type";

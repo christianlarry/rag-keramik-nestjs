@@ -32,20 +32,43 @@ services:
       timeout: 3s
       retries: 20
 
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: keramik-qdrant
-    restart: unless-stopped
-    ports:
-      - "6333:6333" # REST
-      - "6334:6334" # gRPC
-    volumes:
-      - keramik_qdrant_data:/qdrant/storage
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:6333/healthz || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   container_name: keramik-qdrant
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6333:6333" # REST
+  #     - "6334:6334" # gRPC
+  #   volumes:
+  #     - keramik_qdrant_data:/qdrant/storage
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget -qO- http://localhost:6333/healthz || exit 1"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 30
+
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:9.3.0
+  #   container_name: keramik-elasticsearch
+  #   restart: unless-stopped
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false # Nonaktifkan keamanan untuk pengembangan lokal
+  #     - ES_JAVA_OPTS=-Xms1g -Xmx1g
+  #   ports:
+  #     - "9200:9200"
+  #     - "9300:9300"
+  #   volumes:
+  #     - keramik_elasticsearch_data:/usr/share/elasticsearch/data
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD-SHELL",
+  #         "curl -fsS http://localhost:9200/_cluster/health || exit 1",
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 30
 
   # ollama:
   #   image: ollama/ollama:latest
@@ -76,4 +99,5 @@ volumes:
   keramik_postgres_data:
   keramik_redis_data:
   keramik_qdrant_data:
+  keramik_elasticsearch_data:
   # ollama:

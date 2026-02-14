@@ -15,4 +15,6 @@ export * from "./cannot-forgot-password.error";
 export * from "./cannot-login.error";
 export * from "./cannot-access-protected-resource.error";
 export * from "./cannot-refresh-token.error";
-export * from "./access-token-invalid.error"
+export * from "./access-token-invalid.error";
+export * from "./invalid-verification-token.error";
+export * from "./invalid-reset-password-token.error";

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { CacheService } from "src/modules/cache/cache.service";
 import { AccessTokenGenerator } from "../generator/access-token.generator";
+import { CacheService } from "src/core/infrastructure/services/cache/cache.service";
 
 @Injectable()
 export class BlacklistedAccessTokenRepository {

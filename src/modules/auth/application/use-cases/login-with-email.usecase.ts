@@ -3,9 +3,9 @@ import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domai
 import { PASSWORD_HASHER_TOKEN, type PasswordHasher } from "../../domain/services/password-hasher.interface";
 import { InvalidCredentialsError } from "../../domain/errors";
 import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
-import { AuditService } from "src/modules/audit/audit.service";
-import { AuditAction } from "src/modules/audit/enums/audit-action.enum";
-import { AuditTargetType } from "src/modules/audit/enums/audit-target-type.enum";
+import { AuditService } from "src/core/infrastructure/services/audit/audit.service";
+import { AuditAction } from "src/core/infrastructure/services/audit/enums/audit-action.enum";
+import { AuditTargetType } from "src/core/infrastructure/services/audit/enums/audit-target-type.enum";
 import { AccessTokenGenerator } from "../../infrastructure/generator/access-token.generator";
 import { RefreshTokenGenerator } from "../../infrastructure/generator/refresh-token.generator";
 
