@@ -122,10 +122,10 @@ export class User extends AggregateRoot {
     this.addDomainEvent(new UserProfileUpdatedEvent({
       userId: this.id.getValue(),
       profile: {
-        name: this.props.name,
-        dateOfBirth: this.props.dateOfBirth,
-        gender: this.props.gender,
-        avatarUrl: this.props.avatarUrl,
+        name: params.name,
+        dateOfBirth: params.dateOfBirth,
+        gender: params.gender,
+        avatarUrl: params.avatarUrl,
       }
     }))
   }

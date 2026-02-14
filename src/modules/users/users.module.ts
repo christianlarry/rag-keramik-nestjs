@@ -3,9 +3,13 @@ import { UpdateUserProfileListener } from './application/listeners/update-user-p
 import { USER_REPOSITORY_TOKEN } from './domain/repositories/user-repository.interface';
 import { PrismaUserRepository } from './infrastructure/repositories';
 import { AuditLogUserProfileUpdateListener } from './application/listeners/audit-log-user-profile-update.listener';
+import { AuditModule } from 'src/core/infrastructure/services/audit/audit.module';
 
 // TIDAK PERLU import PrismaModule karena sudah @Global()
 @Module({
+  imports: [
+    AuditModule,
+  ],
   providers: [
     // Repositories
     {

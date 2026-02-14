@@ -10,22 +10,20 @@ export class Avatar {
   }
 
   private validate(): void {
-    // Basic URL validation
-    const urlPattern = /^(https?:\/\/)[\w.-]+(\.[w.-]+)+[/#?]?.*$/;
-    if (!urlPattern.test(this.url)) {
-      throw new InvalidAvatarError('Invalid avatar URL format.');
-    }
+    try {
+      const parsedUrl = new URL(this.url);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        throw new InvalidAvatarError('Avatar URL must start with http:// or https://');
+      }
 
-    // Check for allowed image extensions
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-    const hasValidExtension = allowedExtensions.some(ext => this.url.toLowerCase().endsWith(ext));
-    if (!hasValidExtension) {
-      throw new InvalidAvatarError('Avatar URL must point to a valid image format (jpg, jpeg, png, gif, webp).');
-    }
-
-    // Limit URL length
-    if (this.url.length > 2048) {
-      throw new InvalidAvatarError('Avatar URL cannot exceed 2048 characters.');
+      // Limit URL length
+      if (this.url.length > 2048) {
+        throw new InvalidAvatarError('Avatar URL cannot exceed 2048 characters.');
+      }
+    } catch (err) {
+      if (!(err instanceof InvalidAvatarError)) {
+        throw err;
+      }
     }
   }
 
