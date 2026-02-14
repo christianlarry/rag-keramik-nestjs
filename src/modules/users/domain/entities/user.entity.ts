@@ -10,6 +10,7 @@ import { UserStateConflictError, UserInvalidOperationError, UserCannotTransition
 import { Avatar } from "../value-objects/avatar.vo";
 import { DateOfBirth } from "../value-objects/date-of-birth.vo";
 import { AggregateRoot } from "src/core/domain/aggregate-root.base";
+import { UserProfileUpdatedEvent } from "../events/user-profile-updated.event";
 
 interface UserProps {
   // Profile Informations
@@ -117,6 +118,16 @@ export class User extends AggregateRoot {
     }
 
     this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserProfileUpdatedEvent({
+      userId: this.id.getValue(),
+      profile: {
+        name: this.props.name,
+        dateOfBirth: this.props.dateOfBirth,
+        gender: this.props.gender,
+        avatarUrl: this.props.avatarUrl,
+      }
+    }))
   }
 
   /**
