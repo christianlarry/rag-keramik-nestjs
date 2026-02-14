@@ -11,6 +11,7 @@ import { CannotResetPasswordError } from "../errors/cannot-reset-password.error"
 import { CannotChangePasswordError } from "../errors/cannot-change-password.error";
 import { Name } from "src/modules/users/domain/value-objects/name.vo";
 import { AggregateRoot } from "src/core/domain/aggregate-root.base";
+import { UserLoggedInWithOAuthEvent } from "../events/user-logged-in-with-oauth.event";
 
 interface AuthUserProps {
   name: Name;
@@ -375,6 +376,23 @@ export class AuthUser extends AggregateRoot {
   public recordSuccessfulLogin(): void {
     this.props.lastLoginAt = new Date();
     this.props.updatedAt = new Date();
+  }
+
+  public recordOAuthLogin(providerName: AuthProviderEnum, profile?: { avatarUrl: string | null }): void {
+    if (!this.hasProvider(providerName)) {
+      throw new InvalidProviderError(`User is not linked with ${providerName} provider`);
+    }
+    this.props.lastLoginAt = new Date();
+    this.props.updatedAt = new Date();
+
+    // Add Event for successful OAuth login if needed, Like: UserLoggedInWithOAuthEvent
+    this.addDomainEvent(new UserLoggedInWithOAuthEvent({
+      userId: this._id.getValue(),
+      provider: providerName,
+      email: this.props.email.getValue(),
+      avatarUrl: profile?.avatarUrl || null, // Optional: You can include avatar URL if you have it in the future
+      fullName: this.props.name.getFullName(), // Optional: You can include full name if you have it in the future
+    }))
   }
 
   // == Status Management == //

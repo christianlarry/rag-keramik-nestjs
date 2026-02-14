@@ -2,6 +2,8 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { AuthUser } from "../../domain/entities/auth-user.entity";
 import { AuthProvider } from "../../domain/value-objects/auth-provider.vo";
+import { Name } from "src/modules/users/domain/value-objects/name.vo";
+import { Email } from "src/modules/users/domain/value-objects/email.vo";
 
 interface GoogleAuthCallbackCommand {
   user: {
@@ -35,12 +37,25 @@ export class GoogleAuthCallbackUseCase {
   async execute(command: GoogleAuthCallbackCommand): Promise<GoogleAuthCallbackResult> {
 
     // Check if user exists by providerId or email
-    const authUser: AuthUser | null = await this.authUserRepository.findByEmail(command.user.email);
-    const provider = AuthProvider.createOAuthProvider('google', command.user.providerId)
+    let authUser: AuthUser | null = await this.authUserRepository.findByEmail(command.user.email);
 
-    // If user exists, check if they are using the same provider or if they are using local provider. If they are using local provider, link their account to the new OAuth provider. If they are using a different OAuth provider, we can either throw an error or link the new provider to their existing account (depending on your business logic).
+    if (authUser) {
+      // Update provider if not already linked
+      if (!authUser.hasProvider('google')) {
+        authUser.linkOAuth(AuthProvider.createGoogleProvider(command.user.providerId));
+      }
+    } else {
+      // Create new user with OAuth provider
+      authUser = AuthUser.fromOAuth({
+        email: Email.create(command.user.email),
+        name: Name.create(command.user.fullName),
+        provider: AuthProvider.createGoogleProvider(command.user.providerId),
+      });
+    }
 
-    // TODO : 2. If not, create new user with the provided info
+    await authUser.recordOAuthLogin('google', { avatarUrl: command.user.avatarUrl });
+    await this.authUserRepository.save(authUser);
+
     // TODO : 3. Generate access and refresh tokens
     // TODO : 4. Return tokens and user info
 

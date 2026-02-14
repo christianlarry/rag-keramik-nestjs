@@ -36,6 +36,7 @@ export class ValidateRefreshTokenUseCase {
     const authUser = await this.authUserRepository.findById(payload.sub);
     if (!authUser) throw new CannotRefreshTokenError('Unauthorized access with invalid refresh token.'); // Do not reveal that the user does not exist for security reasons
 
+    // TODO Change ensureCanRefreshToken logic
     authUser.ensureCanRefreshToken();
 
     // Cek apakah refresh token valid, Jika tidak, hapus semua refresh token (logout dari semua device) Possible token theft
