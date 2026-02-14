@@ -126,6 +126,7 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
       update: {
         ...persistenceUser,
         authProviders: {
+          deleteMany: {}, // Remove existing providers to handle updates, then re-create
           createMany: {
             data: authProviders
           }

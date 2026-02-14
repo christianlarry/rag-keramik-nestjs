@@ -2,12 +2,15 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AUTH_USER_REPOSITORY_TOKEN, type AuthUserRepository } from "../../domain/repositories/auth-user-repository.interface";
 import { AuthUser } from "../../domain/entities/auth-user.entity";
 import { AuthProvider } from "../../domain/value-objects/auth-provider.vo";
+import { AuthProvider as AuthProviderName } from "../../domain/enums/auth-provider.enum";
 import { Name } from "src/modules/users/domain/value-objects/name.vo";
 import { Email } from "src/modules/users/domain/value-objects/email.vo";
 import { AccessTokenGenerator } from "../../infrastructure/generator/access-token.generator";
 import { RefreshTokenGenerator } from "../../infrastructure/generator/refresh-token.generator";
 import { UNIT_OF_WORK_TOKEN, type UnitOfWork } from "src/core/application/unit-of-work.interface";
 import { AuditService } from "src/modules/audit/audit.service";
+import { AuditAction } from "src/modules/audit/enums/audit-action.enum";
+import { AuditTargetType } from "src/modules/audit/enums/audit-target-type.enum";
 
 interface GoogleAuthCallbackCommand {
   user: {
@@ -51,7 +54,7 @@ export class GoogleAuthCallbackUseCase {
 
     if (authUser) {
       // Update provider if not already linked
-      if (!authUser.hasProvider('google')) {
+      if (!authUser.hasProvider(AuthProviderName.GOOGLE)) {
         authUser.linkOAuth(AuthProvider.createGoogleProvider(command.user.providerId));
       }
     } else {
@@ -63,7 +66,6 @@ export class GoogleAuthCallbackUseCase {
       });
     }
 
-    // TODO : 3. Generate access and refresh tokens
     const accessToken = await this.accessTokenGenerator.generate({
       userId: authUser.id.getValue(),
       email: authUser.email.getValue(),
@@ -74,14 +76,19 @@ export class GoogleAuthCallbackUseCase {
     });
 
     authUser.addRefreshToken(refreshToken);
-    await authUser.recordOAuthLogin('google', { avatarUrl: command.user.avatarUrl });
+    await authUser.recordOAuthLogin(AuthProviderName.GOOGLE, { avatarUrl: command.user.avatarUrl });
 
     await this.uow.withTransaction(async () => {
       await this.authUserRepository.save(authUser);
 
       await this.audit.logUserAction(
         authUser.id.getValue(),
-
+        AuditAction.OAUTH_LOGIN,
+        AuditTargetType.USER,
+        authUser.id.getValue(),
+        {
+          provider: AuthProviderName.GOOGLE,
+        }
       )
     })
 

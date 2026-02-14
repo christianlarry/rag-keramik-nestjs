@@ -38,6 +38,8 @@ export class PrismaClientExceptionFilter implements ExceptionFilter {
         this.logger.error(`Unhandled Prisma error: ${exception.code}`, exception.message);
     }
 
+    this.logger.error(`Prisma error occurred: ${message}`, exception.stack);
+
     response.status(status).json({
       statusCode: status,
       message,

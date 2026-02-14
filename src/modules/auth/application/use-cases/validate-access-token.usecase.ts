@@ -45,9 +45,6 @@ export class ValidateAccessTokenUseCase {
       throw new AccessTokenInvalidError('Unauthorized access with invalid access token.');
     }
 
-    // TODO Remove this if you want to allow inactive users to access protected routes (not recommended)
-    authUser.ensureCanLogin();
-
     // Object ini akan tersedia di request.user
     return {
       id: authUser.id.getValue(),
