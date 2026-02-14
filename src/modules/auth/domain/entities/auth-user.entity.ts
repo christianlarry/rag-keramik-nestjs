@@ -368,8 +368,15 @@ export class AuthUser extends AggregateRoot {
 
   // == Login Management == //
   public ensureCanLogin(): void {
-    if (!this.canLogin()) {
-      throw new CannotLoginError('User cannot login. Ensure user is active, using valid provider, and email is verified.');
+    // Manual validation so we can throw specific errors message
+    if (!this.props.status.isActive()) {
+      throw new CannotLoginError('User account is not active. Please contact support.');
+    }
+    if (this.isUsingOAuthProvider()) {
+      throw new CannotLoginError('User is registered with OAuth provider. Please login using the linked provider.');
+    }
+    if (!this.props.emailVerified) {
+      throw new CannotLoginError('Email is not verified. Please verify your email before logging in.');
     }
   }
 
