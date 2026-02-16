@@ -11,7 +11,7 @@ export class AuditLogUserProfileUpdatedListener {
     private readonly audit: AuditService,
   ) { }
 
-  @OnEvent(UserProfileUpdatedEvent.EventName)
+  @OnEvent(UserProfileUpdatedEvent.EventName, { async: true })
   async handle(e: UserProfileUpdatedEvent): Promise<void> {
     const profile = e.payload.profile;
 

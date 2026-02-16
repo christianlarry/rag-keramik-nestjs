@@ -15,7 +15,7 @@ export class UpdateUserProfileListener {
     private readonly userRepository: UserRepository
   ) { }
 
-  @OnEvent(UserLoggedInWithOAuthEvent.EventName)
+  @OnEvent(UserLoggedInWithOAuthEvent.EventName, { async: true })
   async handle(e: UserLoggedInWithOAuthEvent): Promise<void> {
     const user = await this.userRepository.findById(e.payload.userId);
 

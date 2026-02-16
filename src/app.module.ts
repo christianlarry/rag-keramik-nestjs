@@ -33,6 +33,7 @@ import authGoogleConfig from './modules/auth/infrastructure/config/auth-google.c
 import authFacebookConfig from './modules/auth/infrastructure/config/auth-facebook.config';
 import { MailerModule } from './core/infrastructure/mailer/mailer.module';
 import { CacheModule } from './core/infrastructure/services/cache/cache.module';
+import { CacheInvalidatorModule } from './modules/cache-invalidator/cache-invalidator.module';
 
 @Module({
   imports: [
@@ -107,6 +108,7 @@ import { CacheModule } from './core/infrastructure/services/cache/cache.module';
     AuthModule,
     AuditModule,
     TokenGeneratorModule,
+    CacheInvalidatorModule
   ],
   controllers: [
     AppController
