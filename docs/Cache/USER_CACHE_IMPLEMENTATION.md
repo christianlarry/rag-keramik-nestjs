@@ -5,25 +5,31 @@ Implementasi caching layer menggunakan Redis untuk user service dengan cache-asi
 
 ## Cache Keys Structure
 
-Semua cache keys dikelola melalui static class `UserCacheKeys`:
+Semua cache keys dikelola melalui static class `UserCache`:
 
 ```typescript
 // User by ID
-user:id:{userId}
+user:profile:id:{userId}
 
 // User by email
-user:email:{email}
+user:profile:email:{email}
 
-// User by ID with selective fields
-user:id:{userId}:fields:{field1,field2,field3}
+// User by phone
+user:profile:phone:{phoneNumber}
 
-// User list with pagination and filters
-user:list:page:{page}:limit:{limit}
-user:list:page:{page}:limit:{limit}:role:{role}
-user:list:page:{page}:limit:{limit}:search:{searchTerm}
+// User detail by ID
+user:profile:detail:id:{userId}
 
-// Email existence check
-user:email-exists:{email}
+// User list with pagination and filters (versioned)
+user:profile:list:v{version}:page:{page}:limit:{limit}
+user:profile:list:v{version}:page:{page}:limit:{limit}:role:{role}
+user:profile:list:v{version}:page:{page}:limit:{limit}:status:{status}
+
+// User list version key (used for cache invalidation)
+user:profile:list:version
+
+// User statistics
+user:profile:stats:all
 ```
 
 ## Cache TTL Configuration
@@ -80,52 +86,79 @@ The following methods are NOT cached as they are write operations:
 
 Cache keys yang perlu di-invalidate saat data berubah:
 
-### On User Update (`update()`)
+### ✨ Cache Versioning for Lists
+
+Instead of using wildcard deletion (`user:list:*`), we use a **version-based invalidation** approach:
+
+1. **Version Key**: `user:profile:list:version` stores an integer counter
+2. **Versioned List Keys**: All list cache keys include the current version (e.g., `user:profile:list:v0:page:1:limit:10`)
+3. **Invalidation**: When a user changes, we increment the version counter using Redis `INCR` command
+4. **Result**: All cached lists with old version become stale automatically without wildcard deletion
+
+**Benefits:**
+- ✅ No wildcard deletion (better Redis performance)
+- ✅ O(1) invalidation complexity
+- ✅ Atomic operation (INCR is atomic)
+- ✅ Old cache entries expire naturally via TTL
+
+### On User Update (`save()` method)
+
 ```typescript
-// Invalidate:
-- user:id:{userId}
-- user:email:{email}
-- user:email:{oldEmail} (if email changed)
-- user:list:* (all list caches)
-- user:email-exists:{oldEmail}
-- user:email-exists:{newEmail}
+// Delete specific keys:
+- user:profile:id:{userId}
+- user:profile:detail:id:{userId}
+- user:profile:email:{email}
+- user:profile:phone:{phoneNumber} (if exists)
+- user:profile:stats:all
+
+// Increment version (invalidates all lists):
+- INCR user:profile:list:version
 ```
 
-### On User Create (`create()`)
+### On User Delete (`delete()` method)
+
 ```typescript
-// Invalidate:
-- user:list:* (all list caches)
-- user:email-exists:{email}
+// Delete specific keys:
+- user:profile:id:{userId}
+
+// Increment version (invalidates all lists):
+- INCR user:profile:list:version
 ```
 
-### On User Delete
-```typescript
-// Invalidate:
-- user:id:{userId}
-- user:email:{email}
-- user:list:* (all list caches)
-- user:email-exists:{email}
-```
+### Cache Versioning Flow
 
-### On Email Verification (`markEmailAsVerified()`)
-```typescript
-// Invalidate:
-- user:id:{userId}
-- user:email:{email}
 ```
-
-### On Refresh Token Operations
-```typescript
-// Invalidate:
-- user:id:{userId}
+┌─────────────────────────────────────────────────────────┐
+│ 1. Read Operation (findAllUsers)                        │
+│    - GET user:profile:list:version → returns 0          │
+│    - GET user:profile:list:v0:page:1:limit:10           │
+│    - Cache miss → Query DB → Store with key v0          │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ 2. Write Operation (save/delete user)                   │
+│    - DEL user:profile:id:{userId}                       │
+│    - DEL user:profile:detail:id:{userId}                │
+│    - INCR user:profile:list:version → returns 1         │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ 3. Subsequent Read Operation                            │
+│    - GET user:profile:list:version → returns 1          │
+│    - GET user:profile:list:v1:page:1:limit:10           │
+│    - Cache miss → Query DB → Store with key v1          │
+│    - Old key (v0) expires via TTL                       │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ## Implementation Notes
 
 1. **Cache-Aside Pattern**: All read operations use `cacheService.wrap()` which implements cache-aside pattern automatically
 2. **Error Handling**: If cache operations fail, the application falls back to database queries
-3. **Consistency**: Cache invalidation will be implemented in a separate phase
-4. **Performance**: Cache keys are designed to be specific enough to avoid false cache hits
+3. **Cache Versioning**: List caches use version-based invalidation to avoid expensive wildcard deletions
+4. **Version Storage**: The version counter is stored in Redis and incremented atomically using `INCR` command
+5. **Performance**: Cache keys are designed to be specific enough to avoid false cache hits
+6. **Scalability**: Version-based invalidation is O(1) and works efficiently even with thousands of cached list combinations
 
 ## Usage Example
 
@@ -137,12 +170,31 @@ const user = await this.usersService.findById(userId);
 
 // After 5 minutes, cache expires
 // Next call: Cache miss → DB query → Store in cache again
+
+// For list queries with versioning:
+const users = await this.usersService.findAll({ page: 1, limit: 10 });
+// 1. GET user:profile:list:version → 0
+// 2. GET user:profile:list:v0:page:1:limit:10 → Cache miss
+// 3. Query DB → Store in cache with v0 key
+
+// After user update:
+await this.usersService.update(userId, updateData);
+// 1. DEL user:profile:id:{userId}
+// 2. INCR user:profile:list:version → 1
+
+// Next list query:
+const users = await this.usersService.findAll({ page: 1, limit: 10 });
+// 1. GET user:profile:list:version → 1
+// 2. GET user:profile:list:v1:page:1:limit:10 → Cache miss
+// 3. Query DB → Store in cache with v1 key
+// Old v0 cache will expire via TTL
 ```
 
 ## Future Improvements
 
-1. Implement cache invalidation on write operations
+1. ✅ ~~Implement cache invalidation on write operations~~ (Completed with version-based invalidation)
 2. Add cache warming strategy for frequently accessed users
 3. Implement stale-while-revalidate pattern for better UX
 4. Add cache metrics and monitoring
 5. Consider implementing cache stampede protection for high-traffic scenarios
+6. Implement cache for user statistics with smart invalidation

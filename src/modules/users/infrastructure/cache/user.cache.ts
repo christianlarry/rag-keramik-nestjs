@@ -12,8 +12,10 @@ export class UserCache {
   static readonly USER_BY_ID_PREFIX = 'user:profile:id:';
   static readonly USER_BY_EMAIL_PREFIX = 'user:profile:email:';
   static readonly USER_BY_PHONE_PREFIX = 'user:profile:phone:';
-  static readonly USER_LIST_PREFIX = 'user:profile:list:';
   static readonly USER_STATS_PREFIX = 'user:profile:stats:';
+  static readonly USER_DETAIL_BY_ID_PREFIX = 'user:profile:detail:id:';
+  static readonly USER_LIST_PREFIX = 'user:profile:list:';
+  static readonly USER_LIST_VERSION_KEY = 'user:profile:list:version';
 
   // ===== TTL Configurations (in seconds) ===== //
   static readonly USER_DETAIL_TTL = 300; // 5 minutes
@@ -45,23 +47,33 @@ export class UserCache {
 
   /**
    * Generate cache key for user list with pagination and filters
+   * @param params - Pagination, filter parameters, and cache version
+   * @param params.version - Cache version number (retrieved from getUserListVersionKey)
    */
   static getUserListKey(params: {
     page?: number;
     limit?: number;
     role?: string;
     status?: string;
-    search?: string;
+    version?: number;
   }): string {
-    const { page = 1, limit = 20, role, status, search } = params;
+    const { page = 1, limit = 20, role, status, version = 0 } = params;
     const filters = [];
 
     if (role) filters.push(`role:${role}`);
     if (status) filters.push(`status:${status}`);
-    if (search) filters.push(`search:${search}`);
 
     const filterStr = filters.length > 0 ? `:${filters.join(':')}` : '';
-    return `${this.USER_LIST_PREFIX}page:${page}:limit:${limit}${filterStr}`;
+    return `${this.USER_LIST_PREFIX}v${version}:page:${page}:limit:${limit}${filterStr}`;
+  }
+
+  /**
+   * Get the cache key for user list version
+   * This key stores a version number that is incremented on user changes.
+   * When the version changes, all cached lists become stale automatically.
+   */
+  static getUserListVersionKey(): string {
+    return this.USER_LIST_VERSION_KEY;
   }
 
   /**
@@ -71,13 +83,31 @@ export class UserCache {
     return `${this.USER_STATS_PREFIX}all`;
   }
 
+  static getUserDetailByIdKey(userId: string): string {
+    return `${this.USER_DETAIL_BY_ID_PREFIX}${userId}`;
+  }
+
   // ===== Cache Invalidation Helpers ===== //
 
   /**
-   * Get all cache keys that should be invalidated when a user is updated
+   * Get all cache keys that should be invalidated when a user is updated.
+   * Note: For list caches, we increment the version key instead of using wildcard deletion.
+   * The application should:
+   * 1. Delete the keys returned by this method
+   * 2. Increment the value at getUserListVersionKey() (e.g., INCR command in Redis)
    */
-  static getInvalidationKeys(userId: string, email?: string, phoneNumber?: string): string[] {
-    const keys = [this.getUserByIdKey(userId)];
+  static getInvalidationKeys(
+    userId: string,
+    email?: string,
+    phoneNumber?: string
+  ): string[] {
+    const keys = [
+      this.getUserByIdKey(userId),
+      this.getUserDetailByIdKey(userId),
+      this.getUserStatsKey(),
+      // Note: getUserListVersionKey() should be incremented (INCR), not deleted
+      // This invalidates all list caches without wildcard deletion
+    ];
 
     if (email) {
       keys.push(this.getUserByEmailKey(email));

@@ -372,11 +372,13 @@ export class AuthUser extends AggregateRoot {
     if (!this.props.status.isActive()) {
       throw new CannotLoginError('User account is not active. Please contact support.');
     }
-    if (this.isUsingOAuthProvider()) {
-      throw new CannotLoginError('User is registered with OAuth provider. Please login using the linked provider.');
-    }
     if (!this.props.emailVerified) {
       throw new CannotLoginError('Email is not verified. Please verify your email before logging in.');
+    }
+    // Assume if user has password set, they can login with local provider. If not, they must be using OAuth provider, so we check if they have any linked providers
+    if (this.isUsingOAuthProvider() && this.isUsingLocalProvider()) return
+    if (this.isUsingOAuthProvider() && !this.isUsingLocalProvider()) {
+      throw new CannotLoginError('User is registered with OAuth provider. Please login using the linked provider.');
     }
   }
 

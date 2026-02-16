@@ -14,6 +14,7 @@ Sistem autentikasi yang lengkap dan aman dengan email verification, password res
 | `POST` | `/v1/auth/register` | ❌ No | Register akun baru + kirim email verifikasi |
 | `POST` | `/v1/auth/verify-email` | ❌ No | Verifikasi email dengan token |
 | `POST` | `/v1/auth/resend-verification` | ❌ No | Kirim ulang email verifikasi |
+| `POST` | `/v1/auth/check-email` | ❌ No | Cek ketersediaan email |
 
 ### 2. **Login & Session**
 
@@ -39,6 +40,12 @@ Sistem autentikasi yang lengkap dan aman dengan email verification, password res
 | `GET` | `/v1/auth/google/callback` | ❌ No | Google OAuth2 callback handler |
 | `GET` | `/v1/auth/facebook` | ❌ No | Initiate Facebook OAuth2 login |
 | `GET` | `/v1/auth/facebook/callback` | ❌ No | Facebook OAuth2 callback handler |
+
+### 5. **Account Linking**
+
+| Method | Endpoint | Auth Required | Description |
+|--------|----------|---------------|-------------|
+| `POST` | `/v1/auth/link-local-account` | ❌ No | Initiate Google OAuth2 login |
 
 ---
 
