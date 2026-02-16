@@ -24,6 +24,7 @@ import { UserDeletedEvent } from "../events/user-deleted.event";
 import { OAuthProviderLinkedEvent } from "../events/oauth-provider-linked.event";
 import { OAuthProviderUnlinkedEvent } from "../events/oauth-provider-unlinked.event";
 import { UserCreatedFromOAuthEvent } from "../events/user-created-from-oauth.event";
+import { AuthUserUpdatedEvent } from "../events/auth-user-updated.event";
 
 interface AuthUserProps {
   name: Name;
@@ -321,6 +322,7 @@ export class AuthUser extends AggregateRoot {
 
     this.props.updatedAt = new Date();
 
+    this.applyChange();
     this.addDomainEvent(
       new EmailVerifiedEvent({
         userId: this._id.getValue(),
@@ -341,6 +343,7 @@ export class AuthUser extends AggregateRoot {
 
     this.props.updatedAt = new Date();
 
+    this.applyChange();
     this.addDomainEvent(
       new EmailUnverifiedEvent({
         userId: this._id.getValue(),
@@ -360,6 +363,7 @@ export class AuthUser extends AggregateRoot {
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
 
+    this.applyChange();
     this.addDomainEvent(
       new PasswordChangedEvent({
         userId: this._id.getValue(),
@@ -375,10 +379,9 @@ export class AuthUser extends AggregateRoot {
     }
 
     this.props.password = newPassword;
-
-    this.props.updatedAt = new Date();
     this.clearRefreshTokens();
 
+    this.applyChange();
     this.addDomainEvent(
       new PasswordResetEvent({
         userId: this._id.getValue(),
@@ -416,10 +419,14 @@ export class AuthUser extends AggregateRoot {
     }
   }
 
-  public recordSuccessfulLogin(): void {
+  public recordLogin(refreshToken: string): void {
     this.props.lastLoginAt = new Date();
-    this.props.updatedAt = new Date();
 
+    if (refreshToken) {
+      this.addRefreshToken(refreshToken);
+    }
+
+    this.applyChange();
     this.addDomainEvent(
       new UserLoggedInEvent({
         userId: this._id.getValue(),
@@ -429,12 +436,17 @@ export class AuthUser extends AggregateRoot {
     );
   }
 
-  public recordOAuthLogin(providerName: AuthProviderEnum, profile?: { avatarUrl: string | null }): void {
+  public recordOAuthLogin(
+    providerName: AuthProviderEnum,
+    refreshToken: string,
+    profile?: { avatarUrl: string | null }
+  ): void {
     if (!this.hasProvider(providerName)) {
       throw new InvalidProviderError(`User is not linked with ${providerName} provider`);
     }
+    this.addRefreshToken(refreshToken);
     this.props.lastLoginAt = new Date();
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     // Add Event for successful OAuth login if needed, Like: UserLoggedInWithOAuthEvent
     this.addDomainEvent(new UserLoggedInWithOAuthEvent({
@@ -446,8 +458,31 @@ export class AuthUser extends AggregateRoot {
     }))
   }
 
+  // === Logout Commands === //
+  public recordLogout(refreshToken?: string): void {
+
+    if (refreshToken === undefined || refreshToken.length === 0) {
+      this.clearRefreshTokens(); // If no token provided, clear all refresh tokens (e.g., for global logout)
+    } else {
+      this.removeRefreshToken(refreshToken);
+    }
+
+    this.applyChange();
+  }
+
   // === Refresh Token Commands === //
-  public addRefreshToken(token: string): void {
+  public recordTokenRefresh(oldRefreshToken: string, newRefreshToken: string): void {
+    this.removeRefreshToken(oldRefreshToken);
+    this.addRefreshToken(newRefreshToken);
+    this.applyChange();
+  }
+
+  public revokeAllRefreshTokens(): void {
+    this.clearRefreshTokens();
+    this.applyChange();
+  }
+
+  private addRefreshToken(token: string): void {
     // Avoid adding duplicate tokens
     if (this.props.refreshTokens.includes(token)) {
       return;
@@ -468,12 +503,12 @@ export class AuthUser extends AggregateRoot {
     this.props.updatedAt = new Date();
   }
 
-  public removeRefreshToken(token: string): void {
+  private removeRefreshToken(token: string): void {
     this.props.refreshTokens = this.props.refreshTokens.filter(t => t !== token);
     this.props.updatedAt = new Date();
   }
 
-  public clearRefreshTokens(): void {
+  private clearRefreshTokens(): void {
     this.props.refreshTokens = [];
     this.props.updatedAt = new Date();
   }
@@ -493,8 +528,9 @@ export class AuthUser extends AggregateRoot {
   // === Status Commands === //
   public activate(): void {
     this.props.status = Status.create('active');
-    this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+
+    this.applyChange();
 
     this.addDomainEvent(
       new UserActivatedEvent({
@@ -507,8 +543,9 @@ export class AuthUser extends AggregateRoot {
 
   public deactivate(): void {
     this.props.status = Status.create('inactive');
-    this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+
+    this.applyChange();
 
     this.addDomainEvent(
       new UserDeactivatedEvent({
@@ -521,8 +558,9 @@ export class AuthUser extends AggregateRoot {
 
   public suspend(): void {
     this.props.status = Status.create('suspended');
-    this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+
+    this.applyChange();
 
     this.addDomainEvent(
       new UserSuspendedEvent({
@@ -538,7 +576,7 @@ export class AuthUser extends AggregateRoot {
     this.clearRefreshTokens();
     this.props.deletedAt = new Date();
 
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(
       new UserDeletedEvent({
@@ -556,7 +594,8 @@ export class AuthUser extends AggregateRoot {
     }
 
     this.props.providers.push(provider);
-    this.props.updatedAt = new Date();
+
+    this.applyChange();
 
     this.addDomainEvent(
       new OAuthProviderLinkedEvent({
@@ -574,7 +613,8 @@ export class AuthUser extends AggregateRoot {
     }
 
     this.props.providers = this.props.providers.filter(p => p.getProviderName() !== providerName);
-    this.props.updatedAt = new Date();
+
+    this.applyChange();
 
     this.addDomainEvent(
       new OAuthProviderUnlinkedEvent({
@@ -584,6 +624,16 @@ export class AuthUser extends AggregateRoot {
         unlinkedAt: this.props.updatedAt
       })
     );
+  }
+
+  private applyChange() {
+    this.props.updatedAt = new Date();
+    // Add domain event for user update if needed, Like: AuthUserUpdatedEvent
+    this.addDomainEvent(new AuthUserUpdatedEvent({
+      userId: this._id.getValue(),
+      email: this.props.email.getValue(),
+      updatedAt: this.props.updatedAt
+    }))
   }
 
   // ===== Getters ===== //

@@ -40,8 +40,7 @@ export class RefreshTokenUseCase {
     });
 
     // Update refresh token in repository (token rotation)
-    authUser.removeRefreshToken(command.refreshToken);
-    authUser.addRefreshToken(newRefreshToken);
+    authUser.recordTokenRefresh(command.refreshToken, newRefreshToken);
 
     // Save updated auth user with new refresh token
     await this.authUserRepository.save(authUser);

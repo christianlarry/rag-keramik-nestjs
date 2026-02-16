@@ -75,8 +75,11 @@ export class GoogleAuthCallbackUseCase {
       userId: authUser.id.getValue(),
     });
 
-    authUser.addRefreshToken(refreshToken);
-    await authUser.recordOAuthLogin(AuthProviderName.GOOGLE, { avatarUrl: command.user.avatarUrl });
+    await authUser.recordOAuthLogin(
+      AuthProviderName.GOOGLE,
+      refreshToken,
+      { avatarUrl: command.user.avatarUrl }
+    );
 
     await this.uow.withTransaction(async () => {
       await this.authUserRepository.save(authUser);

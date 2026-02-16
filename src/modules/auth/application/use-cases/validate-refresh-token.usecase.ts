@@ -39,7 +39,7 @@ export class ValidateRefreshTokenUseCase {
 
     // Cek apakah refresh token valid, Jika tidak, hapus semua refresh token (logout dari semua device) Possible token theft
     if (!authUser.hasRefreshToken(command.refreshToken)) {
-      authUser.clearRefreshTokens();
+      authUser.revokeAllRefreshTokens();
       await this.authUserRepository.save(authUser);
 
       throw new CannotRefreshTokenError('Refresh token is invalid or has been revoked');

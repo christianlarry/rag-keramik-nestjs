@@ -66,8 +66,7 @@ export class LoginWithEmailUseCase {
     })
 
     // Save refresh token to user
-    authUser.addRefreshToken(refreshToken);
-    authUser.recordSuccessfulLogin();
+    authUser.recordLogin(refreshToken);
 
     await this.uow.withTransaction(async () => {
       // Persist user changes
