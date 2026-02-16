@@ -3,7 +3,7 @@ import { UpdateUserProfileListener } from './application/listeners/update-user-p
 import { USER_REPOSITORY_TOKEN } from './domain/repositories/user-repository.interface';
 import { USER_QUERY_REPOSITORY_TOKEN } from './domain/repositories/user-query-repository.interface';
 import { PrismaUserRepository, PrismaUserQueryRepository } from './infrastructure/repositories';
-import { AuditLogUserProfileUpdateListener } from './application/listeners/audit-log-user-profile-update.listener';
+import { AuditLogUserProfileUpdatedListener } from './application/listeners/audit-log-user-profile-updated.listener';
 import { AuditModule } from 'src/core/infrastructure/services/audit/audit.module';
 import { UsersController } from './presentation/users.controller';
 import {
@@ -42,7 +42,7 @@ import {
 
     // Listeners
     UpdateUserProfileListener,
-    AuditLogUserProfileUpdateListener,
+    AuditLogUserProfileUpdatedListener,
 
   ]
 })

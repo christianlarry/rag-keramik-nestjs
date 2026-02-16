@@ -765,6 +765,7 @@ Handle HTTP requests, call use cases.
 ```typescript
 import { Body, Controller, Post, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -777,8 +778,28 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Register new user' })
-  @ApiResponse({ status: 201, type: AuthRegisterResponseDto })
+  @Throttle({ default: { limit: 5, ttl: 900000 } }) // 5 requests per 15 minutes
+  @ApiOperation({
+    summary: 'Register a new user',
+    description: 'Creates a new user account with email and password. Sends a verification email to activate the account.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'User registered successfully. Verification email sent.',
+    type: AuthRegisterResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid input data or validation failed.',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - email already in use.',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Too many requests - rate limit exceeded.',
+  })
   async register(
     @Body() dto: AuthRegisterDto
   ): Promise<AuthRegisterResponseDto> {
@@ -788,34 +809,67 @@ export class AuthController {
       password: dto.password,
     });
 
-    return {
-      userId: result.userId,
-      message: 'Registration successful'
-    };
+    return new AuthRegisterResponseDto({
+      id: result.userId,
+      message: 'Registration successful. Please check your email to verify your account.',
+    });
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login with email and password' })
+  @Throttle({ default: { limit: 5, ttl: 900000 } }) // 5 requests per 15 minutes
+  @ApiOperation({
+    summary: 'Login with email and password',
+    description: 'Authenticates a user with email and password. Returns access and refresh tokens.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful.',
+    type: AuthLoginResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid email or password format.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid credentials.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - email not verified or account suspended.',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Too many requests - rate limit exceeded.',
+  })
   async login(@Body() dto: AuthLoginDto): Promise<AuthLoginResponseDto> {
     const result = await this.loginUseCase.execute({
       email: dto.email,
       password: dto.password,
     });
 
-    return {
+    return new AuthLoginResponseDto({
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
-    };
+      user: {
+        id: result.user.id,
+        email: result.user.email,
+        fullName: result.user.fullName,
+      },
+    });
   }
 }
 ```
 
 **Key Points**:
-- ✅ Thin controllers (business logic di use case)
-- ✅ DTOs untuk validation
-- ✅ Swagger decorators
-- ✅ HTTP status codes yang tepat
+- ✅ **Thin Controllers**: Business logic hanya di use case, controller hanya orchestrate
+- ✅ **DTOs for Validation**: Gunakan DTOs untuk semua input validation
+- ✅ **Complete Swagger Decorators**: ApiOperation dengan summary dan description yang jelas
+- ✅ **Multiple ApiResponse**: Document semua possible HTTP status codes (200, 400, 401, 403, 404, 409, 429, 500)
+- ✅ **HTTP Status Codes**: Gunakan status codes yang tepat (@HttpCode, return proper status)
+- ✅ **Rate Limiting**: Apply throttling untuk security
+- ✅ **Response Objects**: Always return DTO instances using `new ResponseDto(data)`, not plain objects
 
 ---
 
@@ -823,44 +877,89 @@ export class AuthController {
 
 Validate dan shape HTTP request/response.
 
-**Example**: `auth-register.dto.ts`
+**Request DTO Example**: `auth-register.dto.ts`
 
 ```typescript
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+import {
+  IsEmail,
+  IsString,
+  IsStrongPassword,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class AuthRegisterDto {
-  @ApiProperty({ example: 'John Doe' })
+  @ApiProperty({
+    example: 'John Doe',
+    description: 'Full name of the user',
+    minLength: 3,
+    maxLength: 100,
+  })
   @IsString()
-  @MinLength(3)
-  @MaxLength(100)
+  @MinLength(3, { message: 'fullName must be at least 3 characters long' })
+  @MaxLength(100, { message: 'fullName must be at most 100 characters long' })
+  @Matches(/^[a-zA-Z\u00e0-\u017e\u00c0-\u017d'\u00b4`-]{3,}([ ][a-zA-Z\u00e0-\u017e\u00c0-\u017d'\u00b4`-]{1,})*$/, {
+    message: 'fullName contains invalid characters or format'
+  })
+  @IsNotEmpty()
   fullName: string;
 
-  @ApiProperty({ example: 'john@example.com' })
+  @ApiProperty({
+    example: 'john.doe@example.com',
+    description: 'Email address of the user. Must be a valid email format.',
+  })
+  @Transform(({ value }) => value?.toLowerCase()?.trim())
   @IsEmail()
+  @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ example: 'Password123!' })
+  @ApiProperty({
+    example: 'StrongP@ssw0rd123!',
+    description: 'Password for the user account. Must contain at least 8 characters, including uppercase, lowercase, number, and special character.',
+    minLength: 8,
+  })
   @IsString()
-  @MinLength(8)
-  @MaxLength(64)
+  @IsStrongPassword()
+  @IsNotEmpty()
   password: string;
 }
 ```
 
-**Response DTO**: `auth-register-response.dto.ts`
+**Response DTO Example**: `auth-register-response.dto.ts`
 
 ```typescript
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AuthRegisterResponseDto {
-  @ApiProperty()
-  userId: string;
+  @ApiProperty({
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    description: 'Unique identifier of the registered user',
+  })
+  id: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Registration successful. Please check your email to verify your account.',
+    description: 'Success message',
+  })
   message: string;
+
+  constructor(data: AuthRegisterResponseDto) {
+    Object.assign(this, data);
+  }
 }
 ```
+
+**Key Points**:
+- ✅ **Complete ApiProperty**: Include example, description, minLength, maxLength, enum, required
+- ✅ **Validation Decorators**: Use class-validator for all input validation
+- ✅ **Transform Decorators**: Normalize input (lowercase, trim) when needed
+- ✅ **Custom Messages**: Provide clear validation error messages
+- ✅ **Response DTOs**: Always include ApiProperty for Swagger documentation
+- ✅ **Constructor Pattern**: Use `Object.assign(this, data)` for flexible initialization
 
 ---
 
@@ -1046,6 +1145,41 @@ export class AuthModule {}
 - ✅ **Error Mapping**: Map domain errors ke HTTP errors
 - ✅ **API Documentation**: Gunakan Swagger decorators
 - ✅ **Security**: Apply guards dan throttling
+
+#### Swagger/OpenAPI Documentation Best Practices
+
+**Request DTOs**:
+- ✅ Setiap property harus memiliki `@ApiProperty` dengan:
+  - `example`: Contoh value yang valid
+  - `description`: Penjelasan jelas tentang field
+  - `required`: Apakah field wajib atau optional (default true)
+  - `minLength`/`maxLength`: Untuk string validation
+  - `enum`: Untuk enum types
+  - `type`: Untuk complex types (arrays, nested objects)
+- ✅ Gunakan `@Transform` untuk normalisasi input (lowercase, trim)
+- ✅ Semua validation decorators harus ada custom message yang jelas
+
+**Response DTOs**:
+- ✅ Setiap property harus memiliki `@ApiProperty` dengan example dan description
+- ✅ Gunakan nested class untuk complex objects (jangan `Record<string, any>`)
+- ✅ Gunakan constructor pattern: `constructor(data: Partial<ResponseDto>)`
+- ✅ Return instance dari DTO class: `new ResponseDto(data)`, bukan plain object
+
+**Controllers**:
+- ✅ `@ApiOperation`: Summary singkat dan description lengkap
+- ✅ Multiple `@ApiResponse` untuk semua possible status codes:
+  - 200/201: Success dengan type DTO
+  - 400: Bad request - validation errors
+  - 401: Unauthorized - authentication failed
+  - 403: Forbidden - insufficient permissions
+  - 404: Not found - resource tidak ada
+  - 409: Conflict - business rule violation
+  - 429: Rate limit exceeded
+  - 500: Internal server error
+- ✅ `@ApiBearerAuth()` untuk protected endpoints
+- ✅ `@ApiTags()` untuk grouping endpoints
+- ✅ `@ApiParam()` untuk path parameters
+- ✅ `@ApiQuery()` untuk query parameters
 
 ---
 

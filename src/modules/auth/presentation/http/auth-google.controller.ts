@@ -19,17 +19,41 @@ export class AuthGoogleController {
   @UseGuards(GoogleAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_MINUTE } }) // 10 requests per minute
-  @ApiOperation({ summary: 'Initiate Google OAuth login', description: 'Redirects the user to Google for authentication.' })
-  @ApiResponse({ status: 200, description: 'Redirects to Google for authentication.' })
+  @ApiOperation({
+    summary: 'Initiate Google OAuth login',
+    description: 'Redirects the user to Google for authentication. This is the entry point for OAuth flow.',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirects to Google OAuth consent screen.',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Too many requests - rate limit exceeded.',
+  })
   async googleAuth() { } // No need to implement anything here, as the guard will handle the redirection to Google
 
   @Get('callback')
   @UseGuards(GoogleAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: LIMIT.MODERATE, ttl: TTL.ONE_MINUTE } }) // 10 requests per minute
-  @ApiOperation({ summary: 'Handle Google OAuth callback', description: 'Processes the callback from Google OAuth and returns authentication tokens.' })
-  @ApiResponse({ status: 200, description: 'Authentication successful.', type: AuthGoogleCallbackResponseDto })
-  @ApiResponse({ status: 401, description: 'Authentication failed.' })
+  @ApiOperation({
+    summary: 'Handle Google OAuth callback',
+    description: 'Processes the callback from Google OAuth after user consent. Returns JWT tokens and user information.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Authentication successful. Returns tokens and user info.',
+    type: AuthGoogleCallbackResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Google authentication failed or was cancelled.',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Too many requests - rate limit exceeded.',
+  })
   async googleAuthCallback(
     @OAuthUser() user: OAuthUserInterface
   ): Promise<AuthGoogleCallbackResponseDto> {

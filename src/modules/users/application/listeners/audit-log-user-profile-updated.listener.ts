@@ -6,7 +6,7 @@ import { AuditAction } from "src/core/infrastructure/services/audit/enums/audit-
 import { AuditTargetType } from "src/core/infrastructure/services/audit/enums/audit-target-type.enum";
 
 @Injectable()
-export class AuditLogUserProfileUpdateListener {
+export class AuditLogUserProfileUpdatedListener {
   constructor(
     private readonly audit: AuditService,
   ) { }
