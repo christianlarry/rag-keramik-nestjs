@@ -188,54 +188,11 @@ export class AuthUser extends AggregateRoot {
     }
   }
 
-  // ===== Query methods ===== //
-  public canLogin(): boolean {
-    return (
-      this.props.status.isActive() &&
-      (this.isUsingLocalProvider()) &&
-      (this.props.emailVerified)
-    );
-  }
+  // ==================== QUERY METHODS ==================== //
 
-  public canVerifyEmail(): boolean {
-    return (
-      !this.props.status.isActive() &&
-      !this.props.emailVerified &&
-      this.isUsingLocalProvider()
-    );
-  }
-
-  public canUnverifyEmail(): boolean {
-    return this.props.emailVerified;
-  }
-
-  public canResetPassword(): boolean {
-    return (
-      this.props.status.isActive() &&
-      this.isUsingLocalProvider() &&
-      this.props.password !== null &&
-      this.props.emailVerified &&
-      this.props.emailVerifiedAt !== null
-    );
-  }
-
-  public canChangePassword(): boolean {
-    return this.canResetPassword();
-  }
-
-  public canForgetPassword(): boolean {
-    return this.canResetPassword();
-  }
-
+  // === Status Queries === //
   public canAccessProtectedResources(): boolean {
     return this.props.status.isActive() && this.props.emailVerified;
-  }
-
-  public canRefreshToken(): boolean {
-    return (
-      this.props.status.isActive() &&
-      !this.hasNoRefreshTokens()// User must have at least one active refresh token to be able to refresh  
-    );
   }
 
   public isInactiveForOneWeek(): boolean {
@@ -256,7 +213,48 @@ export class AuthUser extends AggregateRoot {
     return this.props.lastLoginAt < oneMonthAgo;
   }
 
-  // == Provider Management == //
+  // === Email Verification Queries === //
+  public canVerifyEmail(): boolean {
+    return (
+      !this.props.status.isActive() &&
+      !this.props.emailVerified &&
+      this.isUsingLocalProvider()
+    );
+  }
+
+  public canUnverifyEmail(): boolean {
+    return this.props.emailVerified;
+  }
+
+  // === Authentication Queries === //
+  public canLogin(): boolean {
+    return (
+      this.props.status.isActive() &&
+      (this.isUsingLocalProvider()) &&
+      (this.props.emailVerified)
+    );
+  }
+
+  // === Password Queries === //
+  public canResetPassword(): boolean {
+    return (
+      this.props.status.isActive() &&
+      this.isUsingLocalProvider() &&
+      this.props.password !== null &&
+      this.props.emailVerified &&
+      this.props.emailVerifiedAt !== null
+    );
+  }
+
+  public canChangePassword(): boolean {
+    return this.canResetPassword();
+  }
+
+  public canForgetPassword(): boolean {
+    return this.canResetPassword();
+  }
+
+  // === Provider Queries === //
   public isUsingOAuthProvider(): boolean {
     return this.props.providers.length > 0;
   }
@@ -269,27 +267,25 @@ export class AuthUser extends AggregateRoot {
     return this.props.providers.some(p => p.getProviderName() === providerName);
   }
 
-  public linkOAuth(provider: AuthProvider): void {
-    if (this.hasProvider(provider.getProviderName())) {
-      throw new InvalidProviderError(`User already linked with ${provider.getProviderName()} provider`);
-    }
-
-    this.props.providers.push(provider);
-    this.props.updatedAt = new Date();
+  // === Refresh Token Queries === //
+  public canRefreshToken(): boolean {
+    return (
+      this.props.status.isActive() &&
+      !this.hasNoRefreshTokens()  // User must have at least one active refresh token to be able to refresh
+    );
   }
 
-  public unlinkOAuth(providerName: AuthProviderEnum): void {
-    if (!this.hasProvider(providerName)) {
-      throw new InvalidProviderError(`User is not linked with ${providerName} provider`);
-    }
-
-    this.props.providers = this.props.providers.filter(p => p.getProviderName() !== providerName);
-    this.props.updatedAt = new Date();
+  public hasRefreshToken(token: string): boolean {
+    return this.props.refreshTokens.includes(token);
   }
 
-  // ===== Command methods ===== //
+  public hasNoRefreshTokens(): boolean {
+    return this.props.refreshTokens.length === 0;
+  }
 
-  // == Email Verification Management == //
+  // ==================== COMMAND METHODS ==================== //
+
+  // === Email Verification Commands === //
   public verifyEmail(): void {
     if (!this.canVerifyEmail()) {
       throw new CannotVerifyEmailError('User cannot verify email. Either already verified, not active, or using non-local provider');
@@ -314,59 +310,42 @@ export class AuthUser extends AggregateRoot {
     this.props.updatedAt = new Date();
   }
 
-  // == Refresh Token Management == //
-  public addRefreshToken(token: string): void {
-    // Avoid adding duplicate tokens
-    if (this.props.refreshTokens.includes(token)) {
-      return;
+  // === Password Commands === //
+  public changePassword(newPassword: Password): void {
+    if (!this.canChangePassword()) {
+      throw new CannotChangePasswordError('User cannot change password. Ensure user is active, using local provider, has a password set, and email is verified.');
     }
 
-    // Ensure user is active before adding refresh token
-    if (!this.props.status.isActive()) {
-      throw new InvalidAuthStateError('Cannot add refresh token to inactive user');
-    }
-
-    this.props.refreshTokens.push(token);
-
-    // Max 5 refresh tokens
-    if (this.props.refreshTokens.length > 5) {
-      this.props.refreshTokens.shift(); // Remove oldest token
-    }
+    this.props.password = newPassword;
 
     this.props.updatedAt = new Date();
+    this.clearRefreshTokens();
   }
 
-  public removeRefreshToken(token: string): void {
-    this.props.refreshTokens = this.props.refreshTokens.filter(t => t !== token);
+  public resetPassword(newPassword: Password): void {
+    if (!this.canResetPassword()) {
+      throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
+    }
+
+    this.props.password = newPassword;
+
     this.props.updatedAt = new Date();
+    this.clearRefreshTokens();
   }
 
-  public clearRefreshTokens(): void {
-    this.props.refreshTokens = [];
-    this.props.updatedAt = new Date();
-  }
-
-  public hasRefreshToken(token: string): boolean {
-    return this.props.refreshTokens.includes(token);
-  }
-
-  public hasNoRefreshTokens(): boolean {
-    return this.props.refreshTokens.length === 0;
-  }
-
-  public ensureCanRefreshToken(): void {
-    if (!this.canRefreshToken()) {
-      throw new CannotRefreshTokenError('User cannot refresh token. Ensure user is active and has at least one active refresh token.');
+  public ensureCanChangePassword(): void {
+    if (!this.canChangePassword()) {
+      throw new CannotChangePasswordError('User cannot change password. Ensure user is active, using local provider, has a password set, and email is verified.');
     }
   }
 
-  public ensureCanAccessProtectedResources(): void {
-    if (!this.canAccessProtectedResources()) {
-      throw new CannotAccessProtectedResourceError('User cannot access protected resources. Ensure user is active and email is verified.');
+  public ensureCanResetPassword(): void {
+    if (!this.canResetPassword()) {
+      throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
     }
   }
 
-  // == Login Management == //
+  // === Login Commands === //
   public ensureCanLogin(): void {
     // Manual validation so we can throw specific errors message
     if (!this.props.status.isActive()) {
@@ -404,15 +383,59 @@ export class AuthUser extends AggregateRoot {
     }))
   }
 
-  // == Status Management == //
-  public deactivate(): void {
-    this.props.status = Status.create('inactive');
+  // === Refresh Token Commands === //
+  public addRefreshToken(token: string): void {
+    // Avoid adding duplicate tokens
+    if (this.props.refreshTokens.includes(token)) {
+      return;
+    }
+
+    // Ensure user is active before adding refresh token
+    if (!this.props.status.isActive()) {
+      throw new InvalidAuthStateError('Cannot add refresh token to inactive user');
+    }
+
+    this.props.refreshTokens.push(token);
+
+    // Max 5 refresh tokens
+    if (this.props.refreshTokens.length > 5) {
+      this.props.refreshTokens.shift(); // Remove oldest token
+    }
+
+    this.props.updatedAt = new Date();
+  }
+
+  public removeRefreshToken(token: string): void {
+    this.props.refreshTokens = this.props.refreshTokens.filter(t => t !== token);
+    this.props.updatedAt = new Date();
+  }
+
+  public clearRefreshTokens(): void {
+    this.props.refreshTokens = [];
+    this.props.updatedAt = new Date();
+  }
+
+  public ensureCanRefreshToken(): void {
+    if (!this.canRefreshToken()) {
+      throw new CannotRefreshTokenError('User cannot refresh token. Ensure user is active and has at least one active refresh token.');
+    }
+  }
+
+  public ensureCanAccessProtectedResources(): void {
+    if (!this.canAccessProtectedResources()) {
+      throw new CannotAccessProtectedResourceError('User cannot access protected resources. Ensure user is active and email is verified.');
+    }
+  }
+
+  // === Status Commands === //
+  public activate(): void {
+    this.props.status = Status.create('active');
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
   }
 
-  public activate(): void {
-    this.props.status = Status.create('active');
+  public deactivate(): void {
+    this.props.status = Status.create('inactive');
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
   }
@@ -431,39 +454,23 @@ export class AuthUser extends AggregateRoot {
     this.props.updatedAt = new Date();
   }
 
-  // == Password Management == //
-  public changePassword(newPassword: Password): void {
-    if (!this.canChangePassword()) {
-      throw new CannotChangePasswordError('User cannot change password. Ensure user is active, using local provider, has a password set, and email is verified.');
+  // === Provider Commands === //
+  public linkOAuth(provider: AuthProvider): void {
+    if (this.hasProvider(provider.getProviderName())) {
+      throw new InvalidProviderError(`User already linked with ${provider.getProviderName()} provider`);
     }
 
-    this.props.password = newPassword;
-
+    this.props.providers.push(provider);
     this.props.updatedAt = new Date();
-    this.clearRefreshTokens();
   }
 
-  public ensureCanChangePassword(): void {
-    if (!this.canChangePassword()) {
-      throw new CannotChangePasswordError('User cannot change password. Ensure user is active, using local provider, has a password set, and email is verified.');
-    }
-  }
-
-  public resetPassword(newPassword: Password): void {
-    if (!this.canResetPassword()) {
-      throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
+  public unlinkOAuth(providerName: AuthProviderEnum): void {
+    if (!this.hasProvider(providerName)) {
+      throw new InvalidProviderError(`User is not linked with ${providerName} provider`);
     }
 
-    this.props.password = newPassword;
-
+    this.props.providers = this.props.providers.filter(p => p.getProviderName() !== providerName);
     this.props.updatedAt = new Date();
-    this.clearRefreshTokens();
-  }
-
-  public ensureCanResetPassword(): void {
-    if (!this.canResetPassword()) {
-      throw new CannotResetPasswordError('User cannot reset password. Ensure user is active, using local provider, has a password set, and email is verified.');
-    }
   }
 
   // ===== Getters ===== //
