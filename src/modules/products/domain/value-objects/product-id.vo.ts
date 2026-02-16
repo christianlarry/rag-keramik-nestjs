@@ -1,20 +1,26 @@
 import { v4 as uuidv4, validate as isUuid } from 'uuid';
+import { InvalidProductIdError } from '../errors';
 
 export class ProductId {
   private readonly value: string;
 
   private constructor(value: string) {
     this.value = value;
+    this.validate();
+  }
+
+  private validate(): void {
+    if (!isUuid(this.value)) {
+      throw new InvalidProductIdError(this.value);
+    }
   }
 
   public static create(id?: string): ProductId {
-    if (id) {
-      if (!isUuid(id)) {
-        throw new Error('Invalid UUID format for ProductId');
-      }
-      return new ProductId(id);
-    }
-    return new ProductId(uuidv4());
+    return new ProductId(id || uuidv4());
+  }
+
+  public static fromString(id: string): ProductId {
+    return new ProductId(id);
   }
 
   public getValue(): string {

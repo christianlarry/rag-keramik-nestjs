@@ -1,10 +1,12 @@
 import { AggregateRoot } from 'src/core/domain/aggregate-root.base';
-import { ProductId } from '../value-objects/product-id.vo';
-import { SKU } from '../value-objects/sku.vo';
-import { ProductName } from '../value-objects/product-name.vo';
-import { Price } from '../value-objects/price.vo';
-import { ProductAttributes } from '../value-objects/product-attributes.vo';
-import { ProductStatus } from '../enums/product-status.enum';
+import {
+  ProductId,
+  SKU,
+  ProductName,
+  Price,
+  ProductAttributes,
+  ProductStatus,
+} from '../value-objects';
 import {
   InvalidStatusTransitionError,
   ProductIsDiscontinuedError,
@@ -23,7 +25,6 @@ import {
 } from '../events';
 
 interface ProductProps {
-  id: ProductId;
   sku: SKU;
   name: ProductName;
   description: string | null;
@@ -33,7 +34,7 @@ interface ProductProps {
   tilePerBox: number;
   attributes: ProductAttributes;
   status: ProductStatus;
-  createdAt: Date;
+  readonly createdAt: Date;
   updatedAt: Date;
 }
 
@@ -60,32 +61,25 @@ interface UpdateProductParams {
 
 export class Product extends AggregateRoot {
   private readonly _id: ProductId;
-  private _sku: SKU;
-  private _name: ProductName;
-  private _description: string | null;
-  private _brand: string | null;
-  private _imageUrl: string | null;
-  private _price: Price;
-  private _tilePerBox: number;
-  private _attributes: ProductAttributes;
-  private _status: ProductStatus;
-  private readonly _createdAt: Date;
-  private _updatedAt: Date;
+  private props: ProductProps;
 
-  private constructor(props: ProductProps) {
+  private constructor(id: ProductId, props: ProductProps) {
     super();
-    this._id = props.id;
-    this._sku = props.sku;
-    this._name = props.name;
-    this._description = props.description;
-    this._brand = props.brand;
-    this._imageUrl = props.imageUrl;
-    this._price = props.price;
-    this._tilePerBox = props.tilePerBox;
-    this._attributes = props.attributes;
-    this._status = props.status;
-    this._createdAt = props.createdAt;
-    this._updatedAt = props.updatedAt;
+    this._id = id;
+    this.props = props;
+    this.validate();
+  }
+
+  private validate(): void {
+    // Validate tile per box
+    if (this.props.tilePerBox <= 0) {
+      throw new Error('Tile per box must be greater than 0');
+    }
+
+    // Ensure updatedAt is not before createdAt
+    if (this.props.updatedAt < this.props.createdAt) {
+      throw new Error('Updated date cannot be before created date');
+    }
   }
 
   // ============================================
@@ -102,8 +96,7 @@ export class Product extends AggregateRoot {
     const price = Price.create(params.price, params.currency);
     const attributes = ProductAttributes.create(params.attributes);
 
-    const product = new Product({
-      id: productId,
+    const product = new Product(productId, {
       sku,
       name,
       description: params.description || null,
@@ -112,7 +105,7 @@ export class Product extends AggregateRoot {
       price,
       tilePerBox: params.tilePerBox,
       attributes,
-      status: ProductStatus.ACTIVE,
+      status: ProductStatus.createActive(),
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -126,7 +119,7 @@ export class Product extends AggregateRoot {
         price: price.getAmount(),
         currency: price.getCurrency(),
         brand: params.brand,
-        status: ProductStatus.ACTIVE.toString(),
+        status: product.props.status.getValue(),
       }),
     );
 
@@ -136,60 +129,8 @@ export class Product extends AggregateRoot {
   /**
    * Reconstruct product from persistence
    */
-  public static reconstruct(props: ProductProps): Product {
-    return new Product(props);
-  }
-
-  // ============================================
-  // Query Methods - Basic Info
-  // ============================================
-
-  public getId(): ProductId {
-    return this._id;
-  }
-
-  public getSKU(): SKU {
-    return this._sku;
-  }
-
-  public getName(): ProductName {
-    return this._name;
-  }
-
-  public getDescription(): string | null {
-    return this._description;
-  }
-
-  public getBrand(): string | null {
-    return this._brand;
-  }
-
-  public getImageUrl(): string | null {
-    return this._imageUrl;
-  }
-
-  public getPrice(): Price {
-    return this._price;
-  }
-
-  public getTilePerBox(): number {
-    return this._tilePerBox;
-  }
-
-  public getAttributes(): ProductAttributes {
-    return this._attributes;
-  }
-
-  public getStatus(): ProductStatus {
-    return this._status;
-  }
-
-  public getCreatedAt(): Date {
-    return this._createdAt;
-  }
-
-  public getUpdatedAt(): Date {
-    return this._updatedAt;
+  public static reconstruct(id: string, props: ProductProps): Product {
+    return new Product(ProductId.fromString(id), props);
   }
 
   // ============================================
@@ -197,19 +138,19 @@ export class Product extends AggregateRoot {
   // ============================================
 
   public isActive(): boolean {
-    return this._status.isActive();
+    return this.props.status.isActive();
   }
 
   public isInactive(): boolean {
-    return this._status.isInactive();
+    return this.props.status.isInactive();
   }
 
   public isDiscontinued(): boolean {
-    return this._status.isDiscontinued();
+    return this.props.status.isDiscontinued();
   }
 
   public isOutOfStock(): boolean {
-    return this._status.isOutOfStock();
+    return this.props.status.isOutOfStock();
   }
 
   public isAvailableForPurchase(): boolean {
@@ -221,27 +162,61 @@ export class Product extends AggregateRoot {
   // ============================================
 
   public getSize(): string | undefined {
-    return this._attributes.getSize();
+    return this.props.attributes.getSize();
   }
 
   public getGrade(): string | undefined {
-    return this._attributes.getGrade();
+    return this.props.attributes.getGrade();
   }
 
   public getFinishing(): string | undefined {
-    return this._attributes.getFinishing();
+    return this.props.attributes.getFinishing();
   }
 
   public getApplicationAreas(): string[] | undefined {
-    return this._attributes.getApplicationAreas();
+    return this.props.attributes.getApplicationAreas();
   }
 
   public hasAttribute(key: string): boolean {
-    return this._attributes.hasAttribute(key);
+    return this.props.attributes.hasAttribute(key);
   }
 
   public getAttribute(key: string): unknown {
-    return this._attributes.getAttribute(key);
+    return this.props.attributes.getAttribute(key);
+  }
+
+  // ============================================
+  // Query Methods - Capability Checks
+  // ============================================
+
+  public canBeActivated(): boolean {
+    return this.props.status.isInactive() || this.props.status.isOutOfStock();
+  }
+
+  public canBeDeactivated(): boolean {
+    return this.props.status.isActive();
+  }
+
+  public canBeDiscontinued(): boolean {
+    return !this.props.status.isDiscontinued();
+  }
+
+  public canBeModified(): boolean {
+    return !this.props.status.isDiscontinued();
+  }
+
+  // ============================================
+  // Ensure Invariants Methods
+  // ============================================
+
+  private ensureNotDiscontinued(): void {
+    if (this.props.status.isDiscontinued()) {
+      throw new ProductIsDiscontinuedError(this._id.getValue());
+    }
+  }
+
+  private ensureCanBeModified(): void {
+    this.ensureNotDiscontinued();
   }
 
   // ============================================
@@ -252,38 +227,44 @@ export class Product extends AggregateRoot {
    * Update product information
    */
   public updateInfo(params: UpdateProductParams): void {
-    this.ensureNotDiscontinued();
+    this.ensureCanBeModified();
 
     const changes: Record<string, boolean> = {};
 
-    if (params.name !== undefined && params.name !== this._name.getValue()) {
-      this._name = ProductName.create(params.name);
+    if (
+      params.name !== undefined &&
+      params.name !== this.props.name.getValue()
+    ) {
+      this.props.name = ProductName.create(params.name);
       changes.name = true;
     }
 
     if (
       params.description !== undefined &&
-      params.description !== this._description
+      params.description !== this.props.description
     ) {
-      this._description = params.description;
+      this.props.description = params.description;
       changes.description = true;
     }
 
-    if (params.brand !== undefined && params.brand !== this._brand) {
-      this._brand = params.brand;
+    if (params.brand !== undefined && params.brand !== this.props.brand) {
+      this.props.brand = params.brand;
       changes.brand = true;
     }
 
-    if (params.imageUrl !== undefined && params.imageUrl !== this._imageUrl) {
-      const oldImageUrl = this._imageUrl;
-      this._imageUrl = params.imageUrl;
+    if (
+      params.imageUrl !== undefined &&
+      params.imageUrl !== this.props.imageUrl
+    ) {
+      const oldImageUrl = this.props.imageUrl;
+      this.props.imageUrl = params.imageUrl;
       changes.imageUrl = true;
 
       // Emit image updated event
       this.addDomainEvent(
         new ProductImageUpdatedEvent({
           productId: this._id.getValue(),
-          sku: this._sku.getValue(),
+          sku: this.props.sku.getValue(),
           oldImageUrl: oldImageUrl || undefined,
           newImageUrl: params.imageUrl || undefined,
         }),
@@ -292,28 +273,31 @@ export class Product extends AggregateRoot {
 
     if (
       params.tilePerBox !== undefined &&
-      params.tilePerBox !== this._tilePerBox
+      params.tilePerBox !== this.props.tilePerBox
     ) {
-      this._tilePerBox = params.tilePerBox;
+      if (params.tilePerBox <= 0) {
+        throw new Error('Tile per box must be greater than 0');
+      }
+      this.props.tilePerBox = params.tilePerBox;
       changes.tilePerBox = true;
     }
 
     if (params.attributes !== undefined) {
       const newAttributes = ProductAttributes.create(params.attributes);
-      if (!newAttributes.equals(this._attributes)) {
-        this._attributes = newAttributes;
+      if (!newAttributes.equals(this.props.attributes)) {
+        this.props.attributes = newAttributes;
         changes.attributes = true;
       }
     }
 
     if (Object.keys(changes).length > 0) {
-      this._updatedAt = new Date();
+      this.applyChange();
 
       // Emit product updated event
       this.addDomainEvent(
         new ProductUpdatedEvent({
           productId: this._id.getValue(),
-          sku: this._sku.getValue(),
+          sku: this.props.sku.getValue(),
           changes,
         }),
       );
@@ -324,20 +308,23 @@ export class Product extends AggregateRoot {
    * Update product price
    */
   public updatePrice(newPrice: number, currency?: string): void {
-    this.ensureNotDiscontinued();
+    this.ensureCanBeModified();
 
-    const price = Price.create(newPrice, currency || this._price.getCurrency());
+    const price = Price.create(
+      newPrice,
+      currency || this.props.price.getCurrency(),
+    );
 
-    if (!price.equals(this._price)) {
-      const oldPrice = this._price;
-      this._price = price;
-      this._updatedAt = new Date();
+    if (!price.equals(this.props.price)) {
+      const oldPrice = this.props.price;
+      this.props.price = price;
+      this.applyChange();
 
       // Emit price changed event
       this.addDomainEvent(
         new ProductPriceChangedEvent({
           productId: this._id.getValue(),
-          sku: this._sku.getValue(),
+          sku: this.props.sku.getValue(),
           oldPrice: oldPrice.getAmount(),
           newPrice: price.getAmount(),
           currency: price.getCurrency(),
@@ -348,7 +335,7 @@ export class Product extends AggregateRoot {
       this.addDomainEvent(
         new ProductUpdatedEvent({
           productId: this._id.getValue(),
-          sku: this._sku.getValue(),
+          sku: this.props.sku.getValue(),
           changes: { price: true },
         }),
       );
@@ -359,17 +346,17 @@ export class Product extends AggregateRoot {
    * Update product image
    */
   public updateImage(imageUrl: string | null): void {
-    this.ensureNotDiscontinued();
+    this.ensureCanBeModified();
 
-    if (imageUrl !== this._imageUrl) {
-      const oldImageUrl = this._imageUrl;
-      this._imageUrl = imageUrl;
-      this._updatedAt = new Date();
+    if (imageUrl !== this.props.imageUrl) {
+      const oldImageUrl = this.props.imageUrl;
+      this.props.imageUrl = imageUrl;
+      this.applyChange();
 
       this.addDomainEvent(
         new ProductImageUpdatedEvent({
           productId: this._id.getValue(),
-          sku: this._sku.getValue(),
+          sku: this.props.sku.getValue(),
           oldImageUrl: oldImageUrl || undefined,
           newImageUrl: imageUrl || undefined,
         }),
@@ -385,18 +372,18 @@ export class Product extends AggregateRoot {
    * Activate the product
    */
   public activate(): void {
-    if (this._status.isActive()) {
+    if (this.props.status.isActive()) {
       return; // Already active
     }
 
-    const previousStatus = this._status;
-    this.changeStatus(ProductStatus.ACTIVE);
+    const previousStatus = this.props.status;
+    this.changeStatus(ProductStatus.createActive());
 
     this.addDomainEvent(
       new ProductActivatedEvent({
         productId: this._id.getValue(),
-        sku: this._sku.getValue(),
-        previousStatus: previousStatus.toString(),
+        sku: this.props.sku.getValue(),
+        previousStatus: previousStatus.getValue(),
       }),
     );
 
@@ -405,8 +392,8 @@ export class Product extends AggregateRoot {
       this.addDomainEvent(
         new ProductBackInStockEvent({
           productId: this._id.getValue(),
-          sku: this._sku.getValue(),
-          name: this._name.getValue(),
+          sku: this.props.sku.getValue(),
+          name: this.props.name.getValue(),
         }),
       );
     }
@@ -416,20 +403,20 @@ export class Product extends AggregateRoot {
    * Deactivate the product
    */
   public deactivate(reason?: string): void {
-    if (this._status.isInactive()) {
+    if (this.props.status.isInactive()) {
       return; // Already inactive
     }
 
     this.ensureNotDiscontinued();
 
-    const previousStatus = this._status;
-    this.changeStatus(ProductStatus.INACTIVE);
+    const previousStatus = this.props.status;
+    this.changeStatus(ProductStatus.createInactive());
 
     this.addDomainEvent(
       new ProductDeactivatedEvent({
         productId: this._id.getValue(),
-        sku: this._sku.getValue(),
-        previousStatus: previousStatus.toString(),
+        sku: this.props.sku.getValue(),
+        previousStatus: previousStatus.getValue(),
         reason,
       }),
     );
@@ -439,21 +426,21 @@ export class Product extends AggregateRoot {
    * Mark product as out of stock
    */
   public markAsOutOfStock(): void {
-    if (this._status.isOutOfStock()) {
+    if (this.props.status.isOutOfStock()) {
       return; // Already out of stock
     }
 
     this.ensureNotDiscontinued();
 
-    const previousStatus = this._status;
-    this.changeStatus(ProductStatus.OUT_OF_STOCK);
+    const previousStatus = this.props.status;
+    this.changeStatus(ProductStatus.createOutOfStock());
 
     this.addDomainEvent(
       new ProductOutOfStockEvent({
         productId: this._id.getValue(),
-        sku: this._sku.getValue(),
-        name: this._name.getValue(),
-        previousStatus: previousStatus.toString(),
+        sku: this.props.sku.getValue(),
+        name: this.props.name.getValue(),
+        previousStatus: previousStatus.getValue(),
       }),
     );
   }
@@ -462,20 +449,20 @@ export class Product extends AggregateRoot {
    * Discontinue the product (terminal status)
    */
   public discontinue(reason?: string): void {
-    if (this._status.isDiscontinued()) {
+    if (this.props.status.isDiscontinued()) {
       return; // Already discontinued
     }
 
-    const previousStatus = this._status;
-    this._status = ProductStatus.DISCONTINUED;
-    this._updatedAt = new Date();
+    const previousStatus = this.props.status;
+    this.props.status = ProductStatus.createDiscontinued();
+    this.applyChange();
 
     this.addDomainEvent(
       new ProductDiscontinuedEvent({
         productId: this._id.getValue(),
-        sku: this._sku.getValue(),
-        name: this._name.getValue(),
-        previousStatus: previousStatus.toString(),
+        sku: this.props.sku.getValue(),
+        name: this.props.name.getValue(),
+        previousStatus: previousStatus.getValue(),
         reason,
       }),
     );
@@ -488,8 +475,8 @@ export class Product extends AggregateRoot {
     this.addDomainEvent(
       new ProductDeletedEvent({
         productId: this._id.getValue(),
-        sku: this._sku.getValue(),
-        name: this._name.getValue(),
+        sku: this.props.sku.getValue(),
+        name: this.props.name.getValue(),
       }),
     );
   }
@@ -499,20 +486,68 @@ export class Product extends AggregateRoot {
   // ============================================
 
   private changeStatus(newStatus: ProductStatus): void {
-    if (!this._status.canTransitionTo(newStatus)) {
+    if (!this.props.status.canTransitionTo(newStatus)) {
       throw new InvalidStatusTransitionError(
-        this._status.toString(),
-        newStatus.toString(),
+        this.props.status.getValue(),
+        newStatus.getValue(),
       );
     }
 
-    this._status = newStatus;
-    this._updatedAt = new Date();
+    this.props.status = newStatus;
+    this.applyChange();
   }
 
-  private ensureNotDiscontinued(): void {
-    if (this._status.isDiscontinued()) {
-      throw new ProductIsDiscontinuedError(this._id.getValue());
-    }
+  private applyChange(): void {
+    this.props.updatedAt = new Date();
+    this.validate();
+  }
+
+  // ===== Getters ===== //
+  public get id(): ProductId {
+    return this._id;
+  }
+
+  public get sku(): SKU {
+    return this.props.sku;
+  }
+
+  public get name(): ProductName {
+    return this.props.name;
+  }
+
+  public get description(): string | null {
+    return this.props.description;
+  }
+
+  public get brand(): string | null {
+    return this.props.brand;
+  }
+
+  public get imageUrl(): string | null {
+    return this.props.imageUrl;
+  }
+
+  public get price(): Price {
+    return this.props.price;
+  }
+
+  public get tilePerBox(): number {
+    return this.props.tilePerBox;
+  }
+
+  public get attributes(): ProductAttributes {
+    return this.props.attributes;
+  }
+
+  public get status(): ProductStatus {
+    return this.props.status;
+  }
+
+  public get createdAt(): Date {
+    return this.props.createdAt;
+  }
+
+  public get updatedAt(): Date {
+    return this.props.updatedAt;
   }
 }

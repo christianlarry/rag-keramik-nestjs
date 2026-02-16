@@ -1,6 +1,9 @@
-import { FinishingType } from '../enums/finishing-type.enum';
-import { Grade } from '../enums/grade.enum';
-import { ApplicationArea } from '../enums/application-area.enum';
+import {
+  FinishingType,
+  Grade,
+  ApplicationArea,
+} from '../enums';
+import { InvalidProductAttributesError } from '../errors';
 
 /**
  * Tile ceramic specific attributes
@@ -10,13 +13,13 @@ export interface TileAttributes {
   size?: string;
 
   // Grade quality
-  grade?: Grade['value'];
+  grade?: Grade;
 
   // Surface finishing
-  finishing?: FinishingType['value'];
+  finishing?: FinishingType;
 
   // Application areas
-  applicationAreas?: ApplicationArea['value'][];
+  applicationAreas?: ApplicationArea[];
 
   // Anti-slip rating (R9, R10, R11, R12, R13)
   antiSlipRating?: string;
@@ -51,52 +54,98 @@ export class ProductAttributes {
 
   private constructor(attributes: TileAttributes) {
     this.attributes = attributes;
+    this.validate();
   }
 
-  public static create(attributes?: TileAttributes): ProductAttributes {
-    const attrs = attributes || {};
-
+  private validate(): void {
     // Validate specific fields if provided
-    if (attrs.size) {
-      this.validateSize(attrs.size);
+    if (this.attributes.size) {
+      this.validateSize(this.attributes.size);
     }
 
-    if (attrs.antiSlipRating) {
-      this.validateAntiSlipRating(attrs.antiSlipRating);
+    if (this.attributes.antiSlipRating) {
+      this.validateAntiSlipRating(this.attributes.antiSlipRating);
     }
 
-    if (attrs.thickness !== undefined && attrs.thickness <= 0) {
-      throw new Error('Thickness must be greater than 0');
+    if (
+      this.attributes.thickness !== undefined &&
+      this.attributes.thickness <= 0
+    ) {
+      throw new InvalidProductAttributesError(
+        'Thickness must be greater than 0',
+      );
     }
 
-    if (attrs.peiRating !== undefined) {
-      this.validatePeiRating(attrs.peiRating);
+    if (this.attributes.peiRating !== undefined) {
+      this.validatePeiRating(this.attributes.peiRating);
     }
 
-    return new ProductAttributes(attrs);
+    if (this.attributes.grade !== undefined) {
+      this.validateGrade(this.attributes.grade);
+    }
+
+    if (this.attributes.finishing !== undefined) {
+      this.validateFinishing(this.attributes.finishing);
+    }
+
+    if (this.attributes.applicationAreas !== undefined) {
+      this.validateApplicationAreas(this.attributes.applicationAreas);
+    }
   }
 
-  private static validateSize(size: string): void {
+  private validateSize(size: string): void {
     // Format: "40x40" or "30x60"
     const sizePattern = /^\d+x\d+$/;
     if (!sizePattern.test(size)) {
-      throw new Error('Size must be in format: "WidthxHeight" (e.g., "40x40")');
+      throw new InvalidProductAttributesError(
+        'Size must be in format: "WidthxHeight" (e.g., "40x40")',
+      );
     }
   }
 
-  private static validateAntiSlipRating(rating: string): void {
+  private validateAntiSlipRating(rating: string): void {
     const validRatings = ['R9', 'R10', 'R11', 'R12', 'R13'];
     if (!validRatings.includes(rating)) {
-      throw new Error(
+      throw new InvalidProductAttributesError(
         `Invalid anti-slip rating. Must be one of: ${validRatings.join(', ')}`,
       );
     }
   }
 
-  private static validatePeiRating(rating: number): void {
+  private validatePeiRating(rating: number): void {
     if (rating < 1 || rating > 5) {
-      throw new Error('PEI rating must be between 1 and 5');
+      throw new InvalidProductAttributesError(
+        'PEI rating must be between 1 and 5',
+      );
     }
+  }
+
+  private validateGrade(grade: Grade): void {
+    if (!Object.values(Grade).includes(grade)) {
+      throw new InvalidProductAttributesError(`Invalid grade: ${grade}`);
+    }
+  }
+
+  private validateFinishing(finishing: FinishingType): void {
+    if (!Object.values(FinishingType).includes(finishing)) {
+      throw new InvalidProductAttributesError(
+        `Invalid finishing type: ${finishing}`,
+      );
+    }
+  }
+
+  private validateApplicationAreas(areas: ApplicationArea[]): void {
+    for (const area of areas) {
+      if (!Object.values(ApplicationArea).includes(area)) {
+        throw new InvalidProductAttributesError(
+          `Invalid application area: ${area}`,
+        );
+      }
+    }
+  }
+
+  public static create(attributes?: TileAttributes): ProductAttributes {
+    return new ProductAttributes(attributes || {});
   }
 
   public getAttributes(): TileAttributes {
@@ -115,15 +164,15 @@ export class ProductAttributes {
     return this.attributes.size;
   }
 
-  public getGrade(): Grade['value'] | undefined {
+  public getGrade(): Grade | undefined {
     return this.attributes.grade;
   }
 
-  public getFinishing(): FinishingType['value'] | undefined {
+  public getFinishing(): FinishingType | undefined {
     return this.attributes.finishing;
   }
 
-  public getApplicationAreas(): ApplicationArea['value'][] | undefined {
+  public getApplicationAreas(): ApplicationArea[] | undefined {
     return this.attributes.applicationAreas;
   }
 

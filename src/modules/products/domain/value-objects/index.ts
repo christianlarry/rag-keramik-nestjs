@@ -3,3 +3,4 @@ export * from './sku.vo';
 export * from './product-name.vo';
 export * from './price.vo';
 export * from './product-attributes.vo';
+export * from './product-status.vo';

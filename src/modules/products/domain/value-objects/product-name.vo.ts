@@ -1,22 +1,35 @@
+import { InvalidProductNameError } from '../errors';
+
 export class ProductName {
   private readonly value: string;
 
-  private constructor(value: string) {
-    this.value = value;
+  private constructor(name: string) {
+    this.value = this.sanitize(name);
+    this.validate();
+  }
+
+  private validate(): void {
+    if (this.value.length === 0) {
+      throw new InvalidProductNameError(
+        this.value,
+        'Product name cannot be empty',
+      );
+    }
+
+    if (this.value.length > 500) {
+      throw new InvalidProductNameError(
+        this.value,
+        'Product name cannot exceed 500 characters',
+      );
+    }
+  }
+
+  private sanitize(name: string): string {
+    return name.trim();
   }
 
   public static create(name: string): ProductName {
-    const trimmed = name.trim();
-
-    if (trimmed.length === 0) {
-      throw new Error('Product name cannot be empty');
-    }
-
-    if (trimmed.length > 500) {
-      throw new Error('Product name cannot exceed 500 characters');
-    }
-
-    return new ProductName(trimmed);
+    return new ProductName(name);
   }
 
   public getValue(): string {
