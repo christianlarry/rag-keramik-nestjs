@@ -12,6 +12,18 @@ import { CannotChangePasswordError } from "../errors/cannot-change-password.erro
 import { Name } from "src/modules/users/domain/value-objects/name.vo";
 import { AggregateRoot } from "src/core/domain/aggregate-root.base";
 import { UserLoggedInWithOAuthEvent } from "../events/user-logged-in-with-oauth.event";
+import { EmailVerifiedEvent } from "../events/email-verified.event";
+import { EmailUnverifiedEvent } from "../events/email-unverified.event";
+import { PasswordChangedEvent } from "../events/password-changed.event";
+import { PasswordResetEvent } from "../events/password-reset.event";
+import { UserLoggedInEvent } from "../events/user-logged-in.event";
+import { UserActivatedEvent } from "../events/user-activated.event";
+import { UserDeactivatedEvent } from "../events/user-deactivated.event";
+import { UserSuspendedEvent } from "../events/user-suspended.event";
+import { UserDeletedEvent } from "../events/user-deleted.event";
+import { OAuthProviderLinkedEvent } from "../events/oauth-provider-linked.event";
+import { OAuthProviderUnlinkedEvent } from "../events/oauth-provider-unlinked.event";
+import { UserCreatedFromOAuthEvent } from "../events/user-created-from-oauth.event";
 
 interface AuthUserProps {
   name: Name;
@@ -91,7 +103,7 @@ export class AuthUser extends AggregateRoot {
   }
 
   public static fromOAuth(params: OAuthParams): AuthUser {
-    return new AuthUser(UserId.generate(),
+    const authUser = new AuthUser(UserId.generate(),
       {
         name: params.name,
         email: params.email,
@@ -108,6 +120,18 @@ export class AuthUser extends AggregateRoot {
         deletedAt: null
       }
     );
+
+    authUser.addDomainEvent(
+      new UserCreatedFromOAuthEvent({
+        userId: authUser._id.getValue(),
+        email: authUser.email.getValue(),
+        provider: params.provider.getProviderName(),
+        fullName: authUser.name.getFullName(),
+        createdAt: authUser.createdAt
+      })
+    );
+
+    return authUser;
   }
 
   public static reconstruct(id: string, props: AuthUserProps): AuthUser {
@@ -296,6 +320,14 @@ export class AuthUser extends AggregateRoot {
     this.props.status = Status.createActive();
 
     this.props.updatedAt = new Date();
+
+    this.addDomainEvent(
+      new EmailVerifiedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        verifiedAt: this.props.emailVerifiedAt
+      })
+    );
   }
 
   public unverifyEmail(): void {
@@ -308,6 +340,13 @@ export class AuthUser extends AggregateRoot {
     this.props.status = Status.createInactive();
 
     this.props.updatedAt = new Date();
+
+    this.addDomainEvent(
+      new EmailUnverifiedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue()
+      })
+    );
   }
 
   // === Password Commands === //
@@ -320,6 +359,14 @@ export class AuthUser extends AggregateRoot {
 
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+
+    this.addDomainEvent(
+      new PasswordChangedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        changedAt: this.props.updatedAt
+      })
+    );
   }
 
   public resetPassword(newPassword: Password): void {
@@ -331,6 +378,14 @@ export class AuthUser extends AggregateRoot {
 
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+
+    this.addDomainEvent(
+      new PasswordResetEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        resetAt: this.props.updatedAt
+      })
+    );
   }
 
   public ensureCanChangePassword(): void {
@@ -364,6 +419,14 @@ export class AuthUser extends AggregateRoot {
   public recordSuccessfulLogin(): void {
     this.props.lastLoginAt = new Date();
     this.props.updatedAt = new Date();
+
+    this.addDomainEvent(
+      new UserLoggedInEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        loginAt: this.props.lastLoginAt
+      })
+    );
   }
 
   public recordOAuthLogin(providerName: AuthProviderEnum, profile?: { avatarUrl: string | null }): void {
@@ -432,18 +495,42 @@ export class AuthUser extends AggregateRoot {
     this.props.status = Status.create('active');
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+
+    this.addDomainEvent(
+      new UserActivatedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        activatedAt: this.props.updatedAt
+      })
+    );
   }
 
   public deactivate(): void {
     this.props.status = Status.create('inactive');
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+
+    this.addDomainEvent(
+      new UserDeactivatedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        deactivatedAt: this.props.updatedAt
+      })
+    );
   }
 
   public suspend(): void {
     this.props.status = Status.create('suspended');
     this.props.updatedAt = new Date();
     this.clearRefreshTokens();
+
+    this.addDomainEvent(
+      new UserSuspendedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        suspendedAt: this.props.updatedAt
+      })
+    );
   }
 
   public softDelete(): void {
@@ -452,6 +539,14 @@ export class AuthUser extends AggregateRoot {
     this.props.deletedAt = new Date();
 
     this.props.updatedAt = new Date();
+
+    this.addDomainEvent(
+      new UserDeletedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        deletedAt: this.props.deletedAt
+      })
+    );
   }
 
   // === Provider Commands === //
@@ -462,6 +557,15 @@ export class AuthUser extends AggregateRoot {
 
     this.props.providers.push(provider);
     this.props.updatedAt = new Date();
+
+    this.addDomainEvent(
+      new OAuthProviderLinkedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        provider: provider.getProviderName(),
+        linkedAt: this.props.updatedAt
+      })
+    );
   }
 
   public unlinkOAuth(providerName: AuthProviderEnum): void {
@@ -471,6 +575,15 @@ export class AuthUser extends AggregateRoot {
 
     this.props.providers = this.props.providers.filter(p => p.getProviderName() !== providerName);
     this.props.updatedAt = new Date();
+
+    this.addDomainEvent(
+      new OAuthProviderUnlinkedEvent({
+        userId: this._id.getValue(),
+        email: this.props.email.getValue(),
+        provider: providerName,
+        unlinkedAt: this.props.updatedAt
+      })
+    );
   }
 
   // ===== Getters ===== //
