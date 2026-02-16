@@ -11,6 +11,18 @@ import { Avatar } from "../value-objects/avatar.vo";
 import { DateOfBirth } from "../value-objects/date-of-birth.vo";
 import { AggregateRoot } from "src/core/domain/aggregate-root.base";
 import { UserProfileUpdatedEvent } from "../events/user-profile-updated.event";
+import { PhoneNumberUpdatedEvent } from "../events/phone-number-updated.event";
+import { PhoneNumberVerifiedEvent } from "../events/phone-number-verified.event";
+import { PhoneNumberUnverifiedEvent } from "../events/phone-number-unverified.event";
+import { AddressAddedEvent } from "../events/address-added.event";
+import { AddressUpdatedEvent } from "../events/address-updated.event";
+import { AddressRemovedEvent } from "../events/address-removed.event";
+import { UserActivatedEvent } from "../events/user-activated.event";
+import { UserDeactivatedEvent } from "../events/user-deactivated.event";
+import { UserSuspendedEvent } from "../events/user-suspended.event";
+import { UserUnsuspendedEvent } from "../events/user-unsuspended.event";
+import { UserDeletedEvent } from "../events/user-deleted.event";
+import { UserRestoredEvent } from "../events/user-restored.event";
 
 interface UserProps {
   // Profile Informations
@@ -91,264 +103,9 @@ export class User extends AggregateRoot {
     return new User(UserId.fromString(id), props);
   }
 
-  // ===== Business Logic Methods ===== //
+  // ==================== QUERY METHODS ==================== //
 
-  /**
-   * Update user profile information
-   * @throws {UserInvalidOperationError} if user is deleted or suspended
-   */
-  public updateProfile(params: {
-    name?: Name;
-    dateOfBirth?: DateOfBirth | null;
-    gender?: Gender | null;
-    avatarUrl?: Avatar | null;
-  }): void {
-    this.ensureCanBeModified();
-
-    if (params.name !== undefined) {
-      this.props.name = params.name;
-    }
-
-    if (params.dateOfBirth !== undefined) {
-      this.props.dateOfBirth = params.dateOfBirth;
-    }
-
-    if (params.gender !== undefined) {
-      this.props.gender = params.gender;
-    }
-
-    if (params.avatarUrl !== undefined) {
-      this.props.avatarUrl = params.avatarUrl;
-    }
-
-    this.props.updatedAt = new Date();
-
-    this.addDomainEvent(new UserProfileUpdatedEvent({
-      userId: this.id.getValue(),
-      profile: {
-        name: params.name,
-        dateOfBirth: params.dateOfBirth,
-        gender: params.gender,
-        avatarUrl: params.avatarUrl,
-      }
-    }))
-  }
-
-  /**
-   * Update user phone number
-   * When phone number is changed, phone verification status is reset
-   * @throws {UserInvalidOperationError} if user is deleted or suspended
-   */
-  public updatePhoneNumber(phoneNumber: PhoneNumber | null): void {
-    this.ensureCanBeModified();
-
-    this.props.phoneNumber = phoneNumber;
-
-    // Reset phone verification when phone number changes
-    if (phoneNumber === null) {
-      this.props.phoneVerified = false;
-      this.props.phoneVerifiedAt = null;
-    } else if (this.props.phoneNumber && !this.props.phoneNumber.equals(phoneNumber)) {
-      this.props.phoneVerified = false;
-      this.props.phoneVerifiedAt = null;
-    }
-
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Clear user's phone number and reset verification status
-   * @throws {UserInvalidOperationError} if user is deleted or suspended
-   */
-  public clearPhoneNumber(): void {
-    this.updatePhoneNumber(null);
-  }
-
-  /**
-   * Mark phone number as verified
-   * @throws {UserInvalidOperationError} if user is deleted or suspended
-   * @throws {UserStateConflictError} if phone number is not set or already verified
-   */
-  public verifyPhone(): void {
-    this.ensureCanBeModified();
-
-    if (!this.props.phoneNumber) {
-      throw new UserStateConflictError('Cannot verify phone: phone number is not set.');
-    }
-
-    if (this.props.phoneVerified) {
-      throw new UserStateConflictError('Phone number is already verified.');
-    }
-
-    this.props.phoneVerified = true;
-    this.props.phoneVerifiedAt = new Date();
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Mark phone number as unverified
-   * @throws {UserInvalidOperationError} if user is deleted or suspended
-   */
-  public unverifyPhone(): void {
-    this.ensureCanBeModified();
-
-    this.props.phoneVerified = false;
-    this.props.phoneVerifiedAt = null;
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Add a new address to user's address list
-   * @throws {UserInvalidOperationError} if user is deleted or suspended
-   */
-  public addAddress(address: Address): void {
-    this.ensureCanBeModified();
-
-    this.props.addresses.push(address);
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Update an existing address
-   * @throws {UserInvalidOperationError} if user is deleted or suspended
-   * @throws {UserAddressNotFoundError} if address not found at the specified index
-   */
-  public updateAddress(index: number, address: Address): void {
-    this.ensureCanBeModified();
-
-    if (index < 0 || index >= this.props.addresses.length) {
-      throw new UserAddressNotFoundError(`Address at index ${index} not found.`);
-    }
-
-    this.props.addresses[index] = address;
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Remove an address from user's address list
-   * @throws {UserInvalidOperationError} if user is deleted or suspended
-   * @throws {UserAddressNotFoundError} if address not found at the specified index
-   */
-  public removeAddress(index: number): void {
-    this.ensureCanBeModified();
-
-    if (index < 0 || index >= this.props.addresses.length) {
-      throw new UserAddressNotFoundError(`Address at index ${index} not found.`);
-    }
-
-    this.props.addresses.splice(index, 1);
-    this.props.updatedAt = new Date();
-  }
-
-  // ===== State Transition Methods ===== //
-
-  /**
-   * Activate the user
-   * Only inactive users can be activated
-   * @throws {UserCannotTransitionStateError} if user cannot be activated
-   */
-  public activate(): void {
-    if (this.props.status.isActive()) {
-      throw new UserCannotTransitionStateError('User is already active.');
-    }
-
-    if (this.props.status.isDeleted()) {
-      throw new UserCannotTransitionStateError('Cannot activate a deleted user. Use restore() instead.');
-    }
-
-    if (this.props.status.isSuspended()) {
-      throw new UserCannotTransitionStateError('Cannot activate a suspended user directly. Unsuspend first or use restore().');
-    }
-
-    this.props.status = Status.createActive();
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Deactivate the user
-   * Only active users can be deactivated
-   * @throws {UserCannotTransitionStateError} if user cannot be deactivated
-   */
-  public deactivate(): void {
-    if (this.props.status.isInactive()) {
-      throw new UserCannotTransitionStateError('User is already inactive.');
-    }
-
-    if (this.props.status.isDeleted()) {
-      throw new UserCannotTransitionStateError('Cannot deactivate a deleted user.');
-    }
-
-    if (this.props.status.isSuspended()) {
-      throw new UserCannotTransitionStateError('Cannot deactivate a suspended user. Unsuspend first.');
-    }
-
-    this.props.status = Status.createInactive();
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Suspend the user
-   * Active or inactive users can be suspended
-   * @throws {UserCannotTransitionStateError} if user cannot be suspended
-   */
-  public suspend(): void {
-    if (this.props.status.isSuspended()) {
-      throw new UserCannotTransitionStateError('User is already suspended.');
-    }
-
-    if (this.props.status.isDeleted()) {
-      throw new UserCannotTransitionStateError('Cannot suspend a deleted user.');
-    }
-
-    this.props.status = Status.createSuspended();
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Unsuspend the user (return to active state)
-   * Only suspended users can be unsuspended
-   * @throws {UserCannotTransitionStateError} if user is not suspended
-   */
-  public unsuspend(): void {
-    if (!this.props.status.isSuspended()) {
-      throw new UserCannotTransitionStateError('Cannot unsuspend a user that is not suspended.');
-    }
-
-    this.props.status = Status.createActive();
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Soft delete the user
-   * Users in any state except deleted can be soft deleted
-   * @throws {UserCannotTransitionStateError} if user is already deleted
-   */
-  public delete(): void {
-    if (this.props.status.isDeleted()) {
-      throw new UserCannotTransitionStateError('User is already deleted.');
-    }
-
-    this.props.status = Status.createDeleted();
-    this.props.deletedAt = new Date();
-    this.props.updatedAt = new Date();
-  }
-
-  /**
-   * Restore a soft-deleted user
-   * Only deleted users can be restored (returns to inactive state)
-   * @throws {UserCannotTransitionStateError} if user is not deleted
-   */
-  public restore(): void {
-    if (!this.props.status.isDeleted()) {
-      throw new UserCannotTransitionStateError('Cannot restore a user that is not deleted.');
-    }
-
-    this.props.status = Status.createInactive();
-    this.props.deletedAt = null;
-    this.props.updatedAt = new Date();
-  }
-
-  // ===== Check Methods ===== //
+  // === Status Queries === //
 
   /**
    * Check if user is active
@@ -378,6 +135,8 @@ export class User extends AggregateRoot {
     return this.props.status.isDeleted();
   }
 
+  // === Phone Queries === //
+
   /**
    * Check if user's phone is verified
    */
@@ -392,6 +151,8 @@ export class User extends AggregateRoot {
     return this.props.phoneNumber !== null;
   }
 
+  // === Address Queries === //
+
   /**
    * Check if user has any addresses
    */
@@ -405,6 +166,8 @@ export class User extends AggregateRoot {
   public hasAddressCount(count: number): boolean {
     return this.props.addresses.length === count;
   }
+
+  // === Capability Queries === //
 
   /**
    * Check if user can be activated
@@ -449,7 +212,7 @@ export class User extends AggregateRoot {
     return !this.props.status.isDeleted() && !this.props.status.isSuspended();
   }
 
-  // ===== Ensure Invariants Methods ===== //
+  // === Ensure Invariants Methods === //
 
   /**
    * Ensure user is not deleted
@@ -493,6 +256,340 @@ export class User extends AggregateRoot {
     if (this.props.status.isSuspended()) {
       throw new UserInvalidOperationError('Cannot modify a suspended user.');
     }
+  }
+
+  // ==================== COMMAND METHODS ==================== //
+
+  // === Profile Commands === //
+
+  /**
+   * Update user profile information
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   */
+  public updateProfile(params: {
+    name?: Name;
+    dateOfBirth?: DateOfBirth | null;
+    gender?: Gender | null;
+    avatarUrl?: Avatar | null;
+  }): void {
+    this.ensureCanBeModified();
+
+    if (params.name !== undefined) {
+      this.props.name = params.name;
+    }
+
+    if (params.dateOfBirth !== undefined) {
+      this.props.dateOfBirth = params.dateOfBirth;
+    }
+
+    if (params.gender !== undefined) {
+      this.props.gender = params.gender;
+    }
+
+    if (params.avatarUrl !== undefined) {
+      this.props.avatarUrl = params.avatarUrl;
+    }
+
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserProfileUpdatedEvent({
+      userId: this.id.getValue(),
+      profile: {
+        name: params.name,
+        dateOfBirth: params.dateOfBirth,
+        gender: params.gender,
+        avatarUrl: params.avatarUrl,
+      }
+    }))
+  }
+
+  // === Phone Commands === //
+
+  /**
+   * Update user phone number
+   * When phone number is changed, phone verification status is reset
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   */
+  public updatePhoneNumber(phoneNumber: PhoneNumber | null): void {
+    this.ensureCanBeModified();
+
+    const wasVerified = this.props.phoneVerified;
+    this.props.phoneNumber = phoneNumber;
+
+    // Reset phone verification when phone number changes
+    if (phoneNumber === null) {
+      this.props.phoneVerified = false;
+      this.props.phoneVerifiedAt = null;
+    } else if (this.props.phoneNumber && !this.props.phoneNumber.equals(phoneNumber)) {
+      this.props.phoneVerified = false;
+      this.props.phoneVerifiedAt = null;
+    }
+
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new PhoneNumberUpdatedEvent({
+      userId: this.id.getValue(),
+      phoneNumber: phoneNumber ? phoneNumber.getValue() : null,
+      wasVerified
+    }))
+  }
+
+  /**
+   * Clear user's phone number and reset verification status
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   */
+  public clearPhoneNumber(): void {
+    this.updatePhoneNumber(null);
+  }
+
+  /**
+   * Mark phone number as verified
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   * @throws {UserStateConflictError} if phone number is not set or already verified
+   */
+  public verifyPhone(): void {
+    this.ensureCanBeModified();
+
+    if (!this.props.phoneNumber) {
+      throw new UserStateConflictError('Cannot verify phone: phone number is not set.');
+    }
+
+    if (this.props.phoneVerified) {
+      throw new UserStateConflictError('Phone number is already verified.');
+    }
+
+    this.props.phoneVerified = true;
+    this.props.phoneVerifiedAt = new Date();
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new PhoneNumberVerifiedEvent({
+      userId: this.id.getValue(),
+      phoneNumber: this.props.phoneNumber.getValue(),
+      verifiedAt: this.props.phoneVerifiedAt
+    }))
+  }
+
+  /**
+   * Mark phone number as unverified
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   */
+  public unverifyPhone(): void {
+    this.ensureCanBeModified();
+
+    this.props.phoneVerified = false;
+    this.props.phoneVerifiedAt = null;
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new PhoneNumberUnverifiedEvent({
+      userId: this.id.getValue()
+    }))
+  }
+
+  // === Address Commands === //
+
+  /**
+   * Add a new address to user's address list
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   */
+  public addAddress(address: Address): void {
+    this.ensureCanBeModified();
+
+    this.props.addresses.push(address);
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new AddressAddedEvent({
+      userId: this.id.getValue(),
+      addressIndex: this.props.addresses.length - 1
+    }))
+  }
+
+  /**
+   * Update an existing address
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   * @throws {UserAddressNotFoundError} if address not found at the specified index
+   */
+  public updateAddress(index: number, address: Address): void {
+    this.ensureCanBeModified();
+
+    if (index < 0 || index >= this.props.addresses.length) {
+      throw new UserAddressNotFoundError(`Address at index ${index} not found.`);
+    }
+
+    this.props.addresses[index] = address;
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new AddressUpdatedEvent({
+      userId: this.id.getValue(),
+      addressIndex: index
+    }))
+  }
+
+  /**
+   * Remove an address from user's address list
+   * @throws {UserInvalidOperationError} if user is deleted or suspended
+   * @throws {UserAddressNotFoundError} if address not found at the specified index
+   */
+  public removeAddress(index: number): void {
+    this.ensureCanBeModified();
+
+    if (index < 0 || index >= this.props.addresses.length) {
+      throw new UserAddressNotFoundError(`Address at index ${index} not found.`);
+    }
+
+    this.props.addresses.splice(index, 1);
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new AddressRemovedEvent({
+      userId: this.id.getValue(),
+      addressIndex: index
+    }))
+  }
+
+  // === State Transition Commands === //
+
+  /**
+   * Activate the user
+   * Only inactive users can be activated
+   * @throws {UserCannotTransitionStateError} if user cannot be activated
+   */
+  public activate(): void {
+    if (this.props.status.isActive()) {
+      throw new UserCannotTransitionStateError('User is already active.');
+    }
+
+    if (this.props.status.isDeleted()) {
+      throw new UserCannotTransitionStateError('Cannot activate a deleted user. Use restore() instead.');
+    }
+
+    if (this.props.status.isSuspended()) {
+      throw new UserCannotTransitionStateError('Cannot activate a suspended user directly. Unsuspend first or use restore().');
+    }
+
+    this.props.status = Status.createActive();
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserActivatedEvent({
+      userId: this.id.getValue(),
+      activatedAt: this.props.updatedAt
+    }))
+  }
+
+  /**
+   * Deactivate the user
+   * Only active users can be deactivated
+   * @throws {UserCannotTransitionStateError} if user cannot be deactivated
+   */
+  public deactivate(): void {
+    if (this.props.status.isInactive()) {
+      throw new UserCannotTransitionStateError('User is already inactive.');
+    }
+
+    if (this.props.status.isDeleted()) {
+      throw new UserCannotTransitionStateError('Cannot deactivate a deleted user.');
+    }
+
+    if (this.props.status.isSuspended()) {
+      throw new UserCannotTransitionStateError('Cannot deactivate a suspended user. Unsuspend first.');
+    }
+
+    this.props.status = Status.createInactive();
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserDeactivatedEvent({
+      userId: this.id.getValue(),
+      deactivatedAt: this.props.updatedAt
+    }))
+  }
+
+  /**
+   * Suspend the user
+   * Active or inactive users can be suspended
+   * @throws {UserCannotTransitionStateError} if user cannot be suspended
+   */
+  public suspend(): void {
+    if (this.props.status.isSuspended()) {
+      throw new UserCannotTransitionStateError('User is already suspended.');
+    }
+
+    if (this.props.status.isDeleted()) {
+      throw new UserCannotTransitionStateError('Cannot suspend a deleted user.');
+    }
+
+    this.props.status = Status.createSuspended();
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserSuspendedEvent({
+      userId: this.id.getValue(),
+      suspendedAt: this.props.updatedAt
+    }))
+  }
+
+  /**
+   * Unsuspend the user (return to active state)
+   * Only suspended users can be unsuspended
+   * @throws {UserCannotTransitionStateError} if user is not suspended
+   */
+  public unsuspend(): void {
+    if (!this.props.status.isSuspended()) {
+      throw new UserCannotTransitionStateError('Cannot unsuspend a user that is not suspended.');
+    }
+
+    this.props.status = Status.createActive();
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserUnsuspendedEvent({
+      userId: this.id.getValue(),
+      unsuspendedAt: this.props.updatedAt
+    }))
+  }
+
+  /**
+   * Soft delete the user
+   * Users in any state except deleted can be soft deleted
+   * @throws {UserCannotTransitionStateError} if user is already deleted
+   */
+  public delete(): void {
+    if (this.props.status.isDeleted()) {
+      throw new UserCannotTransitionStateError('User is already deleted.');
+    }
+
+    this.props.status = Status.createDeleted();
+    this.props.deletedAt = new Date();
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserDeletedEvent({
+      userId: this.id.getValue(),
+      deletedAt: this.props.deletedAt
+    }))
+  }
+
+  /**
+   * Restore a soft-deleted user
+   * Only deleted users can be restored (returns to inactive state)
+   * @throws {UserCannotTransitionStateError} if user is not deleted
+   */
+  public restore(): void {
+    if (!this.props.status.isDeleted()) {
+      throw new UserCannotTransitionStateError('Cannot restore a user that is not deleted.');
+    }
+
+    this.props.status = Status.createInactive();
+    this.props.deletedAt = null;
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserRestoredEvent({
+      userId: this.id.getValue(),
+      restoredAt: this.props.updatedAt
+    }))
+  }
+
+  // ===== DEPRECATED: Check Methods (retained for compatibility) ===== //
+
+  /**
+   * @deprecated Use isActive() from Query Methods section instead
+   */
+  public get isActiveUser(): boolean {
+    return this.isActive();
   }
 
   // ===== Getters ===== //

@@ -194,21 +194,6 @@ export class PrismaUserRepository implements UserRepository {
       }
     });
 
-    // Invalidate cache
-    const invalidationKeys = UserCache.getInvalidationKeys(
-      userId,
-      persistenceUser.email,
-      persistenceUser.phoneNumber || undefined
-    );
-
-    // Delete specific cache keys
-    await Promise.all(
-      invalidationKeys.map(key => this.cache.del(key))
-    );
-
-    // Increment version to invalidate all user list caches
-    await this.cache.incr(UserCache.getUserListVersionKey());
-
     const events = user.pullDomainEvents();
     for (const event of events) {
       await this.eventEmitter.emitAsync(event.name, event);
@@ -216,7 +201,7 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const deletedUser = await this.client.user.delete({
+    await this.client.user.delete({
       where: { id: id },
       select: {
         id: true,
@@ -224,19 +209,6 @@ export class PrismaUserRepository implements UserRepository {
         phoneNumber: true,
       }
     });
-
-    // Invalidate cache
-    const invalidationKeys = UserCache.getInvalidationKeys(
-      deletedUser.id,
-      deletedUser.email,
-      deletedUser.phoneNumber || undefined
-    );
-    await Promise.all(
-      invalidationKeys.map(key => this.cache.del(key))
-    );
-
-    // Increment version to invalidate all user list caches
-    await this.cache.incr(UserCache.getUserListVersionKey());
 
     this.logger.log(`User with ID ${id} has been deleted`);
   }
