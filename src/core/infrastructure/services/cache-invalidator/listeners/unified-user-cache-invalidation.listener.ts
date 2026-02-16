@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { DomainEvent } from "src/core/domain/domain-event.base";
 import { UserCacheInvalidationService } from "../services/user-cache-invalidation.service";
@@ -59,6 +59,9 @@ import { UserRestoredEvent } from "src/modules/users/domain/events/user-restored
  */
 @Injectable()
 export class UnifiedUserCacheInvalidationListener {
+
+  private readonly logger = new Logger(UnifiedUserCacheInvalidationListener.name);
+
   constructor(
     private readonly userCacheInvalidation: UserCacheInvalidationService
   ) { }
@@ -107,6 +110,6 @@ export class UnifiedUserCacheInvalidationListener {
     await this.userCacheInvalidation.invalidateUserCache(userId, email);
 
     // Optional: Log for debugging (can be removed in production)
-    console.log(`[Unified Cache Invalidation] All user caches invalidated for userId: ${userId}`);
+    this.logger.log(`[Unified Cache Invalidation] All user caches invalidated for userId: ${userId}, email: ${email}`);
   }
 }

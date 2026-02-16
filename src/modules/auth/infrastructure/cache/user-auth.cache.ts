@@ -82,4 +82,15 @@ export class UserAuthCache {
   static getUserEmailCachePattern(email: string): string {
     return `auth:user:email:${email.toLowerCase()}*`;
   }
+
+  static getInvalidationKeys(userId: string, email?: string): string[] {
+    const keys = [
+      this.getUserByIdKey(userId),
+      this.getRequestedUserByIdKey(userId),
+    ];
+    if (email) {
+      keys.push(this.getUserByEmailKey(email));
+    }
+    return keys;
+  }
 }

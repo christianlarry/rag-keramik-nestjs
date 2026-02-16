@@ -119,56 +119,6 @@ export class PrismaUserRepository implements UserRepository {
     return cachedUser ? PrismaUserMapper.toDomain(cachedUser) : null;
   }
 
-  async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
-    const cachedUser = await this.cache.wrap(
-      UserCache.getUserByPhoneKey(phoneNumber),
-      async () => {
-        const user = await this.client.user.findFirst({
-          where: { phoneNumber: phoneNumber },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            dateOfBirth: true,
-            gender: true,
-            avatarUrl: true,
-            phoneNumber: true,
-            phoneVerified: true,
-            phoneVerifiedAt: true,
-            role: true,
-            status: true,
-            createdAt: true,
-            updatedAt: true,
-            deletedAt: true,
-            addresses: {
-              select: {
-                id: true,
-                label: true,
-                recipient: true,
-                phone: true,
-                street: true,
-                city: true,
-                province: true,
-                postalCode: true,
-                country: true,
-                latitude: true,
-                longitude: true,
-                isDefault: true,
-                createdAt: true,
-                updatedAt: true,
-              }
-            }
-          }
-        });
-
-        return user;
-      },
-      UserCache.USER_DETAIL_TTL
-    );
-
-    return cachedUser ? PrismaUserMapper.toDomain(cachedUser) : null;
-  }
-
   async save(user: User): Promise<void> {
     const { addresses, ...persistenceUser } = PrismaUserMapper.toPersistence(user);
     const userId = persistenceUser.id;

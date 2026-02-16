@@ -30,20 +30,16 @@ export class UserCacheInvalidationService {
    * 
    * @param userId - The user ID to invalidate cache for
    * @param email - Optional email address for email-based cache keys
+   * @param phone - Optional phone number for phone-based cache keys
    */
   async invalidateUserCache(userId: string, email?: string): Promise<void> {
     // Collect all cache keys that need to be invalidated
     const exactKeys = [
       // Users module cache keys
-      UserCache.getUserByIdKey(userId),
-      UserCache.getUserDetailByIdKey(userId),
+      ...UserCache.getInvalidationKeys(userId, email),
 
       // Auth module cache keys
-      UserAuthCache.getUserByIdKey(userId),
-      UserAuthCache.getRequestedUserByIdKey(userId),
-
-      // Email-based cache keys (if email is provided)
-      email ? UserAuthCache.getUserByEmailKey(email) : null,
+      ...UserAuthCache.getInvalidationKeys(userId, email),
     ].filter(Boolean) as string[];
 
     // Delete all exact cache keys in parallel

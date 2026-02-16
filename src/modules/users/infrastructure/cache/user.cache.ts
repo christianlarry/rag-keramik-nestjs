@@ -39,13 +39,6 @@ export class UserCache {
   }
 
   /**
-   * Generate cache key for user profile by phone number
-   */
-  static getUserByPhoneKey(phoneNumber: string): string {
-    return `${this.USER_BY_PHONE_PREFIX}${phoneNumber}`;
-  }
-
-  /**
    * Generate cache key for user list with pagination and filters
    * @param params - Pagination, filter parameters, and cache version
    * @param params.version - Cache version number (retrieved from getUserListVersionKey)
@@ -99,7 +92,6 @@ export class UserCache {
   static getInvalidationKeys(
     userId: string,
     email?: string,
-    phoneNumber?: string
   ): string[] {
     const keys = [
       this.getUserByIdKey(userId),
@@ -111,10 +103,6 @@ export class UserCache {
 
     if (email) {
       keys.push(this.getUserByEmailKey(email));
-    }
-
-    if (phoneNumber) {
-      keys.push(this.getUserByPhoneKey(phoneNumber));
     }
 
     return keys;
