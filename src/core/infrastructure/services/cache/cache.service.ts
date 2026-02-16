@@ -212,6 +212,9 @@ export class CacheService {
       if (ttl && result === 1) {
         await this.redis.expire(this.getPrefixedKey(key), ttl);
       }
+
+      this.logger.debug(`Cache incr: ${key} = ${result} (TTL: ${ttl}s)`);
+
       return result;
     } catch (error) {
       this.logger.error(`Cache incr error for key ${key}: ${error.message}`);

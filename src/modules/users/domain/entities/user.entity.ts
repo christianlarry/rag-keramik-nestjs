@@ -23,6 +23,7 @@ import { UserSuspendedEvent } from "../events/user-suspended.event";
 import { UserUnsuspendedEvent } from "../events/user-unsuspended.event";
 import { UserDeletedEvent } from "../events/user-deleted.event";
 import { UserRestoredEvent } from "../events/user-restored.event";
+import { UserUpdatedEvent } from "../events/user-updated.event";
 
 interface UserProps {
   // Profile Informations
@@ -303,7 +304,7 @@ export class User extends AggregateRoot {
 
     if (fieldUpdatedCount === 0) return // No fields updated, so skip event
 
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new UserProfileUpdatedEvent({
       userId: this.id.getValue(),
@@ -338,7 +339,7 @@ export class User extends AggregateRoot {
       this.props.phoneVerifiedAt = null;
     }
 
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new PhoneNumberUpdatedEvent({
       userId: this.id.getValue(),
@@ -373,7 +374,7 @@ export class User extends AggregateRoot {
 
     this.props.phoneVerified = true;
     this.props.phoneVerifiedAt = new Date();
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new PhoneNumberVerifiedEvent({
       userId: this.id.getValue(),
@@ -391,7 +392,7 @@ export class User extends AggregateRoot {
 
     this.props.phoneVerified = false;
     this.props.phoneVerifiedAt = null;
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new PhoneNumberUnverifiedEvent({
       userId: this.id.getValue()
@@ -408,7 +409,7 @@ export class User extends AggregateRoot {
     this.ensureCanBeModified();
 
     this.props.addresses.push(address);
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new AddressAddedEvent({
       userId: this.id.getValue(),
@@ -429,7 +430,7 @@ export class User extends AggregateRoot {
     }
 
     this.props.addresses[index] = address;
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new AddressUpdatedEvent({
       userId: this.id.getValue(),
@@ -450,7 +451,7 @@ export class User extends AggregateRoot {
     }
 
     this.props.addresses.splice(index, 1);
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new AddressRemovedEvent({
       userId: this.id.getValue(),
@@ -479,7 +480,7 @@ export class User extends AggregateRoot {
     }
 
     this.props.status = Status.createActive();
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new UserActivatedEvent({
       userId: this.id.getValue(),
@@ -506,7 +507,7 @@ export class User extends AggregateRoot {
     }
 
     this.props.status = Status.createInactive();
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new UserDeactivatedEvent({
       userId: this.id.getValue(),
@@ -529,7 +530,7 @@ export class User extends AggregateRoot {
     }
 
     this.props.status = Status.createSuspended();
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new UserSuspendedEvent({
       userId: this.id.getValue(),
@@ -548,7 +549,7 @@ export class User extends AggregateRoot {
     }
 
     this.props.status = Status.createActive();
-    this.props.updatedAt = new Date();
+    this.applyChange();
 
     this.addDomainEvent(new UserUnsuspendedEvent({
       userId: this.id.getValue(),
@@ -568,7 +569,8 @@ export class User extends AggregateRoot {
 
     this.props.status = Status.createDeleted();
     this.props.deletedAt = new Date();
-    this.props.updatedAt = new Date();
+
+    this.applyChange();
 
     this.addDomainEvent(new UserDeletedEvent({
       userId: this.id.getValue(),
@@ -588,11 +590,23 @@ export class User extends AggregateRoot {
 
     this.props.status = Status.createInactive();
     this.props.deletedAt = null;
-    this.props.updatedAt = new Date();
+
+    this.applyChange();
 
     this.addDomainEvent(new UserRestoredEvent({
       userId: this.id.getValue(),
       restoredAt: this.props.updatedAt
+    }))
+  }
+
+  private applyChange(): void {
+    this.props.updatedAt = new Date();
+
+    this.addDomainEvent(new UserUpdatedEvent({
+      userId: this.id.getValue(),
+      email: this.props.email.getValue(),
+      phoneNumber: this.props.phoneNumber ? this.props.phoneNumber.getValue() : undefined,
+      updatedAt: this.props.updatedAt
     }))
   }
 

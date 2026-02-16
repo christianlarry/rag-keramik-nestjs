@@ -15,7 +15,7 @@ export class UserAuthCache {
   static readonly PASSWORD_RESET_PREFIX = 'auth:password-reset:';
 
   // ===== TTL Configurations (in seconds) ===== //
-  static readonly USER_CACHE_TTL = 3600; // 1 hour
+  static readonly USER_CACHE_TTL = 300; // 5 minutes
   static readonly LOGIN_ATTEMPTS_TTL = 900; // 15 minutes
   static readonly REFRESH_TOKEN_TTL = 2592000; // 30 days
   static readonly EMAIL_VERIFICATION_TTL = 3600; // 1 hour
