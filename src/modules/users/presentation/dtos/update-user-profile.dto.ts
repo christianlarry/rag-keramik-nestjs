@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
-  IsEmail,
   IsOptional,
   MinLength,
   MaxLength,
@@ -10,7 +9,6 @@ import {
   IsDateString,
   IsUrl,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
 import { Gender } from '../../domain/enums/gender.enum';
 
 export class UpdateUserProfileDto {
@@ -31,23 +29,13 @@ export class UpdateUserProfileDto {
   fullName?: string;
 
   @ApiProperty({
-    example: 'john.doe@example.com',
-    description: 'Email address of the user',
-    required: false,
-  })
-  @IsOptional()
-  @Transform((val) => val.value?.toLowerCase()?.trim())
-  @IsEmail({}, { message: 'Invalid email format' })
-  email?: string;
-
-  @ApiProperty({
     example: 'MALE',
     description: 'Gender of the user',
     enum: Gender,
     required: false,
   })
   @IsOptional()
-  @IsEnum(Gender, { message: 'Gender must be one of: MALE, FEMALE, OTHER' })
+  @IsEnum(Gender, { message: 'Gender must be one of: MALE, FEMALE' })
   gender?: Gender;
 
   @ApiProperty({

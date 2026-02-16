@@ -140,25 +140,25 @@ export class PrismaUserMapper {
 }
 
 // Enum mappers
-const roleMapper = createEnumMapper<Role['value'], PrismaRole>({
+export const roleMapper = createEnumMapper<Role['value'], PrismaRole>({
   customer: 'CUSTOMER',
   admin: 'ADMIN',
   staff: 'STAFF'
 });
 
-const statusMapper = createEnumMapper<Status['value'], PrismaUserStatus>({
+export const statusMapper = createEnumMapper<Status['value'], PrismaUserStatus>({
   active: 'ACTIVE',
   inactive: 'INACTIVE',
   suspended: 'SUSPENDED',
   deleted: 'DELETED'
 });
 
-const genderMapper = createEnumMapper<Gender['value'], PrismaGender>({
+export const genderMapper = createEnumMapper<Gender['value'], PrismaGender>({
   male: 'MALE',
   female: 'FEMALE'
 });
 
-const addressLabelMapper = createEnumMapper<AddressLabelEnum, PrismaAddressLabel>({
+export const addressLabelMapper = createEnumMapper<AddressLabelEnum, PrismaAddressLabel>({
   home: 'HOME',
   office: 'OFFICE',
   other: 'OTHER'

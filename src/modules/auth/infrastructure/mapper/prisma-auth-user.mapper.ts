@@ -80,7 +80,7 @@ export class PrismaAuthUserMapper {
   }
 }
 
-const roleMapper = createEnumMapper<Role['value'], PrismaRole>({
+export const roleMapper = createEnumMapper<Role['value'], PrismaRole>({
   customer: 'CUSTOMER',
   admin: 'ADMIN',
   staff: 'STAFF'

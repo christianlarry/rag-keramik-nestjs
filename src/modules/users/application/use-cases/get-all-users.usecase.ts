@@ -1,5 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { USER_QUERY_REPOSITORY_TOKEN, type UserQueryRepository } from "../../domain/repositories/user-query-repository.interface";
+import { Role } from "../../domain/enums/role.enum";
+import { Status } from "../../domain/enums/status.enum";
+import { Gender } from "../../domain/enums/gender.enum";
 
 interface GetAllUsersCommand {
   page?: number;
@@ -13,13 +16,13 @@ interface GetAllUsersResult {
     id: string;
     fullName: string;
     email: string;
-    gender: string | null;
+    gender: Gender | null;
     dateOfBirth: string | null;
     avatarUrl: string | null;
     phoneNumber: string | null;
     isPhoneVerified: boolean;
-    role: string;
-    status: string;
+    role: Role;
+    status: Status;
     createdAt: Date;
     updatedAt: Date;
   }>;

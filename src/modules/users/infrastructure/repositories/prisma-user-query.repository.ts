@@ -6,6 +6,7 @@ import {
   UserDetailResult,
   UserQueryRepository,
 } from "../../domain/repositories/user-query-repository.interface";
+import * as prismaUserMapper from "../mappers/prisma-user.mapper"
 
 @Injectable()
 export class PrismaUserQueryRepository implements UserQueryRepository {
@@ -57,13 +58,13 @@ export class PrismaUserQueryRepository implements UserQueryRepository {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
-        gender: user.gender,
+        gender: user.gender ? prismaUserMapper.genderMapper.toEntity(user.gender) : null,
         dateOfBirth: user.dateOfBirth,
         avatarUrl: user.avatarUrl,
         phoneNumber: user.phoneNumber,
         phoneVerified: user.phoneVerified,
-        role: user.role,
-        status: user.status,
+        role: prismaUserMapper.roleMapper.toEntity(user.role),
+        status: prismaUserMapper.statusMapper.toEntity(user.status),
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       })),
@@ -113,15 +114,15 @@ export class PrismaUserQueryRepository implements UserQueryRepository {
       id: user.id,
       fullName: user.fullName,
       email: user.email,
-      gender: user.gender,
+      gender: user.gender ? prismaUserMapper.genderMapper.toEntity(user.gender) : null,
       dateOfBirth: user.dateOfBirth,
       avatarUrl: user.avatarUrl,
       phoneNumber: user.phoneNumber,
       phoneVerified: user.phoneVerified,
-      role: user.role,
-      status: user.status,
+      role: prismaUserMapper.roleMapper.toEntity(user.role),
+      status: prismaUserMapper.statusMapper.toEntity(user.status),
       addresses: user.addresses.map(addr => ({
-        label: addr.label,
+        label: prismaUserMapper.addressLabelMapper.toEntity(addr.label),
         recipient: addr.recipient,
         phone: addr.phone,
         street: addr.street,

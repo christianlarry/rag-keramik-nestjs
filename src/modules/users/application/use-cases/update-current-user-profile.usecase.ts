@@ -13,7 +13,6 @@ import { Status } from "../../domain/enums/status.enum";
 interface UpdateCurrentUserProfileCommand {
   userId: string;
   fullName?: string;
-  email?: string;
   gender?: GenderEnum;
   dateOfBirth?: string;
   avatarUrl?: string;

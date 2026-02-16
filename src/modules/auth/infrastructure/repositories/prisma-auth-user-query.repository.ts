@@ -2,7 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { AuthUserQueryRepository, GetRequestedUserByIdResult } from "../../domain/repositories/auth-user-query-repository.inteface";
 import { PrismaService } from "src/core/infrastructure/persistence/prisma/prisma.service";
 import { TransactionClient } from "src/generated/prisma/internal/prismaNamespace";
-import { PrismaClient } from "src/generated/prisma/client";
+import { PrismaClient, Role } from "src/generated/prisma/client";
+import { roleMapper } from "../mapper/prisma-auth-user.mapper";
 
 @Injectable()
 export class PrismaAuthUserQueryRepository implements AuthUserQueryRepository {
@@ -16,7 +17,7 @@ export class PrismaAuthUserQueryRepository implements AuthUserQueryRepository {
   }
 
   async getRequestedUserById(userId: string): Promise<GetRequestedUserByIdResult | null> {
-    return this.client.user.findUnique({
+    const result = await this.client.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -26,5 +27,12 @@ export class PrismaAuthUserQueryRepository implements AuthUserQueryRepository {
         refreshTokens: true,
       }
     })
+    return result ? {
+      id: result.id,
+      fullName: result.fullName,
+      email: result.email,
+      role: roleMapper.toEntity(result.role) as Role,
+      refreshTokens: result.refreshTokens,
+    } : null;
   }
 }

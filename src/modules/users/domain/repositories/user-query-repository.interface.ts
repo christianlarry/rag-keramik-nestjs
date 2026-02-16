@@ -1,3 +1,8 @@
+import { AddressLabel } from "../enums/address-label.enum";
+import { Gender } from "../enums/gender.enum";
+import { Role } from "../enums/role.enum";
+import { Status } from "../enums/status.enum";
+
 // ===== Query Options =====
 export interface FindAllUsersQueryOptions {
   page?: number;
@@ -11,13 +16,13 @@ export interface UserListItemResult {
   id: string;
   fullName: string;
   email: string;
-  gender: string | null;
+  gender: Gender | null;
   dateOfBirth: Date | null;
   avatarUrl: string | null;
   phoneNumber: string | null;
   phoneVerified: boolean;
-  role: string;
-  status: string;
+  role: Role;
+  status: Status;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,15 +36,15 @@ export interface UserDetailResult {
   id: string;
   fullName: string;
   email: string;
-  gender: string | null;
+  gender: Gender | null;
   dateOfBirth: Date | null;
   avatarUrl: string | null;
   phoneNumber: string | null;
   phoneVerified: boolean;
-  role: string;
-  status: string;
+  role: Role;
+  status: Status;
   addresses: Array<{
-    label: string;
+    label: AddressLabel;
     recipient: string;
     phone: string;
     street: string;

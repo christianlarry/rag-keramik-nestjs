@@ -1,8 +1,10 @@
+import { Role } from "src/generated/prisma/enums";
+
 // ===== Results Interfaces =====
 export interface GetRequestedUserByIdResult {
   id: string;
   email: string;
-  role: string;
+  role: Role;
   fullName: string;
   refreshTokens: string[];
 }

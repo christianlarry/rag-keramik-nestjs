@@ -6,7 +6,7 @@ import { AddressLabel } from '../../../domain/enums/address-label.enum';
 
 class AddressResponseDto {
   @ApiProperty({ example: 'HOME', enum: AddressLabel })
-  label: AddressLabel;
+  label: string;
 
   @ApiProperty({ example: 'Jl. Merdeka No. 123' })
   street: string;
@@ -44,7 +44,7 @@ export class UserProfileResponseDto {
   email: string;
 
   @ApiProperty({ example: 'MALE', enum: Gender, required: false, nullable: true })
-  gender?: Gender | null;
+  gender?: string | null;
 
   @ApiProperty({ example: '1990-01-15', required: false, nullable: true })
   dateOfBirth?: string | null;
@@ -59,10 +59,10 @@ export class UserProfileResponseDto {
   isPhoneVerified: boolean;
 
   @ApiProperty({ example: 'CUSTOMER', enum: Role })
-  role: Role;
+  role: string;
 
   @ApiProperty({ example: 'ACTIVE', enum: Status })
-  status: Status;
+  status: string;
 
   @ApiProperty({ type: [AddressResponseDto], required: false, nullable: true })
   addresses?: AddressResponseDto[] | null;
