@@ -134,11 +134,7 @@ export class PrismaAuthUserRepository implements AuthUserRepository {
       }
     });
 
-    // Invalidate cache
-    await Promise.all([
-      this.cache.del(UserAuthCache.getUserByIdKey(persistenceUser.id)),
-      this.cache.del(UserAuthCache.getUserByEmailKey(persistenceUser.email))
-    ]);
+    // Invalidate cache in event handler
 
     // Emit user saved events
     const events = authUser.pullDomainEvents();

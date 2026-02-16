@@ -7,6 +7,7 @@
 export class UserAuthCache {
   // ===== Cache Key Prefixes ===== //
   static readonly USER_BY_ID_PREFIX = 'auth:user:id:';
+  static readonly REQUESTED_USER_BY_ID_PREFIX = 'auth:requested-user:id:';
   static readonly USER_BY_EMAIL_PREFIX = 'auth:user:email:';
   static readonly LOGIN_ATTEMPTS_PREFIX = 'auth:login-attempts:';
   static readonly REFRESH_TOKEN_PREFIX = 'auth:refresh-token:';
@@ -34,6 +35,10 @@ export class UserAuthCache {
    */
   static getUserByEmailKey(email: string): string {
     return `${this.USER_BY_EMAIL_PREFIX}${email.toLowerCase()}`;
+  }
+
+  static getRequestedUserByIdKey(userId: string): string {
+    return `${this.REQUESTED_USER_BY_ID_PREFIX}${userId}`;
   }
 
   /**

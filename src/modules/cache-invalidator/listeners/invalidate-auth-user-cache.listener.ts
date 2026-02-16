@@ -28,7 +28,8 @@ export class InvalidateAuthUserCacheListener {
   async invalidateUserCache(userId: string, email: string) {
     await Promise.all([
       this.cache.del(UserAuthCache.getUserByIdKey(userId)),
-      this.cache.del(UserAuthCache.getUserByEmailKey(email))
+      this.cache.del(UserAuthCache.getUserByEmailKey(email)),
+      this.cache.del(UserAuthCache.getRequestedUserByIdKey(userId)),
     ]);
   }
 }
