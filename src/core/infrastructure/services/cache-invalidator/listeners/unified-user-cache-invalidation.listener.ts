@@ -100,7 +100,6 @@ export class UnifiedUserCacheInvalidationListener {
   @OnEvent(UserRestoredEvent.EventName, { async: true })
   async handle(e: DomainEvent) {
     const payload = e.payload;
-
     // Extract userId and email from payload
     const userId: string = payload.userId;
     const email: string | undefined = payload.email;
@@ -108,8 +107,5 @@ export class UnifiedUserCacheInvalidationListener {
     // Use centralized service to invalidate ALL user-related caches
     // This ensures both Auth and Users module caches are invalidated
     await this.userCacheInvalidation.invalidateUserCache(userId, email);
-
-    // Optional: Log for debugging (can be removed in production)
-    this.logger.log(`[Unified Cache Invalidation] All user caches invalidated for userId: ${userId}, email: ${email}`);
   }
 }

@@ -273,22 +273,35 @@ export class User extends AggregateRoot {
     avatarUrl?: Avatar | null;
   }): void {
     this.ensureCanBeModified();
+    let fieldUpdatedCount = 0;
 
-    if (params.name !== undefined) {
+    if (params.name !== undefined && !this.props.name.equals(params.name)) {
       this.props.name = params.name;
+      fieldUpdatedCount++;
     }
 
     if (params.dateOfBirth !== undefined) {
-      this.props.dateOfBirth = params.dateOfBirth;
+      if (!(this.props.dateOfBirth && params.dateOfBirth && this.props.dateOfBirth.equals(params.dateOfBirth))) {
+        this.props.dateOfBirth = params.dateOfBirth;
+        fieldUpdatedCount++;
+      }
     }
 
     if (params.gender !== undefined) {
-      this.props.gender = params.gender;
+      if (!(this.props.gender && params.gender && this.props.gender.equals(params.gender))) {
+        this.props.gender = params.gender;
+        fieldUpdatedCount++;
+      }
     }
 
     if (params.avatarUrl !== undefined) {
-      this.props.avatarUrl = params.avatarUrl;
+      if (!(this.props.avatarUrl && params.avatarUrl && this.props.avatarUrl.equals(params.avatarUrl))) {
+        this.props.avatarUrl = params.avatarUrl;
+        fieldUpdatedCount++;
+      }
     }
+
+    if (fieldUpdatedCount === 0) return // No fields updated, so skip event
 
     this.props.updatedAt = new Date();
 

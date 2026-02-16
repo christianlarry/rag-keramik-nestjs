@@ -1,7 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { CacheService } from "../../cache/cache.service";
 import { UserCache } from "src/modules/users/infrastructure/cache/user.cache";
 import { UserAuthCache } from "src/modules/auth/infrastructure/cache/user-auth.cache";
+import { PrismaService } from "src/core/infrastructure/persistence/prisma/prisma.service";
 
 /**
  * Centralized service for invalidating ALL user-related caches.
@@ -21,8 +22,12 @@ import { UserAuthCache } from "src/modules/auth/infrastructure/cache/user-auth.c
  */
 @Injectable()
 export class UserCacheInvalidationService {
+
+  private readonly logger = new Logger(UserCacheInvalidationService.name);
+
   constructor(
-    private readonly cache: CacheService
+    private readonly cache: CacheService,
+    private readonly prismaService: PrismaService
   ) { }
 
   /**
@@ -33,13 +38,25 @@ export class UserCacheInvalidationService {
    * @param phone - Optional phone number for phone-based cache keys
    */
   async invalidateUserCache(userId: string, email?: string): Promise<void> {
+
+    let userEmail = email;
+    try {
+      const user = await this.prismaService.user.findUnique({ where: { id: userId }, select: { email: true } })
+      if (user) {
+        userEmail = user.email;
+      }
+    } catch (err) {
+      this.logger.error(`Failed to retrieve user email for userId: ${userId}`, err);
+      // Continue with provided email if available, otherwise proceed without email-based cache invalidation
+    }
+
     // Collect all cache keys that need to be invalidated
     const exactKeys = [
       // Users module cache keys
-      ...UserCache.getInvalidationKeys(userId, email),
+      ...UserCache.getInvalidationKeys(userId, userEmail),
 
       // Auth module cache keys
-      ...UserAuthCache.getInvalidationKeys(userId, email),
+      ...UserAuthCache.getInvalidationKeys(userId, userEmail),
     ].filter(Boolean) as string[];
 
     // Delete all exact cache keys in parallel
@@ -77,11 +94,23 @@ export class UserCacheInvalidationService {
    * Useful when you only have email but not userId
    */
   async invalidateUserCacheByEmail(email: string): Promise<void> {
-    const exactKeys = [
-      UserAuthCache.getUserByEmailKey(email),
-    ];
+    try {
+      // Fetch userId from database
+      const user = await this.prismaService.user.findUnique({
+        where: { email },
+        select: { id: true }
+      });
 
-    await Promise.all(exactKeys.map(key => this.cache.del(key)));
+      if (user) {
+        await this.invalidateUserCache(user.id, email);
+      } else {
+        // User not found, just invalidate email cache
+        await this.cache.del(UserAuthCache.getUserByEmailKey(email));
+      }
+    } catch (error) {
+      this.logger.error(`Failed to invalidate cache by email: ${email}`, error);
+      throw error;
+    }
   }
 
   /**
