@@ -23,6 +23,7 @@ import {
   ProductBackInStockEvent,
   ProductImageUpdatedEvent,
 } from '../events';
+import { ProductStateConflictError } from '../errors/product-state-conflict.error';
 
 interface ProductProps {
   sku: SKU;
@@ -71,13 +72,65 @@ export class Product extends AggregateRoot {
 
   private validate(): void {
     // Validate tile per box
+    if (!Number.isInteger(this.props.tilePerBox)) {
+      throw new ProductStateConflictError('Tile per box must be an integer');
+    }
+
     if (this.props.tilePerBox <= 0) {
-      throw new Error('Tile per box must be greater than 0');
+      throw new ProductStateConflictError('Tile per box must be greater than 0');
+    }
+
+    // Validate description length if provided
+    if (
+      this.props.description !== null &&
+      this.props.description.trim().length === 0
+    ) {
+      throw new ProductStateConflictError(
+        'Product description cannot be an empty string',
+      );
+    }
+
+    // Validate brand length if provided
+    if (
+      this.props.brand !== null &&
+      this.props.brand.trim().length === 0
+    ) {
+      throw new ProductStateConflictError(
+        'Product brand cannot be an empty string',
+      );
+    }
+
+    // Validate imageUrl format if provided
+    if (this.props.imageUrl !== null) {
+      if (this.props.imageUrl.trim().length === 0) {
+        throw new ProductStateConflictError(
+          'Product image URL cannot be an empty string',
+        );
+      }
+
+      try {
+        new URL(this.props.imageUrl);
+      } catch {
+        throw new ProductStateConflictError(
+          'Product image URL must be a valid URL',
+        );
+      }
+    }
+
+    // Validate timestamps are valid dates
+    if (!(this.props.createdAt instanceof Date) || isNaN(this.props.createdAt.getTime())) {
+      throw new ProductStateConflictError('Product created date is invalid');
+    }
+
+    if (!(this.props.updatedAt instanceof Date) || isNaN(this.props.updatedAt.getTime())) {
+      throw new ProductStateConflictError('Product updated date is invalid');
     }
 
     // Ensure updatedAt is not before createdAt
     if (this.props.updatedAt < this.props.createdAt) {
-      throw new Error('Updated date cannot be before created date');
+      throw new ProductStateConflictError(
+        'Updated date cannot be before created date',
+      );
     }
   }
 
@@ -473,6 +526,7 @@ export class Product extends AggregateRoot {
   public get price(): Price { return this.props.price; }
   public get tilePerBox(): number { return this.props.tilePerBox; }
   public get attributes(): ProductAttributes { return this.props.attributes; }
+  public get size(): string | null { return this.attributes.getSize() ?? null; }
   public get status(): ProductStatus { return this.props.status; }
   public get createdAt(): Date { return this.props.createdAt; }
   public get updatedAt(): Date { return this.props.updatedAt; }

@@ -11,3 +11,6 @@ export * from './sku-already-exists.error';
 export * from './invalid-status-transition.error';
 export * from './product-is-discontinued.error';
 export * from './product-is-inactive.error';
+export * from './invalid-product-size.error';
+export * from './invalid-dimension-unit.error';
+export * from './product-state-conflict.error';
