@@ -12,6 +12,7 @@ interface ProductUpdatedPayload {
     attributes?: boolean;
     tilePerBox?: boolean;
   };
+  updatedAt: Date;
 }
 
 export class ProductUpdatedEvent extends DomainEvent<ProductUpdatedPayload> {

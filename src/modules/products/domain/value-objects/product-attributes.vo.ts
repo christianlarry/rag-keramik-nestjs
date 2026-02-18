@@ -148,6 +148,10 @@ export class ProductAttributes {
     return new ProductAttributes(attributes || {});
   }
 
+  public static createEmpty(): ProductAttributes {
+    return new ProductAttributes({});
+  }
+
   public getAttributes(): TileAttributes {
     return { ...this.attributes };
   }
