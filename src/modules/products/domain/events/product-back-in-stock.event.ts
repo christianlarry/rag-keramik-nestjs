@@ -6,8 +6,12 @@ interface ProductBackInStockPayload {
   name: string;
 }
 
-export class ProductBackInStockEvent extends DomainEvent {
-  constructor(public readonly payload: ProductBackInStockPayload) {
-    super('product.back_in_stock', payload);
+export class ProductBackInStockEvent extends DomainEvent<ProductBackInStockPayload> {
+  constructor(payload: ProductBackInStockPayload) {
+    super(payload, ProductBackInStockEvent.EventName);
+  }
+
+  public static get EventName(): string {
+    return 'product.back_in_stock';
   }
 }

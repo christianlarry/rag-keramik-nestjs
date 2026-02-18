@@ -7,8 +7,12 @@ interface ProductImageUpdatedPayload {
   newImageUrl?: string;
 }
 
-export class ProductImageUpdatedEvent extends DomainEvent {
-  constructor(public readonly payload: ProductImageUpdatedPayload) {
-    super('product.image_updated', payload);
+export class ProductImageUpdatedEvent extends DomainEvent<ProductImageUpdatedPayload> {
+  constructor(payload: ProductImageUpdatedPayload) {
+    super(payload, ProductImageUpdatedEvent.EventName);
+  }
+
+  public static get EventName(): string {
+    return 'product.image_updated';
   }
 }

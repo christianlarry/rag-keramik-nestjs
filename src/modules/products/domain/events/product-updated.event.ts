@@ -14,8 +14,12 @@ interface ProductUpdatedPayload {
   };
 }
 
-export class ProductUpdatedEvent extends DomainEvent {
-  constructor(public readonly payload: ProductUpdatedPayload) {
-    super('product.updated', payload);
+export class ProductUpdatedEvent extends DomainEvent<ProductUpdatedPayload> {
+  constructor(payload: ProductUpdatedPayload) {
+    super(payload, ProductUpdatedEvent.EventName);
+  }
+
+  public static get EventName(): string {
+    return 'product.updated';
   }
 }

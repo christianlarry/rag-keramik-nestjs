@@ -7,8 +7,12 @@ interface ProductDeactivatedPayload {
   reason?: string;
 }
 
-export class ProductDeactivatedEvent extends DomainEvent {
-  constructor(public readonly payload: ProductDeactivatedPayload) {
-    super('product.deactivated', payload);
+export class ProductDeactivatedEvent extends DomainEvent<ProductDeactivatedPayload> {
+  constructor(payload: ProductDeactivatedPayload) {
+    super(payload, ProductDeactivatedEvent.EventName);
+  }
+
+  public static get EventName(): string {
+    return 'product.deactivated';
   }
 }

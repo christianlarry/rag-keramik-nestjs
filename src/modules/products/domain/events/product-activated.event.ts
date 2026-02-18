@@ -6,8 +6,12 @@ interface ProductActivatedPayload {
   previousStatus: string;
 }
 
-export class ProductActivatedEvent extends DomainEvent {
-  constructor(public readonly payload: ProductActivatedPayload) {
-    super('product.activated', payload);
+export class ProductActivatedEvent extends DomainEvent<ProductActivatedPayload> {
+  constructor(payload: ProductActivatedPayload) {
+    super(payload, ProductActivatedEvent.EventName);
+  }
+
+  public static get EventName(): string {
+    return 'product.activated';
   }
 }

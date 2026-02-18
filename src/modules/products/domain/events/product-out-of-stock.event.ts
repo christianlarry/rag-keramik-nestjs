@@ -7,8 +7,12 @@ interface ProductOutOfStockPayload {
   previousStatus: string;
 }
 
-export class ProductOutOfStockEvent extends DomainEvent {
-  constructor(public readonly payload: ProductOutOfStockPayload) {
-    super('product.out_of_stock', payload);
+export class ProductOutOfStockEvent extends DomainEvent<ProductOutOfStockPayload> {
+  constructor(payload: ProductOutOfStockPayload) {
+    super(payload, ProductOutOfStockEvent.EventName);
+  }
+
+  public static get EventName(): string {
+    return 'product.out_of_stock';
   }
 }

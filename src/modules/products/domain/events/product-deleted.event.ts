@@ -6,8 +6,12 @@ interface ProductDeletedPayload {
   name: string;
 }
 
-export class ProductDeletedEvent extends DomainEvent {
-  constructor(public readonly payload: ProductDeletedPayload) {
-    super('product.deleted', payload);
+export class ProductDeletedEvent extends DomainEvent<ProductDeletedPayload> {
+  constructor(payload: ProductDeletedPayload) {
+    super(payload, ProductDeletedEvent.EventName);
+  }
+
+  public static get EventName(): string {
+    return 'product.deleted';
   }
 }

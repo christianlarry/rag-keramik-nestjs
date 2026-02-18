@@ -9,8 +9,12 @@ interface ProductPriceChangedPayload {
   changedBy?: string;
 }
 
-export class ProductPriceChangedEvent extends DomainEvent {
-  constructor(public readonly payload: ProductPriceChangedPayload) {
-    super('product.price_changed', payload);
+export class ProductPriceChangedEvent extends DomainEvent<ProductPriceChangedPayload> {
+  constructor(payload: ProductPriceChangedPayload) {
+    super(payload, ProductPriceChangedEvent.EventName);
+  }
+
+  public static get EventName(): string {
+    return 'product.price_changed';
   }
 }
