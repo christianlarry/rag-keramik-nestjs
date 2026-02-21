@@ -24,6 +24,7 @@ import {
   ProductImageUpdatedEvent,
 } from '../events';
 import { ProductStateConflictError } from '../errors/product-state-conflict.error';
+import { ProductSize } from '../value-objects/product-size.vo';
 
 interface ProductProps {
   sku: SKU;
@@ -47,7 +48,7 @@ interface CreateProductParams {
   imageUrl?: string;
   price: Price;
   tilePerBox: number;
-  attributes?: ProductAttributes;
+  attributes: ProductAttributes;
 }
 
 interface UpdateProductParams {
@@ -152,7 +153,7 @@ export class Product extends AggregateRoot {
       imageUrl: params.imageUrl || null,
       price: params.price,
       tilePerBox: params.tilePerBox,
-      attributes: params.attributes ?? ProductAttributes.createEmpty(),
+      attributes: params.attributes,
       status: ProductStatus.createActive(),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -296,7 +297,7 @@ export class Product extends AggregateRoot {
       params.tilePerBox !== this.props.tilePerBox
     ) {
       if (params.tilePerBox <= 0) {
-        throw new Error('Tile per box must be greater than 0');
+        throw new ProductStateConflictError('Tile per box must be greater than 0');
       }
       this.props.tilePerBox = params.tilePerBox;
       changes.tilePerBox = true;
@@ -526,7 +527,7 @@ export class Product extends AggregateRoot {
   public get price(): Price { return this.props.price; }
   public get tilePerBox(): number { return this.props.tilePerBox; }
   public get attributes(): ProductAttributes { return this.props.attributes; }
-  public get size(): string | null { return this.attributes.getSize() ?? null; }
+  public get size(): ProductSize { return this.attributes.getSize() }
   public get status(): ProductStatus { return this.props.status; }
   public get createdAt(): Date { return this.props.createdAt; }
   public get updatedAt(): Date { return this.props.updatedAt; }

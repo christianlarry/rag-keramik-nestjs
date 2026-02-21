@@ -4,13 +4,14 @@ import {
   ApplicationArea,
 } from '../enums';
 import { InvalidProductAttributesError } from '../errors';
+import { ProductSize } from './product-size.vo';
 
 /**
  * Tile ceramic specific attributes
  */
 export interface TileAttributes {
-  // Size in centimeters (e.g., "40x40", "60x60", "30x60")
-  size?: string;
+  // Size in format "WidthxHeight" (e.g., "40x40"), with thickness and dimension unit
+  size: ProductSize;
 
   // Grade quality
   grade?: Grade;
@@ -26,9 +27,6 @@ export interface TileAttributes {
 
   // Water absorption percentage
   waterAbsorption?: string;
-
-  // Thickness in millimeters
-  thickness?: number;
 
   // Color
   color?: string;
@@ -58,22 +56,8 @@ export class ProductAttributes {
   }
 
   private validate(): void {
-    // Validate specific fields if provided
-    if (this.attributes.size) {
-      this.validateSize(this.attributes.size);
-    }
-
     if (this.attributes.antiSlipRating) {
       this.validateAntiSlipRating(this.attributes.antiSlipRating);
-    }
-
-    if (
-      this.attributes.thickness !== undefined &&
-      this.attributes.thickness <= 0
-    ) {
-      throw new InvalidProductAttributesError(
-        'Thickness must be greater than 0',
-      );
     }
 
     if (this.attributes.peiRating !== undefined) {
@@ -90,16 +74,6 @@ export class ProductAttributes {
 
     if (this.attributes.applicationAreas !== undefined) {
       this.validateApplicationAreas(this.attributes.applicationAreas);
-    }
-  }
-
-  private validateSize(size: string): void {
-    // Format: "40x40" or "30x60"
-    const sizePattern = /^\d+x\d+$/;
-    if (!sizePattern.test(size)) {
-      throw new InvalidProductAttributesError(
-        'Size must be in format: "WidthxHeight" (e.g., "40x40")',
-      );
     }
   }
 
@@ -144,12 +118,8 @@ export class ProductAttributes {
     }
   }
 
-  public static create(attributes?: TileAttributes): ProductAttributes {
-    return new ProductAttributes(attributes || {});
-  }
-
-  public static createEmpty(): ProductAttributes {
-    return new ProductAttributes({});
+  public static create(attributes: TileAttributes): ProductAttributes {
+    return new ProductAttributes(attributes);
   }
 
   public getAttributes(): TileAttributes {
@@ -164,7 +134,7 @@ export class ProductAttributes {
     return key in this.attributes && this.attributes[key] !== undefined;
   }
 
-  public getSize(): string | undefined {
+  public getSize(): ProductSize {
     return this.attributes.size;
   }
 

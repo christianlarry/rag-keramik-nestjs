@@ -1,0 +1,18 @@
+export const CartErrorCode = {
+  // Validation errors
+  INVALID_CART_ID: 'CART_INVALID_CART_ID',
+  INVALID_CART_ITEM_ID: 'CART_INVALID_CART_ITEM_ID',
+  INVALID_QUANTITY: 'CART_INVALID_QUANTITY',
+  STATE_CONFLICT: 'CART_STATE_CONFLICT',
+
+  // Business rule errors
+  CART_NOT_FOUND: 'CART_NOT_FOUND',
+  CART_ITEM_NOT_FOUND: 'CART_ITEM_NOT_FOUND',
+  DUPLICATE_CART_ITEM: 'CART_DUPLICATE_CART_ITEM',
+  CART_IS_EMPTY: 'CART_IS_EMPTY',
+
+  // Operation errors
+  CANNOT_UPDATE_CART: 'CART_CANNOT_UPDATE_CART',
+} as const;
+
+export type CartErrorCode = (typeof CartErrorCode)[keyof typeof CartErrorCode];
