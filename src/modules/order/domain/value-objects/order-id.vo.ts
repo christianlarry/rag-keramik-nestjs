@@ -1,37 +1,17 @@
-import { v4 as uuidv4, validate as isUuid } from 'uuid';
+import { UniqueIdentifier } from 'src/core/domain/unique-identifier.base';
 import { InvalidOrderIdError } from '../errors';
 
-export class OrderId {
-  private readonly value: string;
-
+export class OrderId extends UniqueIdentifier {
   private constructor(value: string) {
-    this.value = value;
-    this.validate();
+    super(value, new InvalidOrderIdError(value));
   }
 
-  private validate(): void {
-    if (!isUuid(this.value)) {
-      throw new InvalidOrderIdError(this.value);
-    }
+  public static generate(): OrderId {
+    const uuid = crypto.randomUUID();
+    return new OrderId(uuid);
   }
 
-  public static create(id?: string): OrderId {
-    return new OrderId(id || uuidv4());
-  }
-
-  public static fromString(id: string): OrderId {
-    return new OrderId(id);
-  }
-
-  public getValue(): string {
-    return this.value;
-  }
-
-  public equals(other: OrderId): boolean {
-    return this.value === other.value;
-  }
-
-  public toString(): string {
-    return this.value;
+  public static fromString(value: string): OrderId {
+    return new OrderId(value);
   }
 }

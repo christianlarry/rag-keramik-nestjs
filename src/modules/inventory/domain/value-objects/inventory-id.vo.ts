@@ -1,37 +1,17 @@
-import { v4 as uuidv4, validate as isUuid } from 'uuid';
+import { UniqueIdentifier } from 'src/core/domain/unique-identifier.base';
 import { InvalidInventoryIdError } from '../errors';
 
-export class InventoryId {
-  private readonly value: string;
-
+export class InventoryId extends UniqueIdentifier {
   private constructor(value: string) {
-    this.value = value;
-    this.validate();
+    super(value, new InvalidInventoryIdError(value));
   }
 
-  private validate(): void {
-    if (!isUuid(this.value)) {
-      throw new InvalidInventoryIdError(this.value);
-    }
+  public static generate(): InventoryId {
+    const uuid = crypto.randomUUID();
+    return new InventoryId(uuid);
   }
 
-  public static create(id?: string): InventoryId {
-    return new InventoryId(id || uuidv4());
-  }
-
-  public static fromString(id: string): InventoryId {
-    return new InventoryId(id);
-  }
-
-  public getValue(): string {
-    return this.value;
-  }
-
-  public equals(other: InventoryId): boolean {
-    return this.value === other.value;
-  }
-
-  public toString(): string {
-    return this.value;
+  public static fromString(value: string): InventoryId {
+    return new InventoryId(value);
   }
 }

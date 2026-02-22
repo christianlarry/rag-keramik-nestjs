@@ -143,7 +143,7 @@ export class Product extends AggregateRoot {
    * Create a new product
    */
   public static create(params: CreateProductParams): Product {
-    const productId = ProductId.create();
+    const productId = ProductId.generate();
 
     const product = new Product(productId, {
       sku: params.sku,
