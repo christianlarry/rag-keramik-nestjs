@@ -2,6 +2,7 @@ import { PrismaConfig } from "src/core/infrastructure/persistence/prisma/config/
 import { MailConfig } from "src/core/infrastructure/services/mail/config/mail-config.type";
 import { AppConfig } from "./app/app-config.type";
 import { RedisConfig } from "src/core/infrastructure/persistence/redis/config/redis-config.type";
+import { ElasticsearchConfig } from "src/core/infrastructure/persistence/elasticsearch/config/elasticsearch-config.type";
 import { AuthConfig } from "src/modules/auth/infrastructure/config/types/auth-config.type";
 import { RateLimitConfig } from "./rate-limit/rate-limit-config.type";
 import { AuthFacebookConfig } from "src/modules/auth/infrastructure/config/types/auth-facebook.config.type";
@@ -14,6 +15,7 @@ export type AllConfigType = {
   // Infrastructure Configuration
   redis: RedisConfig;
   prisma: PrismaConfig;
+  elasticsearch: ElasticsearchConfig;
 
   // Module Configuration
   mail: MailConfig;

@@ -34,6 +34,8 @@ import authFacebookConfig from './modules/auth/infrastructure/config/auth-facebo
 import { MailerModule } from './core/infrastructure/mailer/mailer.module';
 import { CacheModule } from './core/infrastructure/services/cache/cache.module';
 import { CacheInvalidatorModule } from './core/infrastructure/services/cache-invalidator/cache-invalidator.module';
+import elasticsearchConfig from './core/infrastructure/persistence/elasticsearch/config/elasticsearch.config';
+import { ElasticsearchModule } from './core/infrastructure/persistence/elasticsearch/elasticsearch.module';
 
 @Module({
   imports: [
@@ -47,6 +49,7 @@ import { CacheInvalidatorModule } from './core/infrastructure/services/cache-inv
         prismaConfig,
         mailConfig,
         redisConfig,
+        elasticsearchConfig,
         authConfig,
         authGoogleConfig,
         authFacebookConfig,
@@ -54,6 +57,7 @@ import { CacheInvalidatorModule } from './core/infrastructure/services/cache-inv
       ],
     }),
     RedisModule,
+    ElasticsearchModule,
     CacheModule,
     // Redis configuration for BullMQ
     BullModule.forRootAsync({
