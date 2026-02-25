@@ -2,7 +2,6 @@ import {
   ProductStatusType,
   FinishingType,
   Grade,
-  ApplicationArea,
 } from '../enums';
 
 // ===== Query Options =====
@@ -18,23 +17,6 @@ export interface FindAllProductsQueryOptions {
   grade?: string;
   finishing?: string;
   applicationArea?: string;
-}
-
-export interface ProductSearchCriteria {
-  sku?: string;
-  name?: string;
-  brand?: string;
-  status?: ProductStatusType;
-  minPrice?: number;
-  maxPrice?: number;
-  // Tile-specific filters
-  size?: string;
-  grade?: Grade;
-  finishing?: FinishingType;
-  applicationArea?: ApplicationArea;
-  // Pagination
-  skip?: number;
-  take?: number;
 }
 
 // ===== Query Results =====
@@ -111,17 +93,4 @@ export interface ProductQueryRepository {
    * Returns plain object with all product data
    */
   getProductDetailBySKU(sku: string): Promise<ProductDetailResult | null>;
-
-  /**
-   * Search products by criteria
-   * Returns plain list for search results
-   */
-  searchProducts(
-    criteria: ProductSearchCriteria,
-  ): Promise<FindAllProductsQueryResult>;
-
-  /**
-   * Count products by criteria
-   */
-  count(criteria: ProductSearchCriteria): Promise<number>;
 }

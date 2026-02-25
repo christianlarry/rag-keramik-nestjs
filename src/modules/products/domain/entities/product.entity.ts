@@ -38,6 +38,7 @@ interface ProductProps {
   status: ProductStatus;
   readonly createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
 }
 
 interface CreateProductParams {
@@ -157,6 +158,7 @@ export class Product extends AggregateRoot {
       status: ProductStatus.createActive(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      deletedAt: null,
     });
 
     // Emit domain event
@@ -329,6 +331,7 @@ export class Product extends AggregateRoot {
     if (!price.equals(this.props.price)) {
       const oldPrice = this.props.price;
       this.props.price = price;
+
       this.applyChange();
 
       // Emit price changed event
@@ -353,6 +356,7 @@ export class Product extends AggregateRoot {
     if (imageUrl !== this.props.imageUrl) {
       const oldImageUrl = this.props.imageUrl;
       this.props.imageUrl = imageUrl;
+
       this.applyChange();
 
       this.addDomainEvent(
@@ -462,7 +466,8 @@ export class Product extends AggregateRoot {
     }
 
     const previousStatus = this.props.status;
-    this.props.status = ProductStatus.createDiscontinued();
+    this.changeStatus(ProductStatus.createDiscontinued());
+
     this.applyChange();
 
     this.addDomainEvent(
@@ -480,6 +485,16 @@ export class Product extends AggregateRoot {
    * Delete the product
    */
   public delete(): void {
+
+    if (this.props.status.isDeleted()) {
+      return; // Already deleted
+    }
+
+    this.changeStatus(ProductStatus.createDeleted());
+    this.props.deletedAt = new Date();
+
+    this.applyChange();
+
     this.addDomainEvent(
       new ProductDeletedEvent({
         productId: this._id.getValue(),

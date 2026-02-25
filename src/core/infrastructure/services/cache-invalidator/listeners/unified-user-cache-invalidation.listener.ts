@@ -4,12 +4,12 @@ import { DomainEvent } from "src/core/domain/domain-event.base";
 import { UserCacheInvalidationService } from "../services/user-cache-invalidation.service";
 
 // Auth Module Events
+import { AuthUserUpdatedEvent } from "src/modules/auth/domain/events/auth-user-updated.event";
 import { UserRegisteredEvent } from "src/modules/auth/domain/events/user-registered.event";
+import { UserCreatedFromOAuthEvent } from "src/modules/auth/domain/events/user-created-from-oauth.event";
 
 // Users Module Events
 import { UserUpdatedEvent } from "src/modules/users/domain/events/user-updated.event";
-import { AuthUserUpdatedEvent } from "src/modules/auth/domain/events/auth-user-updated.event";
-import { UserCreatedFromOAuthEvent } from "src/modules/auth/domain/events/user-created-from-oauth.event";
 
 /**
  * Unified listener for invalidating ALL user-related caches across modules.

@@ -35,6 +35,10 @@ export class ProductStatus {
     return new ProductStatus(ProductStatusEnum.OUT_OF_STOCK);
   }
 
+  public static createDeleted(): ProductStatus {
+    return new ProductStatus(ProductStatusEnum.DELETED);
+  }
+
   public getValue(): ProductStatusEnum {
     return this.value;
   }
@@ -57,6 +61,10 @@ export class ProductStatus {
 
   public isOutOfStock(): boolean {
     return this.value === ProductStatusEnum.OUT_OF_STOCK;
+  }
+
+  public isDeleted(): boolean {
+    return this.value === ProductStatusEnum.DELETED;
   }
 
   public canTransitionTo(newStatus: ProductStatus): boolean {
