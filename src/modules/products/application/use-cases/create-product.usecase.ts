@@ -46,6 +46,8 @@ interface CreateProductCommand {
 
 interface CreateProductResult {
   id: string;
+  name: string;
+  sku: string;
 }
 
 @Injectable()
@@ -101,6 +103,8 @@ export class CreateProductUseCase {
     // ── Return result ──────────────────────────────────────────────────────
     return {
       id: product.id.getValue(),
+      name: product.name.getValue(),
+      sku: product.sku.getValue(),
     };
   }
 }

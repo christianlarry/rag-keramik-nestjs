@@ -546,4 +546,5 @@ export class Product extends AggregateRoot {
   public get status(): ProductStatus { return this.props.status; }
   public get createdAt(): Date { return this.props.createdAt; }
   public get updatedAt(): Date { return this.props.updatedAt; }
+  public get deletedAt(): Date | null { return this.props.deletedAt; }
 }

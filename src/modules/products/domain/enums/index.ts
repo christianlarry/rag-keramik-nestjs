@@ -5,3 +5,4 @@ export {
 export * from './finishing-type.enum';
 export * from './grade.enum';
 export * from './application-area.enum';
+export * from './dimension-unit.enum';

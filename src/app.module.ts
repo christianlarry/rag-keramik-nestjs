@@ -36,6 +36,7 @@ import { CacheModule } from './core/infrastructure/services/cache/cache.module';
 import { CacheInvalidatorModule } from './core/infrastructure/services/cache-invalidator/cache-invalidator.module';
 import elasticsearchConfig from './core/infrastructure/persistence/elasticsearch/config/elasticsearch.config';
 import { ElasticsearchModule } from './core/infrastructure/persistence/elasticsearch/elasticsearch.module';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
   imports: [
@@ -108,11 +109,14 @@ import { ElasticsearchModule } from './core/infrastructure/persistence/elasticse
     PrismaModule,
     MailerModule,
     MailModule,
-    UsersModule,
-    AuthModule,
     AuditModule,
     TokenGeneratorModule,
-    CacheInvalidatorModule
+    CacheInvalidatorModule,
+
+    // Feature Modules
+    UsersModule,
+    AuthModule,
+    ProductsModule
   ],
   controllers: [
     AppController
