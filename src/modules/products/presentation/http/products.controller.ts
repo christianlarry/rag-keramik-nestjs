@@ -18,7 +18,7 @@ export class ProductsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard) // Require authentication and role-based access control
-  @Roles('admin', 'staff') // Only allow admin and staff roles to create products
+  @Roles('admin') // Only allow admin and staff roles to create products
   @Throttle({ default: { ttl: TTL.ONE_MINUTE, limit: LIMIT.MODERATE } }) // Rate limit to prevent abuse (10 requests per minute)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -37,6 +37,10 @@ export class ProductsController {
   @ApiResponse({
     status: 401,
     description: 'Unauthorized - invalid or missing token.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions.',
   })
   async createProduct(@Body() createProductDto: CreateProductRequestDto): Promise<CreateProductResponseDto> {
     const result = await this.createProductUseCase.execute({

@@ -24,7 +24,8 @@ export class DimensionUnit {
   }
 
   public static fromString(unitStr: string): DimensionUnit {
-    const unit = DimensionUnitEnum[unitStr as keyof typeof DimensionUnitEnum];
+    const normalizedStr = unitStr.trim().toUpperCase();
+    const unit = DimensionUnitEnum[normalizedStr as keyof typeof DimensionUnitEnum];
     if (!unit) {
       throw new InvalidDimensionUnitError(unitStr, `Invalid dimension unit string: ${unitStr}`);
     }
