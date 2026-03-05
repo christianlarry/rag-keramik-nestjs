@@ -104,7 +104,7 @@ export class Discount extends AggregateRoot {
   // ============================================================
 
   public static create(input: CreateDiscountProps): Discount {
-    const id = DiscountId.create();
+    const id = DiscountId.generate();
     const code = DiscountCode.create(input.code);
     const discountValue = DiscountValue.create({
       type: input.type as any,

@@ -1,10 +1,8 @@
 import { AggregateRoot } from 'src/core/domain/aggregate-root.base';
 import { CartId } from '../value-objects/cart-id.vo';
-import { Quantity } from '../value-objects/quantity.vo';
 import { CartItem } from './cart-item.entity';
 import {
   CartItemNotFoundError,
-  DuplicateCartItemError,
   CartIsEmptyError,
   CartStateConflictError,
 } from '../errors';
@@ -67,7 +65,7 @@ export class Cart extends AggregateRoot {
    * Create a new empty cart for a user
    */
   public static create(params: CreateCartParams): Cart {
-    const cartId = CartId.create();
+    const cartId = CartId.generate();
 
     const cart = new Cart(cartId, {
       userId: params.userId,

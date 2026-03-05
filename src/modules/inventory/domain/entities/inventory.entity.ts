@@ -90,7 +90,7 @@ export class Inventory extends AggregateRoot {
    * Create a new inventory record for a product
    */
   public static create(params: CreateInventoryParams): Inventory {
-    const inventoryId = InventoryId.create();
+    const inventoryId = InventoryId.generate();
     const initialStock = params.initialStock ?? 0;
 
     const inventory = new Inventory(inventoryId, {

@@ -36,7 +36,7 @@ export class CartItem {
    * Create a new cart item
    */
   public static create(params: CreateCartItemParams): CartItem {
-    const cartItemId = CartItemId.create();
+    const cartItemId = CartItemId.generate();
     const quantity = Quantity.create(params.quantity);
 
     return new CartItem(cartItemId, {

@@ -52,7 +52,7 @@ export class OrderItem {
    * Create a new order item
    */
   public static create(params: CreateOrderItemParams): OrderItem {
-    const orderItemId = OrderItemId.create();
+    const orderItemId = OrderItemId.generate();
     const currency = params.currency || 'IDR';
 
     return new OrderItem(orderItemId, {

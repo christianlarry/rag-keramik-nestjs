@@ -127,7 +127,7 @@ export class Order extends AggregateRoot {
    * Create a new order from checkout
    */
   public static create(params: CreateOrderParams): Order {
-    const orderId = OrderId.create();
+    const orderId = OrderId.generate();
     const orderNumber = OrderNumber.generate();
     const currency = params.currency || 'IDR';
 

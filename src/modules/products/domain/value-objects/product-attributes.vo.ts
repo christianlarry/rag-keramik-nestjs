@@ -42,9 +42,6 @@ export interface TileAttributes {
 
   // PEI rating (1-5, wear resistance)
   peiRating?: number;
-
-  // Additional custom attributes
-  [key: string]: unknown;
 }
 
 export class ProductAttributes {
@@ -126,11 +123,11 @@ export class ProductAttributes {
     return { ...this.attributes };
   }
 
-  public getAttribute(key: string): unknown {
+  public getAttribute(key: keyof TileAttributes): unknown {
     return this.attributes[key];
   }
 
-  public hasAttribute(key: string): boolean {
+  public hasAttribute(key: keyof TileAttributes): boolean {
     return key in this.attributes && this.attributes[key] !== undefined;
   }
 
