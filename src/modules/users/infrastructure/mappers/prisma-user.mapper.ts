@@ -60,7 +60,7 @@ export class PrismaUserMapper {
   static toDomain(raw: RawUser): User {
     const name = Name.create(raw.fullName);
     const email = Email.create(raw.email);
-    const dateOfBirth = raw.dateOfBirth ? DateOfBirth.create(raw.dateOfBirth) : null;
+    const dateOfBirth = raw.dateOfBirth ? DateOfBirth.create(new Date(raw.dateOfBirth)) : null;
     const gender = raw.gender ? Gender.create(genderMapper.toEntity(raw.gender)) : null;
     const avatarUrl = raw.avatarUrl ? Avatar.create(raw.avatarUrl) : null;
     const phoneNumber = raw.phoneNumber ? PhoneNumber.create(raw.phoneNumber) : null;
