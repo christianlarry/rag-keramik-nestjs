@@ -74,11 +74,11 @@ export class ProductsController {
       imageUrl: createProductDto.imageUrl,
     });
 
-    return {
+    return new CreateProductResponseDto({
       id: result.id,
       name: result.name,
       sku: result.sku,
-    }
+    });
   }
 
   @Patch(':id')
@@ -144,11 +144,11 @@ export class ProductsController {
       imageUrl: updateProductDto.imageUrl,
     });
 
-    return {
+    return new UpdateProductResponseDto({
       fieldsUpdated: result.fieldsUpdated,
       timestamp: result.timestamp,
       product: result.product,
-    }
+    });
   }
 
   @Delete(':id')
