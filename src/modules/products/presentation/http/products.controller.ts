@@ -1,14 +1,12 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { CreateProductRequestDto, CreateProductResponseDto } from "./dtos";
+import { CreateProductRequestDto, CreateProductResponseDto, DeleteProductResponseDto, UpdateProductRequestDto, UpdateProductResponseDto } from "./dtos";
 import { JwtAuthGuard } from "src/modules/auth/presentation/http/guard/jwt-auth.guard";
 import { RolesGuard } from "src/modules/auth/presentation/http/guard/roles.guard";
 import { Roles } from "src/modules/auth/presentation/http/decorator/roles.decorator";
 import { Throttle } from "@nestjs/throttler";
 import { LIMIT, TTL } from "src/common/constants/rate-limit.constants";
-import { CreateProductUseCase, UpdateProductUseCase } from "../../application/use-cases";
-import { UpdateProductRequestDto } from "./dtos/request/update-product-request.dto";
-import { UpdateProductResponseDto } from "./dtos/response/update-product-response.dto";
+import { CreateProductUseCase, DeleteProductUseCase, UpdateProductUseCase } from "../../application/use-cases";
 
 @ApiTags('Products')
 @Controller('products')
@@ -16,7 +14,8 @@ export class ProductsController {
   constructor(
     // Use Cases
     private readonly createProductUseCase: CreateProductUseCase,
-    private readonly updateProductUseCase: UpdateProductUseCase
+    private readonly updateProductUseCase: UpdateProductUseCase,
+    private readonly deleteProductUseCase: DeleteProductUseCase,
   ) { }
 
   @Post()
@@ -108,6 +107,10 @@ export class ProductsController {
     status: 403,
     description: 'Forbidden - insufficient permissions.',
   })
+  @ApiResponse({
+    status: 404,
+    description: 'Not Found - product with the specified ID does not exist.',
+  })
   async updateProduct(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductRequestDto
@@ -146,5 +149,46 @@ export class ProductsController {
       timestamp: result.timestamp,
       product: result.product,
     }
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard) // Require authentication and role-based access control
+  @Roles('admin') // Only allow admin and staff roles to delete products
+  @Throttle({ default: { ttl: TTL.ONE_MINUTE, limit: LIMIT.MODERATE } }) // Rate limit to prevent abuse (10 requests per minute)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Delete a product',
+    description: 'Endpoint to delete a product by its ID.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Product deleted successfully.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Validation failed.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing token.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not Found - product with the specified ID does not exist.',
+  })
+  async deleteProduct(@Param('id') id: string): Promise<DeleteProductResponseDto> {
+    const result = await this.deleteProductUseCase.execute({
+      productId: id,
+    });
+
+    return new DeleteProductResponseDto({
+      deletedProductId: result.deletedProductId,
+      success: result.success,
+      timestamp: result.timestamp,
+    });
   }
 }

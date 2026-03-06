@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ProductsController } from "./presentation/http/products.controller";
-import { CreateProductUseCase, UpdateProductUseCase } from "./application/use-cases";
+import { CreateProductUseCase, DeleteProductUseCase, UpdateProductUseCase } from "./application/use-cases";
 import { PRODUCT_REPOSITORY_TOKEN } from "./domain";
 import { PrismaProductRepository } from "./infrastructure/repositories/prisma-product.repository";
 
@@ -9,6 +9,7 @@ import { PrismaProductRepository } from "./infrastructure/repositories/prisma-pr
     // Use Cases
     CreateProductUseCase,
     UpdateProductUseCase,
+    DeleteProductUseCase,
 
     // Repositories
     {
