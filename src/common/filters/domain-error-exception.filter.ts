@@ -8,6 +8,7 @@ import {
 import { Request, Response } from 'express';
 import { DomainError } from 'src/core/domain/domain-error.base';
 import { authErrorToHttpStatusMap } from 'src/modules/auth/presentation/http/errors/auth-error-to-http-status.map';
+import { productErrorToHttpStatusMap } from 'src/modules/products/presentation/http/errors/product-error-to-http-status.map';
 import { userErrorToHttpStatusMap } from 'src/modules/users/presentation/errors/user-error-to-http-status.map';
 
 /**
@@ -24,7 +25,8 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
    */
   private readonly errorCodeToHttpStatusMap: Record<string, HttpStatus> = {
     ...authErrorToHttpStatusMap,
-    ...userErrorToHttpStatusMap
+    ...userErrorToHttpStatusMap,
+    ...productErrorToHttpStatusMap,
   };
 
   catch(exception: DomainError, host: ArgumentsHost): void {

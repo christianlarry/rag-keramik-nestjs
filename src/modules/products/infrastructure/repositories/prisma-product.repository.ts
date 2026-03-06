@@ -1,24 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaClient } from 'src/generated/prisma/client';
-import { TransactionClient } from 'src/generated/prisma/internal/prismaNamespace';
 import { PrismaService } from 'src/core/infrastructure/persistence/prisma/prisma.service';
 import { CacheService } from 'src/core/infrastructure/services/cache/cache.service';
 import { Product, ProductId, ProductRepository, SKU } from '../../domain';
 import { PrismaProductMapper } from '../mappers/prisma-product.mapper';
 import { ProductCache } from '../cache/product.cache';
+import { PrismaRepositoryBase } from 'src/core/infrastructure/persistence/prisma/prisma-repository.base';
 
 @Injectable()
-export class PrismaProductRepository implements ProductRepository {
+export class PrismaProductRepository extends PrismaRepositoryBase implements ProductRepository {
   private readonly logger = new Logger(PrismaProductRepository.name);
-  private readonly client: PrismaClient | TransactionClient;
 
   constructor(
-    private readonly prisma: PrismaService,
+    prisma: PrismaService,
     private readonly cache: CacheService,
     private readonly eventEmitter: EventEmitter2,
   ) {
-    this.client = this.prisma.getClient();
+    super(prisma);
   }
 
   async findById(productId: ProductId): Promise<Product | null> {

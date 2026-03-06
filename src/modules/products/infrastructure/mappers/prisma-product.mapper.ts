@@ -18,7 +18,7 @@ type PrismaDecimal = { toNumber(): number };
  * Raw JSON structure stored in the `attributes` column of the Product table.
  * Combines dimensional info (size) and tile-specific attributes.
  */
-interface RawProductAttributes {
+export interface RawProductAttributes {
   // Size fields (flattened from ProductSize)
   width: number;
   height: number;
