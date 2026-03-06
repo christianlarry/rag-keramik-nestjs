@@ -97,9 +97,9 @@ export class PrismaUserMapper {
       email: email,
       role: role,
       status: status,
-      createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt,
-      deletedAt: raw.deletedAt,
+      createdAt: new Date(raw.createdAt),
+      updatedAt: new Date(raw.updatedAt),
+      deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
     });
   }
 

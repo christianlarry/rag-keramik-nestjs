@@ -10,6 +10,7 @@ import {
 import {
   InvalidStatusTransitionError,
   ProductIsDiscontinuedError,
+  ProductIsDeletedError,
 } from '../errors';
 import {
   ProductCreatedEvent,
@@ -208,6 +209,10 @@ export class Product extends AggregateRoot {
     return this.isActive();
   }
 
+  public isDeleted(): boolean {
+    return this.props.status.isDeleted();
+  }
+
   // ============================================
   // Query Methods - Capability Checks
   // ============================================
@@ -238,8 +243,19 @@ export class Product extends AggregateRoot {
     }
   }
 
+  private ensureNotDeleted(): void {
+    if (this.props.status.isDeleted()) {
+      throw new ProductIsDeletedError(this._id.getValue());
+    }
+  }
+
   private ensureCanBeModified(): void {
     this.ensureNotDiscontinued();
+    this.ensureNotDeleted();
+  }
+
+  private ensureCanBeDeleted(): void {
+    this.ensureNotDeleted();
   }
 
   // ============================================
@@ -486,9 +502,7 @@ export class Product extends AggregateRoot {
    */
   public delete(): void {
 
-    if (this.props.status.isDeleted()) {
-      return; // Already deleted
-    }
+    this.ensureCanBeDeleted();
 
     this.changeStatus(ProductStatus.createDeleted());
     this.props.deletedAt = new Date();

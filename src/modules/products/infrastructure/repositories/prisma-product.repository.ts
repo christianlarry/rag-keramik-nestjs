@@ -35,7 +35,13 @@ export class PrismaProductRepository implements ProductRepository {
       ProductCache.PRODUCT_DETAIL_TTL,
     );
 
-    return cached ? PrismaProductMapper.toDomain(cached) : null;
+    const product = cached ? PrismaProductMapper.toDomain(cached) : null;
+
+    if (product && product.isDeleted()) {
+      return null; // Treat deleted products as non-existent
+    }
+
+    return product;
   }
 
   async findBySKU(sku: SKU): Promise<Product | null> {
@@ -52,15 +58,18 @@ export class PrismaProductRepository implements ProductRepository {
       ProductCache.PRODUCT_DETAIL_TTL,
     );
 
-    return cached ? PrismaProductMapper.toDomain(cached) : null;
+    const product = cached ? PrismaProductMapper.toDomain(cached) : null;
+
+    if (product && product.isDeleted()) {
+      return null; // Treat deleted products as non-existent
+    }
+
+    return product;
   }
 
   async existsBySKU(sku: SKU): Promise<boolean> {
-    const count = await this.client.product.count({
-      where: { sku: sku.getValue() },
-    });
-
-    return count > 0;
+    const product = await this.findBySKU(sku);
+    return !!product;
   }
 
   async save(product: Product): Promise<void> {
