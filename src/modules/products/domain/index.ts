@@ -16,3 +16,4 @@ export * from './events';
 // Repositories
 export * from './repositories/product-repository.interface';
 export * from './repositories/product-query-repository.interface';
+export * from './repositories/product-search-repository.interface';

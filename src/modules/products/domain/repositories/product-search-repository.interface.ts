@@ -89,13 +89,17 @@ export interface ProductSearchDocument {
 
 /**
  * Sort fields supported by the search repository.
+ * Aligned with ProductQueryRepository sort options.
  */
 export type ProductSearchSortField =
+  | 'relevance'
   | 'price'
-  | 'name'
+  | 'popularity'
   | 'createdAt'
   | 'updatedAt'
-  | '_score';
+  | 'name'
+  | 'brand'
+  | 'size';
 
 export type SortOrder = 'asc' | 'desc';
 
@@ -223,11 +227,11 @@ export interface ProductSearchCriteria {
 
   // ── Sorting ────────────────────────────────────────────────────────────────
 
-  /** Field to sort by. Default: '_score'. */
-  sortBy?: ProductSearchSortField;
-
-  /** Sort direction. Default: 'desc'. */
-  sortOrder?: SortOrder;
+  /** Sorting options. Default: { sortBy: 'relevance', sortOrder: 'desc' }. */
+  sortOptions?: {
+    sortBy: ProductSearchSortField;
+    sortOrder: SortOrder;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
