@@ -7,6 +7,7 @@ import { Roles } from "src/modules/auth/presentation/http/decorator/roles.decora
 import { Throttle } from "@nestjs/throttler";
 import { LIMIT, TTL } from "src/common/constants/rate-limit.constants";
 import { CreateProductUseCase, DeleteProductUseCase, UpdateProductUseCase } from "../../application/use-cases";
+import { User } from "src/modules/auth/presentation/http/decorator/user.decorator";
 
 @ApiTags('Products')
 @Controller('products')
@@ -44,8 +45,12 @@ export class ProductsWriteController {
     status: 403,
     description: 'Forbidden - insufficient permissions.',
   })
-  async createProduct(@Body() createProductDto: CreateProductRequestDto): Promise<CreateProductResponseDto> {
+  async createProduct(
+    @User('id') createdBy: string, // Get the authenticated user's ID from the request context
+    @Body() createProductDto: CreateProductRequestDto
+  ): Promise<CreateProductResponseDto> {
     const result = await this.createProductUseCase.execute({
+      createdBy,
       name: createProductDto.name,
       sku: createProductDto.sku,
       description: createProductDto.description,
@@ -113,9 +118,11 @@ export class ProductsWriteController {
   })
   async updateProduct(
     @Param('id') id: string,
+    @User('id') updatedBy: string, // Get the authenticated user's ID from the request context
     @Body() updateProductDto: UpdateProductRequestDto
   ): Promise<UpdateProductResponseDto> {
     const result = await this.updateProductUseCase.execute({
+      updatedBy,
       productId: id,
       name: updateProductDto.name,
       description: updateProductDto.description,
@@ -180,8 +187,12 @@ export class ProductsWriteController {
     status: 404,
     description: 'Not Found - product with the specified ID does not exist.',
   })
-  async deleteProduct(@Param('id') id: string): Promise<DeleteProductResponseDto> {
+  async deleteProduct(
+    @User('id') deletedBy: string, // Get the authenticated user's ID from the request context
+    @Param('id') id: string
+  ): Promise<DeleteProductResponseDto> {
     const result = await this.deleteProductUseCase.execute({
+      deletedBy,
       productId: id,
     });
 

@@ -12,8 +12,12 @@ import {
 } from "../../domain";
 import { ProductSize } from "../../domain/value-objects/product-size.vo";
 import { DimensionUnit } from "../../domain/value-objects/dimension-unit.vo";
+import { ProductUpdatedAppEvent } from "../events/product-updated-app.event";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 interface UpdateProductCommand {
+  updatedBy: string; // Actor who updates the product, for auditing purposes
+
   productId: string;
   name?: string;
   description?: string;
@@ -82,6 +86,7 @@ export class UpdateProductUseCase {
   constructor(
     @Inject(PRODUCT_REPOSITORY_TOKEN)
     private readonly productRepository: ProductRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
   async execute(command: UpdateProductCommand): Promise<UpdateProductResult> {
@@ -197,6 +202,16 @@ export class UpdateProductUseCase {
 
     // ── Persist changes ───────────────────────────────────────────────────
     await this.productRepository.save(product);
+
+    // Emit Application Event for Side Effects (e.g. cache invalidation, search indexing, etc.)
+    this.eventEmitter.emit(
+      ProductUpdatedAppEvent.EventName,
+      new ProductUpdatedAppEvent({
+        productId: product.id.getValue(),
+        updatedBy: command.updatedBy,
+        fieldsUpdated: fieldsUpdated
+      })
+    );
 
     // ── Build and return result ───────────────────────────────────────────
     const size = product.size;

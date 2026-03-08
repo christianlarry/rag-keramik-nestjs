@@ -18,6 +18,10 @@ export const AuditAction = {
   DOCUMENT_DELETE: 'document_delete',
   CHAT_SESSION_START: 'chat_session_start',
   CHAT_SESSION_END: 'chat_session_end',
+
+  PRODUCT_CREATED: 'product_created',
+  PRODUCT_UPDATED: 'product_updated',
+  PRODUCT_DELETED: 'product_deleted',
 } as const;
 
 export type AuditAction = typeof AuditAction[keyof typeof AuditAction];

@@ -13,10 +13,12 @@ export class PrismaClientExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
 
+    const meta = exception.meta as any;
+
     switch (exception.code) {
       case 'P2002': // Unique constraint violation
         status = HttpStatus.CONFLICT;
-        message = `Duplicate field value: ${exception.meta?.target}`;
+        message = `Duplicate field value: ${meta?.driverAdapterError?.cause?.constraint?.fields?.join(', ')}`;
         break;
 
       case 'P2025': // Record not found

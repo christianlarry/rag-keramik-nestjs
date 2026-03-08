@@ -1,8 +1,11 @@
 import { Inject } from "@nestjs/common";
 import { PRODUCT_REPOSITORY_TOKEN, ProductId, ProductNotFoundError, type ProductRepository } from "../../domain";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { ProductDeletedAppEvent } from "../events/product-deleted-app.event";
 
 interface DeleteProductCommand {
   productId: string;
+  deletedBy: string;
 }
 
 interface DeleteProductResult {
@@ -14,7 +17,8 @@ interface DeleteProductResult {
 export class DeleteProductUseCase {
   constructor(
     @Inject(PRODUCT_REPOSITORY_TOKEN)
-    private readonly productRepository: ProductRepository
+    private readonly productRepository: ProductRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
   async execute(command: DeleteProductCommand): Promise<DeleteProductResult> {
@@ -27,6 +31,14 @@ export class DeleteProductUseCase {
     }
 
     await this.productRepository.delete(product.id);
+
+    this.eventEmitter.emit(
+      ProductDeletedAppEvent.EventName,
+      new ProductDeletedAppEvent({
+        deletedBy: command.deletedBy,
+        productId: product.id.getValue(),
+      })
+    );
 
     return {
       success: true,

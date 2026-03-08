@@ -10,14 +10,26 @@ import { PrismaProductRepository } from "./infrastructure/repositories/prisma-pr
 import { PrismaProductQueryRepository } from "./infrastructure/repositories/prisma-product-query.repository";
 
 import { ProductsReadController, ProductsWriteController } from "./presentation/http";
+import { LogProductCreatedListener } from "./application/listeners/log-product-created.listener";
+import { LogProductUpdatedListener } from "./application/listeners/log-product-updated.listener";
+import { AuditModule } from "src/core/infrastructure/services/audit/audit.module";
+import { LogProductDeletedListener } from "./application/listeners";
 
 @Module({
+  imports: [
+    AuditModule,
+  ],
   providers: [
     // Use Cases
     CreateProductUseCase,
     UpdateProductUseCase,
     DeleteProductUseCase,
     BrowsingProductsUseCase,
+
+    // Listeners
+    LogProductCreatedListener,
+    LogProductUpdatedListener,
+    LogProductDeletedListener,
 
     // Repositories
     {

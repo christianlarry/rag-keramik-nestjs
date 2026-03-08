@@ -14,7 +14,6 @@ import {
 } from '../errors';
 import {
   ProductCreatedEvent,
-  ProductUpdatedEvent,
   ProductDeletedEvent,
   ProductActivatedEvent,
   ProductDeactivatedEvent,
@@ -533,17 +532,8 @@ export class Product extends AggregateRoot {
     this.props.status = newStatus;
   }
 
-  private applyChange(changes: Partial<Record<keyof ProductProps, boolean>> = {}): void {
+  private applyChange(): void {
     this.props.updatedAt = new Date();
-
-    this.addDomainEvent(
-      new ProductUpdatedEvent({
-        productId: this._id.getValue(),
-        sku: this.props.sku.getValue(),
-        changes,
-        updatedAt: this.props.updatedAt,
-      }),
-    );
   }
 
   // ===== Getters ===== //

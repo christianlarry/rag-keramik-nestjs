@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ApplicationArea, FinishingType, Grade, PRODUCT_QUERY_REPOSITORY_TOKEN, ProductQueryListItemResult, type ProductQueryRepository } from "../../domain";
 import { ProductItem } from "../interfaces/product-item.interface";
 
@@ -59,6 +59,8 @@ export class BrowsingProductsUseCase {
   // - Sorting products by relevance, price, popularity, etc.
   // - Searching with elasticsearch for advanced querying capabilities
 
+  private readonly logger = new Logger(BrowsingProductsUseCase.name);
+
   constructor(
     @Inject(PRODUCT_QUERY_REPOSITORY_TOKEN)
     private readonly productQueryRepository: ProductQueryRepository
@@ -69,10 +71,11 @@ export class BrowsingProductsUseCase {
     const page = command.page || 1;
     const limit = command.limit || 10;
 
-
     if (command.searchQuery) {
       // Implement search logic here, potentially using Elasticsearch for full-text search capabilities
       throw new Error("Search functionality not implemented yet");
+
+      // TODO: Implement search logic
     } else {
       // Implement standard listing logic here, applying filters, pagination, and sorting as needed
       const { products, total: totalItems } = await this.productQueryRepository.findAllProducts({

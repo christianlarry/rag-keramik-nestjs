@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import {
   FindAllProductsQueryOptions,
   FindAllProductsQueryResult,
@@ -54,6 +54,9 @@ const DIRECT_SORT_FIELDS = new Set(['price', 'createdAt', 'updatedAt', 'name', '
 
 @Injectable()
 export class PrismaProductQueryRepository extends PrismaRepositoryBase implements ProductQueryRepository {
+
+  private readonly logger = new Logger(PrismaProductQueryRepository.name);
+
   constructor(
     prisma: PrismaService,
     private readonly cache: CacheService,
@@ -94,7 +97,7 @@ export class PrismaProductQueryRepository extends PrismaRepositoryBase implement
     });
 
     const listTTL: number = ProductCache.PRODUCT_LIST_TTL;
-    const result = await this.cache.wrap<{ products: RawQueryProduct[]; total: number }>(
+    const result = await this.cache.wrap<{ products: ProductQueryListItemResult[]; total: number }>(
       cacheKey,
       async () => {
         const [total, products] = (await Promise.all([
@@ -108,15 +111,16 @@ export class PrismaProductQueryRepository extends PrismaRepositoryBase implement
           }),
         ])) as [number, RawQueryProduct[]];
 
-        return { products, total };
+        return {
+          products: products.map((p) => this.mapToListItem(p as RawQueryProduct)),
+          total
+        };
       },
       listTTL,
     );
 
     return {
-      products: result.products.map((p) =>
-        this.mapToListItem(p as RawQueryProduct),
-      ),
+      products: result.products,
       total: result.total,
     };
   }
@@ -299,6 +303,7 @@ export class PrismaProductQueryRepository extends PrismaRepositoryBase implement
 
   private mapToListItem(raw: RawQueryProduct): ProductQueryListItemResult {
     const attrs = raw.attributes as RawProductAttributes | null;
+
     return {
       id: raw.id,
       sku: raw.sku,

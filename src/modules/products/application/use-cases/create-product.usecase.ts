@@ -14,8 +14,13 @@ import {
 } from "../../domain";
 import { ProductSize } from "../../domain/value-objects/product-size.vo";
 import { DimensionUnit } from "../../domain/value-objects/dimension-unit.vo";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { ProductCreatedAppEvent } from "../events/product-created-app.event";
 
 interface CreateProductCommand {
+  // Actor who create the product, for auditing purposes
+  createdBy: string; // e.g. user ID or system identifier
+
   sku: string;
   name: string;
   description?: string;
@@ -55,6 +60,7 @@ export class CreateProductUseCase {
   constructor(
     @Inject(PRODUCT_REPOSITORY_TOKEN)
     private readonly productRepository: ProductRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
   async execute(command: CreateProductCommand): Promise<CreateProductResult> {
@@ -99,6 +105,15 @@ export class CreateProductUseCase {
 
     // ── Persist to repository ──────────────────────────────────────────────
     await this.productRepository.save(product);
+
+    // Emit Application Event for Side Effects (e.g. cache invalidation, search indexing, etc.)
+    this.eventEmitter.emit(
+      ProductCreatedAppEvent.EventName,
+      new ProductCreatedAppEvent({
+        createdBy: command.createdBy,
+        productId: product.id.getValue(),
+      })
+    );
 
     // ── Return result ──────────────────────────────────────────────────────
     return {

@@ -67,7 +67,8 @@ export class PrismaProductRepository extends PrismaRepositoryBase implements Pro
 
   async existsBySKU(sku: SKU): Promise<boolean> {
     const product = await this.findBySKU(sku);
-    return !!product;
+
+    return !!(product && !product.isDeleted()); // Consider deleted products as non-existent for existence check
   }
 
   async save(product: Product): Promise<void> {
@@ -94,6 +95,10 @@ export class PrismaProductRepository extends PrismaRepositoryBase implements Pro
     for (const key of invalidationKeys) {
       await this.cache.del(key);
     }
+
+    // Increment cache version to invalidate any stale cached lists
+    const versionKey = ProductCache.getProductListVersionKey();
+    await this.cache.incr(versionKey);
   }
 
   async delete(productId: ProductId): Promise<void> {
@@ -138,6 +143,10 @@ export class PrismaProductRepository extends PrismaRepositoryBase implements Pro
     for (const key of invalidationKeys) {
       await this.cache.del(key);
     }
+
+    // Increment cache version to invalidate any stale cached lists
+    const versionKey = ProductCache.getProductListVersionKey();
+    await this.cache.incr(versionKey);
 
     this.logger.log(`Product with ID ${id} has been soft-deleted`);
   }
