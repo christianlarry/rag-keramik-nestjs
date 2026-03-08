@@ -10,7 +10,7 @@ import { CreateProductUseCase, DeleteProductUseCase, UpdateProductUseCase } from
 
 @ApiTags('Products')
 @Controller('products')
-export class ProductsController {
+export class ProductsWriteController {
   constructor(
     // Use Cases
     private readonly createProductUseCase: CreateProductUseCase,
