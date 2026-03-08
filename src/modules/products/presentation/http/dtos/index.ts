@@ -7,3 +7,4 @@ export * from './response/create-product-response.dto';
 export * from './response/update-product-response.dto';
 export * from './response/delete-product-response.dto';
 export * from './response/browsing-product-response.dto';
+export * from './response/get-product-detail-response.dto';

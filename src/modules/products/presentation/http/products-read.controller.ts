@@ -4,21 +4,26 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { BrowsingProductsUseCase } from '../../application/use-cases';
+import { BrowsingProductsUseCase, GetProductDetailUseCase } from '../../application/use-cases';
 import { Throttle } from '@nestjs/throttler';
 import { LIMIT, TTL } from 'src/common/constants/rate-limit.constants';
 import {
   BrowsingProductResponseDto,
   BrowsingProductsRequestDto,
+  GetProductDetailResponseDto,
 } from './dtos';
 
 @ApiTags('Products')
 @Controller('products')
 export class ProductsReadController {
-  constructor(private readonly browsingProductsUseCase: BrowsingProductsUseCase) { }
+  constructor(
+    private readonly browsingProductsUseCase: BrowsingProductsUseCase,
+    private readonly getProductDetailUseCase: GetProductDetailUseCase,
+  ) { }
 
   private validateRange(
     min: number | undefined,
@@ -118,5 +123,31 @@ export class ProductsReadController {
     });
 
     return new BrowsingProductResponseDto(result);
+  }
+
+  @Get(':id')
+  @Throttle({ default: { ttl: TTL.ONE_MINUTE, limit: LIMIT.LENIENT } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get product detail',
+    description: 'Endpoint to retrieve detailed information about a specific product by its ID.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Product details retrieved successfully.',
+    type: GetProductDetailResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Product not found.',
+  })
+  async getProductDetail(
+    @Param('id') productId: string,
+  ): Promise<GetProductDetailResponseDto> {
+    const result = await this.getProductDetailUseCase.execute({
+      productId,
+    });
+
+    return new GetProductDetailResponseDto(result.product);
   }
 }

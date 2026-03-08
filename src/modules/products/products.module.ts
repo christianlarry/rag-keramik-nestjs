@@ -4,6 +4,7 @@ import {
   CreateProductUseCase,
   DeleteProductUseCase,
   UpdateProductUseCase,
+  GetProductDetailUseCase,
 } from "./application/use-cases";
 import { PRODUCT_QUERY_REPOSITORY_TOKEN, PRODUCT_REPOSITORY_TOKEN } from "./domain";
 import { PrismaProductRepository } from "./infrastructure/repositories/prisma-product.repository";
@@ -25,6 +26,7 @@ import { LogProductDeletedListener } from "./application/listeners";
     UpdateProductUseCase,
     DeleteProductUseCase,
     BrowsingProductsUseCase,
+    GetProductDetailUseCase,
 
     // Listeners
     LogProductCreatedListener,
