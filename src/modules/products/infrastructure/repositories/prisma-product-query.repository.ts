@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import {
   FindAllProductsQueryOptions,
   FindAllProductsQueryResult,
-  ProductDetailResult,
-  ProductListItemResult,
+  ProductQueryDetailResult,
+  ProductQueryListItemResult,
   ProductQueryRepository,
   ProductStatusType,
 } from "../../domain";
@@ -11,6 +11,7 @@ import { PrismaService } from "src/core/infrastructure/persistence/prisma/prisma
 import { CacheService } from "src/core/infrastructure/services/cache/cache.service";
 import { ProductCache } from "../cache/product.cache";
 import { RawProductAttributes } from "../mappers/prisma-product.mapper";
+import { PrismaRepositoryBase } from "src/core/infrastructure/persistence/prisma/prisma-repository.base";
 
 // Prisma Decimal returned as an object with toNumber()
 type PrismaDecimal = { toNumber(): number };
@@ -52,11 +53,13 @@ type RawQueryProduct = {
 const DIRECT_SORT_FIELDS = new Set(['price', 'createdAt', 'updatedAt', 'name', 'brand']);
 
 @Injectable()
-export class PrismaProductQueryRepository implements ProductQueryRepository {
+export class PrismaProductQueryRepository extends PrismaRepositoryBase implements ProductQueryRepository {
   constructor(
-    private readonly prisma: PrismaService,
+    prisma: PrismaService,
     private readonly cache: CacheService,
-  ) { }
+  ) {
+    super(prisma);
+  }
 
   // ===== Public methods =====
 
@@ -95,8 +98,8 @@ export class PrismaProductQueryRepository implements ProductQueryRepository {
       cacheKey,
       async () => {
         const [total, products] = (await Promise.all([
-          this.prisma.getClient().product.count({ where }),
-          this.prisma.getClient().product.findMany({
+          this.client.product.count({ where }),
+          this.client.product.findMany({
             where,
             skip,
             take: limit,
@@ -120,13 +123,13 @@ export class PrismaProductQueryRepository implements ProductQueryRepository {
 
   async getProductDetailById(
     productId: string,
-  ): Promise<ProductDetailResult | null> {
+  ): Promise<ProductQueryDetailResult | null> {
     const cacheKey = ProductCache.getProductByIdKey(productId);
 
     const raw = await this.cache.wrap(
       cacheKey,
       async () =>
-        this.prisma.getClient().product.findUnique({
+        this.client.product.findUnique({
           where: { id: productId, status: { not: 'DELETED' } },
           select: PRODUCT_QUERY_SELECT,
         }),
@@ -136,13 +139,13 @@ export class PrismaProductQueryRepository implements ProductQueryRepository {
     return raw ? this.mapToDetailResult(raw as RawQueryProduct) : null;
   }
 
-  async getProductDetailBySKU(sku: string): Promise<ProductDetailResult | null> {
+  async getProductDetailBySKU(sku: string): Promise<ProductQueryDetailResult | null> {
     const cacheKey = ProductCache.getProductBySKUKey(sku);
 
     const raw = await this.cache.wrap(
       cacheKey,
       async () =>
-        this.prisma.getClient().product.findUnique({
+        this.client.product.findUnique({
           where: { sku, status: { not: 'DELETED' } },
           select: PRODUCT_QUERY_SELECT,
         }),
@@ -285,7 +288,7 @@ export class PrismaProductQueryRepository implements ProductQueryRepository {
   }
 
   /** Extract size sub-object from the flat JSON attributes blob. */
-  private extractSize(attrs: RawProductAttributes | null): ProductDetailResult['size'] {
+  private extractSize(attrs: RawProductAttributes | null): ProductQueryDetailResult['size'] {
     return {
       width: attrs?.width ?? 0,
       height: attrs?.height ?? 0,
@@ -294,7 +297,7 @@ export class PrismaProductQueryRepository implements ProductQueryRepository {
     };
   }
 
-  private mapToListItem(raw: RawQueryProduct): ProductListItemResult {
+  private mapToListItem(raw: RawQueryProduct): ProductQueryListItemResult {
     const attrs = raw.attributes as RawProductAttributes | null;
     return {
       id: raw.id,
@@ -317,7 +320,7 @@ export class PrismaProductQueryRepository implements ProductQueryRepository {
     };
   }
 
-  private mapToDetailResult(raw: RawQueryProduct): ProductDetailResult {
+  private mapToDetailResult(raw: RawQueryProduct): ProductQueryDetailResult {
     const attrs = raw.attributes as RawProductAttributes | null;
     return {
       id: raw.id,

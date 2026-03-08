@@ -2,6 +2,7 @@ import { ApplicationArea, FinishingType, Grade } from "../../domain";
 
 export interface ProductItem {
   id: string;
+  sku: string;
   name: string;
   description: string | null;
   brand: string | null;
@@ -30,5 +31,4 @@ export interface ProductItem {
   };
   updatedAt: Date;
   createdAt: Date;
-  deletedAt: Date | null;
 }

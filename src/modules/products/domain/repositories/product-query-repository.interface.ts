@@ -46,7 +46,7 @@ export interface FindAllProductsQueryOptions {
 }
 
 // ===== Query Results =====
-export interface ProductListItemResult {
+export interface ProductQueryListItemResult {
   id: string;
   sku: string;
   name: string;
@@ -70,11 +70,11 @@ export interface ProductListItemResult {
 }
 
 export interface FindAllProductsQueryResult {
-  products: ProductListItemResult[];
+  products: ProductQueryListItemResult[];
   total: number;
 }
 
-export interface ProductDetailResult {
+export interface ProductQueryDetailResult {
   id: string;
   sku: string;
   name: string;
@@ -122,11 +122,11 @@ export interface ProductQueryRepository {
    * Get product detail by ID for display
    * Returns plain object with all product data
    */
-  getProductDetailById(productId: string): Promise<ProductDetailResult | null>;
+  getProductDetailById(productId: string): Promise<ProductQueryDetailResult | null>;
 
   /**
    * Get product detail by SKU for display
    * Returns plain object with all product data
    */
-  getProductDetailBySKU(sku: string): Promise<ProductDetailResult | null>;
+  getProductDetailBySKU(sku: string): Promise<ProductQueryDetailResult | null>;
 }
