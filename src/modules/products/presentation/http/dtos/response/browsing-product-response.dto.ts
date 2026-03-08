@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Expose, Type } from 'class-transformer';
 import {
   ApplicationArea,
   FinishingType,
@@ -84,6 +85,7 @@ class BrowsingProductItemResponseDto {
   tilePerBox: number;
 
   @ApiProperty({ example: 'ACTIVE' })
+  @Expose({ groups: ['admin'] })
   status: string;
 
   @ApiProperty({ type: BrowsingProductSizeResponseDto })
@@ -93,9 +95,11 @@ class BrowsingProductItemResponseDto {
   attributes: BrowsingProductAttributesResponseDto;
 
   @ApiProperty({ description: 'Last update timestamp' })
+  @Expose({ groups: ['admin'] })
   updatedAt: Date;
 
   @ApiProperty({ description: 'Creation timestamp' })
+  @Expose({ groups: ['admin'] })
   createdAt: Date;
 }
 
@@ -121,9 +125,11 @@ class BrowsingProductPaginationResponseDto {
 
 export class BrowsingProductResponseDto {
   @ApiProperty({ type: BrowsingProductItemResponseDto, isArray: true })
+  @Type(() => BrowsingProductItemResponseDto)
   products: BrowsingProductItemResponseDto[];
 
   @ApiProperty({ type: BrowsingProductPaginationResponseDto })
+  @Type(() => BrowsingProductPaginationResponseDto)
   pagination: BrowsingProductPaginationResponseDto;
 
   constructor(partial: Partial<BrowsingProductResponseDto>) {

@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
@@ -10,6 +10,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
 import { DomainErrorExceptionFilter } from './common/filters/domain-error-exception.filter';
+import { RoleBasedClassSerializerInterceptor } from './common/interceptors/role-based-class-serializer.interceptor';
 
 async function bootstrap() {
   // Create the NestJS application instancem, Enable CORS
@@ -32,9 +33,9 @@ async function bootstrap() {
   }));
 
   // Set up global serialization interceptor
-  // app.useGlobalInterceptors(
-  //   new ClassSerializerInterceptor(app.get(Reflector))
-  // )
+  app.useGlobalInterceptors(
+    new RoleBasedClassSerializerInterceptor(app.get(Reflector)),
+  )
 
   // Enable shutdown hooks for graceful shutdown
   app.enableShutdownHooks();

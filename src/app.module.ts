@@ -37,6 +37,7 @@ import { CacheInvalidatorModule } from './core/infrastructure/services/cache-inv
 import elasticsearchConfig from './core/infrastructure/persistence/elasticsearch/config/elasticsearch.config';
 import { ElasticsearchModule } from './core/infrastructure/persistence/elasticsearch/elasticsearch.module';
 import { ProductsModule } from './modules/products/products.module';
+import { AuthContextGuard } from './modules/auth/presentation/http/guard/auth-context.guard';
 
 @Module({
   imports: [
@@ -127,6 +128,10 @@ import { ProductsModule } from './modules/products/products.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthContextGuard
     }
   ],
 })
