@@ -33,27 +33,6 @@ class BrowsingProductAttributesResponseDto {
     enum: ApplicationArea,
   })
   applicationAreas?: ApplicationArea[];
-
-  @ApiPropertyOptional({ example: 'R10' })
-  antiSlipRating?: string;
-
-  @ApiPropertyOptional({ example: '0.5' })
-  waterAbsorption?: string;
-
-  @ApiPropertyOptional({ example: 'Marfil' })
-  color?: string;
-
-  @ApiPropertyOptional({ example: 'Wood Grain' })
-  pattern?: string;
-
-  @ApiPropertyOptional({ example: true })
-  isOutdoor?: boolean;
-
-  @ApiPropertyOptional({ example: true })
-  frostResistant?: boolean;
-
-  @ApiPropertyOptional({ example: 3, type: Number })
-  peiRating?: number;
 }
 
 class BrowsingProductItemResponseDto {
@@ -65,9 +44,6 @@ class BrowsingProductItemResponseDto {
 
   @ApiProperty({ example: 'Keramik Lantai Glossy 60x60 Marfil' })
   name: string;
-
-  @ApiPropertyOptional({ nullable: true, example: 'Keramik lantai dengan finishing glossy, cocok untuk area dalam ruangan.' })
-  description: string | null;
 
   @ApiPropertyOptional({ nullable: true, example: 'Keramik Marfil' })
   brand: string | null;
@@ -93,14 +69,6 @@ class BrowsingProductItemResponseDto {
 
   @ApiProperty({ type: BrowsingProductAttributesResponseDto })
   attributes: BrowsingProductAttributesResponseDto;
-
-  @ApiProperty({ description: 'Last update timestamp' })
-  @Expose({ groups: ['admin'] })
-  updatedAt: Date;
-
-  @ApiProperty({ description: 'Creation timestamp' })
-  @Expose({ groups: ['admin'] })
-  createdAt: Date;
 }
 
 class BrowsingProductPaginationResponseDto {

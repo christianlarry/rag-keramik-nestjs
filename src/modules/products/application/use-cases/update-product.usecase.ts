@@ -4,7 +4,6 @@ import {
   FinishingType,
   Grade,
   PRODUCT_REPOSITORY_TOKEN,
-  ProductNotFoundError,
   ProductId,
   ProductName,
   ProductAttributes,
@@ -14,6 +13,7 @@ import { ProductSize } from "../../domain/value-objects/product-size.vo";
 import { DimensionUnit } from "../../domain/value-objects/dimension-unit.vo";
 import { ProductUpdatedAppEvent } from "../events/product-updated-app.event";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { ProductNotFoundError } from "../errors";
 
 interface UpdateProductCommand {
   updatedBy: string; // Actor who updates the product, for auditing purposes

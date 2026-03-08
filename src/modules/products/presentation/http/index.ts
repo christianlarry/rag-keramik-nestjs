@@ -3,4 +3,4 @@ export * from './products-read.controller';
 
 export * from './dtos';
 
-export * from './errors/product-error-to-http-status.map'
+export * from './errors/product-domain-error-to-http-status.map'

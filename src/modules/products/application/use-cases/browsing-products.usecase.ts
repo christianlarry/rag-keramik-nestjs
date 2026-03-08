@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ApplicationArea, FinishingType, Grade, PRODUCT_QUERY_REPOSITORY_TOKEN, ProductQueryListItemResult, type ProductQueryRepository } from "../../domain";
-import { ProductItem } from "../interfaces/product-item.interface";
+import { ProductListItem } from "../interfaces/product-list-item.interface";
 
 interface BrowsingProductsCommand {
   page?: number;
@@ -39,7 +39,7 @@ interface BrowsingProductsCommand {
 }
 
 interface BrowsingProductsResult {
-  products: Array<ProductItem>;
+  products: Array<ProductListItem>;
   pagination: {
     currentPage: number;
     itemsPerPage: number;
@@ -101,7 +101,7 @@ export class BrowsingProductsUseCase {
 
       const totalPages = Math.ceil(totalItems / limit);
       return {
-        products: products.map(product => this.mapToProductItem(product)),
+        products: products.map(product => this.mapToProductListItem(product)),
         pagination: {
           currentPage: page,
           itemsPerPage: limit,
@@ -114,12 +114,11 @@ export class BrowsingProductsUseCase {
     }
   }
 
-  mapToProductItem(product: ProductQueryListItemResult): ProductItem {
+  mapToProductListItem(product: ProductQueryListItemResult): ProductListItem {
     return {
       id: product.id,
       sku: product.sku,
       name: product.name,
-      description: product.description,
       brand: product.brand,
       imageUrl: product.imageUrl,
       price: product.price,
@@ -127,9 +126,11 @@ export class BrowsingProductsUseCase {
       tilePerBox: product.tilePerBox,
       status: product.status,
       size: product.size,
-      attributes: product.attributes,
-      updatedAt: product.updatedAt,
-      createdAt: product.createdAt,
+      attributes: {
+        grade: product.attributes.grade as Grade,
+        finishing: product.attributes.finishing as FinishingType,
+        applicationAreas: product.attributes.applicationAreas as ApplicationArea[],
+      },
     };
   }
 }

@@ -1,7 +1,7 @@
 import { HttpStatus } from "@nestjs/common";
 import { ProductErrorCode } from "src/modules/products/domain/errors/enums/product-error-code.enum";
 
-export const productErrorToHttpStatusMap: Record<ProductErrorCode, HttpStatus> =
+export const productDomainErrorToHttpStatusMap: Record<ProductErrorCode, HttpStatus> =
 {
   // 400 Bad Request - Validation errors
   PRODUCT_INVALID_PRODUCT_ID: HttpStatus.BAD_REQUEST,
@@ -21,12 +21,7 @@ export const productErrorToHttpStatusMap: Record<ProductErrorCode, HttpStatus> =
   PRODUCT_INVALID_FINISHING: HttpStatus.BAD_REQUEST,
   PRODUCT_INVALID_APPLICATION_AREA: HttpStatus.BAD_REQUEST,
 
-  // 404 Not Found
-  PRODUCT_NOT_FOUND: HttpStatus.NOT_FOUND,
-
   // 409 Conflict - Business rule conflicts
-  PRODUCT_ALREADY_EXISTS: HttpStatus.CONFLICT,
-  PRODUCT_SKU_ALREADY_EXISTS: HttpStatus.CONFLICT,
   PRODUCT_IS_DISCONTINUED: HttpStatus.CONFLICT,
   PRODUCT_IS_DELETED: HttpStatus.CONFLICT,
   PRODUCT_IS_INACTIVE: HttpStatus.CONFLICT,

@@ -1,7 +1,8 @@
 import { Inject } from "@nestjs/common";
-import { PRODUCT_REPOSITORY_TOKEN, ProductId, ProductNotFoundError, type ProductRepository } from "../../domain";
+import { PRODUCT_REPOSITORY_TOKEN, ProductId, type ProductRepository } from "../../domain";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ProductDeletedAppEvent } from "../events/product-deleted-app.event";
+import { ProductNotFoundError } from "../errors";
 
 interface DeleteProductCommand {
   productId: string;

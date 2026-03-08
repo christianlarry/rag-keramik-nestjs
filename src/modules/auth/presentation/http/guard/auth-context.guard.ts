@@ -2,6 +2,8 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Observable } from "rxjs";
 import { RequestedUser } from "../interfaces/requested-user.interface";
+import { ConfigService } from "@nestjs/config";
+import { AllConfigType } from "src/config/config.type";
 
 @Injectable()
 export class AuthContextGuard implements CanActivate {
@@ -14,7 +16,10 @@ export class AuthContextGuard implements CanActivate {
   Terima Gaji!!!
   */
 
-  constructor(private jwtService: JwtService) { }
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly config: ConfigService<AllConfigType>
+  ) { }
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -38,7 +43,9 @@ export class AuthContextGuard implements CanActivate {
   }
 
   private verifyToken(token: string): RequestedUser {
-    const payload = this.jwtService.verify<RequestedUser>(token);
+    const payload = this.jwtService.verify<RequestedUser>(token, {
+      secret: this.config.get('auth.accessTokenSecret', { infer: true }),
+    });
 
     return payload;
   }

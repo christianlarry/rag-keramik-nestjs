@@ -6,30 +6,26 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { DomainError } from 'src/core/domain/domain-error.base';
-import { authErrorToHttpStatusMap } from 'src/modules/auth/presentation/http/errors/auth-error-to-http-status.map';
-import { productDomainErrorToHttpStatusMap } from 'src/modules/products/presentation/http/errors/product-domain-error-to-http-status.map';
-import { userErrorToHttpStatusMap } from 'src/modules/users/presentation/errors/user-error-to-http-status.map';
+import { ApplicationError } from 'src/core/application/application-error.base';
+import { ProductApplicationErrorToHttpStatusMap } from 'src/modules/products/presentation/http/errors/product-application-error-to-http-status.map';
 
 /**
- * Exception filter that catches all DomainError exceptions
+ * Exception filter that catches all ApplicationError exceptions
  * and transforms them into appropriate HTTP responses with proper status codes.
  */
-@Catch(DomainError)
-export class DomainErrorExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(DomainErrorExceptionFilter.name);
+@Catch(ApplicationError)
+export class ApplicationErrorExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(ApplicationErrorExceptionFilter.name);
 
   /**
-   * Maps domain error codes to HTTP status codes.
-   * This ensures that domain errors are translated to appropriate HTTP responses.
+   * Maps application error codes to HTTP status codes.
+   * This ensures that application errors are translated to appropriate HTTP responses.
    */
   private readonly errorCodeToHttpStatusMap: Record<string, HttpStatus> = {
-    ...authErrorToHttpStatusMap,
-    ...userErrorToHttpStatusMap,
-    ...productDomainErrorToHttpStatusMap,
+    ...ProductApplicationErrorToHttpStatusMap,
   };
 
-  catch(exception: DomainError, host: ArgumentsHost): void {
+  catch(exception: ApplicationError, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -48,7 +44,7 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
   }
 
   /**
-   * Determines the appropriate HTTP status code for a domain error.
+   * Determines the appropriate HTTP status code for an application error.
    * Returns 500 Internal Server Error for unmapped error codes.
    */
   private getHttpStatus(errorCode: string): HttpStatus {
@@ -62,7 +58,7 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
    * Builds a standardized error response object.
    */
   private buildErrorResponse(
-    exception: DomainError,
+    exception: ApplicationError,
     status: HttpStatus,
     path: string,
   ) {
@@ -99,11 +95,11 @@ export class DomainErrorExceptionFilter implements ExceptionFilter {
    * - 5xx errors: error (server errors)
    */
   private logError(
-    exception: DomainError,
+    exception: ApplicationError,
     status: HttpStatus,
     request: Request,
   ): void {
-    const logMessage = `Domain Error: ${exception.code} - ${exception.message}`;
+    const logMessage = `Application Error: ${exception.code} - ${exception.message}`;
     const logContext = {
       errorCode: exception.code,
       statusCode: status,

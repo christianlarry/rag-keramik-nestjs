@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
 import { DomainErrorExceptionFilter } from './common/filters/domain-error-exception.filter';
 import { RoleBasedClassSerializerInterceptor } from './common/interceptors/role-based-class-serializer.interceptor';
+import { ApplicationErrorExceptionFilter } from './common/filters/application-error.exception.filter';
 
 async function bootstrap() {
   // Create the NestJS application instancem, Enable CORS
@@ -22,7 +23,8 @@ async function bootstrap() {
   // Set up global exception filters
   app.useGlobalFilters(
     new DomainErrorExceptionFilter(),
-    new PrismaClientExceptionFilter()
+    new ApplicationErrorExceptionFilter(),
+    new PrismaClientExceptionFilter(),
   );
 
   // Set up global validation pipe
